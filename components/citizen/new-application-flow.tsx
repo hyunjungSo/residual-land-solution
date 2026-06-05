@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { FormLabel } from "@/components/ui/form-label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Check, ChevronLeft, ChevronDown, MapPin, Ruler, Search, FileText, Sparkles, ClipboardCheck, CheckCircle, XCircle, Loader2, X, Trash2, ClipboardList } from "lucide-react";
+import { Check, ChevronLeft, ChevronDown, MapPin, Search, FileText, Sparkles, ClipboardCheck, XCircle, X, Trash2, ClipboardList, ShoppingCart } from "lucide-react";
 import type { LandInfo, AIAnalysisResult, Application } from "@/lib/types";
 import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/hooks/use-toast";
@@ -83,7 +83,7 @@ const myParcels = [
     address: "인천시 연수구 송도동 123-99",
     area: 420,
     remainingArea: 150,
-    landCategory: "잡종지" as const,
+    landCategory: "잡" as const,
     landUse: "일반상업지역",
     roadContact: "20m 도로" as const,
     ownerName: "홍길동",
@@ -169,7 +169,7 @@ const myParcels = [
     address: "충청남도 천안시 서북구 성정동 777-4",
     area: 180,
     remainingArea: 70,
-    landCategory: "잡종지" as const,
+    landCategory: "잡" as const,
     landUse: "계획관리지역",
     roadContact: "6m 도로" as const,
     ownerName: "홍길동",
@@ -349,7 +349,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
   const [applicationForm, setApplicationForm] = useState({
     contact: user?.contact || "",
     postalCode: "",
-    address: user?.address || "",
+    address: "",
     addressDetail: "",
     reason: "",
     attachments: [] as File[],
@@ -490,7 +490,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
     setCurrentQuestion(0);
     setAnswers({});
     setAiResult(null);
-    setApplicationForm({ contact: user?.contact || "", address: user?.address || "", reason: "", attachments: [] });
+    setApplicationForm({ contact: user?.contact || "", postalCode: "", address: "", addressDetail: "", reason: "", attachments: [] });
   };
 
   // 신청 제출
@@ -500,39 +500,61 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
       const selectedItems = cartItems.filter(item => selectedCartItems.has(item.id));
       const firstItem = selectedItems[0];
       
+      const _area = firstItem.parcel.area ?? 0;
+      const _remaining = firstItem.parcel.remainingArea ?? 0;
       const landInfo: LandInfo = {
         id: firstItem.parcel.id,
         address: firstItem.parcel.address,
-        area: firstItem.parcel.area,
-        remainingArea: firstItem.parcel.remainingArea,
+        originalArea: _area,
+        includedArea: _area - _remaining,
+        remainingArea: _remaining,
+        remainingRatio: _area > 0 ? Math.round((_remaining / _area) * 1000) / 10 : 0,
+        landType: "택지",
         landCategory: firstItem.parcel.landCategory,
-        landUse: firstItem.parcel.landUse,
-        roadContact: firstItem.parcel.roadContact,
+        originalShape: "정방형",
+        remainingShape: "부정형",
+        originalShapeIndex: 1.0,
+        remainingShapeIndex: 5.0,
         ownerName: firstItem.parcel.ownerName,
-        officialPrice: 500000,
-        acquisitionDate: "2020-03-15",
+        hasIncludedLand: true,
+        projectName: firstItem.parcel.projectName,
       };
 
       const aiResultData: AIAnalysisResult = {
+        landTypePath: "택지",
+        criteriaChecks: [],
         provisionalJudgment: firstItem.aiResult.judgment === "매수 가능성 높음" ? "수용가능" : "수용불가",
-        confidenceScore: firstItem.aiResult.score,
-        reasoning: firstItem.aiResult.reasoning,
-        comparisonCases: [],
-        reviewDate: new Date().toISOString(),
-        reviewerId: "AI-SYSTEM",
+        originalShapeIndex: 1.0,
+        remainingShapeIndex: 5.0,
+        shapeIndexChange: 4.0,
+        isBlindLand: false,
+        accessRoadLost: false,
+        waterChannelLost: false,
+        farmMachineDifficulty: false,
+        judgmentRationale: {
+          summary: firstItem.aiResult.reasoning || "",
+          legalBasis: "",
+          appliedCriteria: [],
+          detailedExplanation: firstItem.aiResult.reasoning || "",
+        },
       };
 
       const application: Application = {
         id: `APP-${Date.now()}`,
+        applicationNumber: `2026-${Date.now().toString().slice(-6)}`,
+        applicationType: "단일",
         applicantName: user?.name || firstItem.parcel.ownerName,
         applicantContact: applicationForm.contact,
-        applicantEmail: "",
-        applicationDate: new Date().toISOString(),
-        status: "검토중",
+        applicantAddress: applicationForm.address || "",
         landInfo,
+        actualUsage: "대",
+        reportedShape: "정방형",
+        reason: `[${selectedItems.length}건 일괄 신청]\n${selectedItems.map(item => item.parcel.address).join('\n')}\n\n${applicationForm.reason}`,
+        attachments: [],
+        status: "검토중",
+        adminStatus: "신청접수",
+        appliedAt: new Date().toISOString(),
         aiResult: aiResultData,
-        documents: [],
-        additionalNotes: `[${selectedItems.length}건 일괄 신청]\n${selectedItems.map(item => item.parcel.address).join('\n')}\n\n${applicationForm.reason}`,
       };
 
       // 신청한 항목 장바구니에서 제거
@@ -546,17 +568,24 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
     // 단일 분석에서 신청하는 경우
     if (!selectedParcel || !aiResult) return;
 
+    const _area2 = selectedParcel.area ?? 0;
+    const _remaining2 = selectedParcel.remainingArea ?? 0;
     const landInfo: LandInfo = {
       id: selectedParcel.id,
       address: selectedParcel.address,
-      area: selectedParcel.area,
-      remainingArea: selectedParcel.remainingArea,
+      originalArea: _area2,
+      includedArea: _area2 - _remaining2,
+      remainingArea: _remaining2,
+      remainingRatio: _area2 > 0 ? Math.round((_remaining2 / _area2) * 1000) / 10 : 0,
+      landType: "택지",
       landCategory: selectedParcel.landCategory,
-      landUse: selectedParcel.landUse,
-      roadContact: selectedParcel.roadContact,
+      originalShape: "정방형",
+      remainingShape: "부정형",
+      originalShapeIndex: 1.0,
+      remainingShapeIndex: 5.0,
       ownerName: selectedParcel.ownerName,
-      officialPrice: 500000,
-      acquisitionDate: "2020-03-15",
+      hasIncludedLand: true,
+      projectName: selectedParcel.projectName,
     };
 
     const aiResultData: AIAnalysisResult = {
@@ -591,7 +620,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
     setCurrentQuestion(0);
     setAnswers({});
     setAiResult(null);
-    setApplicationForm({ contact: user?.contact || "", address: user?.address || "", reason: "", attachments: [] });
+    setApplicationForm({ contact: user?.contact || "", postalCode: "", address: "", addressDetail: "", reason: "", attachments: [] });
   };
 
   // 매수신청 목록에 추가
@@ -802,7 +831,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
 
                       {/* 토지 정보 */}
                       <div className="flex-1 min-w-0">
-                        {/* 상단: 프로젝트���(좌), 신청완료/목록담김(우) */}
+                        {/* 상단: 프로젝트명(좌), 신청완료/목록담김(우) */}
                         <div className="flex items-center justify-between gap-2 mb-2">
                           <span className="text-xs text-gray-600 truncate max-w-[180px]">
                             {parcel.projectName}

@@ -778,7 +778,7 @@ export function BatchAnalysis({
                   <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
                 </div>
               </div>
-              {/* 판독�������기: Indigo */}
+              {/* 판독 대기: Indigo */}
               <div 
                 onClick={() => handleAiJudgmentClick("pending")}
                 className="flex cursor-pointer flex-col items-center rounded-lg bg-indigo-50 p-4 transition-all hover:bg-indigo-100"

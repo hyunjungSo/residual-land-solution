@@ -704,7 +704,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
         <DialogContent className="max-w-md p-8 relative">
           <DialogHeader className="pr-8">
             <DialogTitle className="text-xl">
-              {pendingVisibilityChange ? "필지 정보 공개 ���인" : "필지 정보 비공개 확인"}
+              {pendingVisibilityChange ? "필지 정보 공개 확인" : "필지 정보 비공개 확인"}
             </DialogTitle>
             <DialogDescription className="pt-4 space-y-4 leading-7 text-base" asChild>
               <div>

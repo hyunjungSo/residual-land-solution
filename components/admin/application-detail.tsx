@@ -53,7 +53,6 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 
 interface ApplicationDetailProps {
@@ -62,6 +61,7 @@ interface ApplicationDetailProps {
   onSave: (application: Application) => void;
   onNavigateToList?: () => void;
   onDirtyChange?: (isDirty: boolean) => void;
+  onOpenReview?: (application: Application) => void;
 }
 
 // 담당자 판정 (매수/기각/이관) - JUDGMENT_COLORS 기반
@@ -119,7 +119,7 @@ interface LandReviewData {
   landComment: string; // 필지별 검토의견
 }
 
-export function ApplicationDetail({ application, onBack, onSave, onNavigateToList, onDirtyChange }: ApplicationDetailProps) {
+export function ApplicationDetail({ application, onBack, onSave, onNavigateToList, onDirtyChange, onOpenReview }: ApplicationDetailProps) {
 // 복수 필지 여부 확인
   const isMultipleLands = application.additionalLands && application.additionalLands.length > 0;
   
@@ -978,11 +978,9 @@ purchaseDecision: result?.provisionalJudgment === "수용가능" ? "O" as const 
           <h1 className="text-3xl font-bold">신청 상세</h1>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="secondary" asChild>
-            <Link href={`/admin/review/${application.id}`}>
-              <FileText className="mr-2 h-4 w-4" />
-              심의서 작성
-            </Link>
+          <Button variant="secondary" onClick={() => onOpenReview?.(application)}>
+            <FileText className="mr-2 h-4 w-4" />
+            심의서 작성
           </Button>
         </div>
       </div>
@@ -2082,7 +2080,7 @@ purchaseDecision: result?.provisionalJudgment === "수용가능" ? "O" as const 
                                       {(() => {
                                         const explanation = aiResult?.judgmentRationale?.detailedExplanation;
                                         if (!explanation) {
-                                          return `[필지 정보]\n주소: ${land.address}\n지목: ${land.landType} (${land.landCategory})\n편입 전 면적: ${land.originalArea.toLocaleString()}㎡\n잔여 면적: ${land.remainingArea.toLocaleString()}㎡ (${land.remainingRatio}%)\n\n[분석 결과]\n• 잔여면�� ${land.remainingArea.toLocaleString()}㎡\n• 잔여비율 ${land.remainingRatio}%`;
+                                          return `[필지 정보]\n주소: ${land.address}\n지목: ${land.landType} (${land.landCategory})\n편입 전 면적: ${land.originalArea.toLocaleString()}㎡\n잔여 면적: ${land.remainingArea.toLocaleString()}㎡ (${land.remainingRatio}%)\n\n[분석 결과]\n• 잔여면적 ${land.remainingArea.toLocaleString()}㎡\n• 잔여비율 ${land.remainingRatio}%`;
                                         }
                                         
                                         // If this is multi-parcel and explanation contains all parcels info,

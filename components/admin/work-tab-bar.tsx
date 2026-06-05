@@ -8,7 +8,8 @@ export type WorkTabType =
   | "applications"
   | "parcel-management"
   | "application-detail"
-  | "parcel-detail";
+  | "parcel-detail"
+  | "review-document";
 
 export interface WorkTab {
   id: string;
@@ -30,6 +31,7 @@ function TabIcon({ type }: { type: WorkTabType }) {
   if (type === "applications") return <LayoutDashboard className="h-4 w-4 shrink-0" />;
   if (type === "parcel-management") return <LayoutDashboard className="h-4 w-4 shrink-0" />;
   if (type === "application-detail") return <FileText className="h-4 w-4 shrink-0" />;
+  if (type === "review-document") return <FileText className="h-4 w-4 shrink-0" />;
   return <MapPin className="h-4 w-4 shrink-0" />;
 }
 

@@ -8,6 +8,7 @@ import { ApplicationList } from "@/components/admin/application-list";
 import { ApplicationDetail } from "@/components/admin/application-detail";
 import { BatchAnalysis } from "@/components/admin/batch-analysis";
 import { ParcelDetailReview } from "@/components/admin/parcel-detail-review";
+import { ReviewDocumentView } from "@/components/admin/review-document-view";
 import { LoginScreen } from "@/components/admin/login-screen";
 import { WorkTabBar, type WorkTab } from "@/components/admin/work-tab-bar";
 import type { Application, ProcessedParcel } from "@/lib/types";
@@ -119,6 +120,8 @@ function AdminPageContent() {
     activeDetailTab?.type === "parcel-detail"
       ? processedParcels.find(p => p.id === activeDetailTab.refId) || null
       : null;
+  const activeReviewId =
+    activeDetailTab?.type === "review-document" ? activeDetailTab.refId : null;
 
   // 신청 상세 탭 열기
   const openApplicationTab = (application: Application) => {
@@ -156,6 +159,17 @@ function AdminPageContent() {
               closable: true,
             },
           ]
+    );
+    setActiveDetailId(id);
+  };
+
+  // 심의서 탭 열기
+  const openReviewTab = (application: Application) => {
+    const id = `review-${application.id}`;
+    setDetailTabs((prev) =>
+      prev.some((t) => t.id === id)
+        ? prev
+        : [...prev, { id, type: "review-document", label: `심의서 - ${application.applicationNumber}`, refId: application.id, closable: true }]
     );
     setActiveDetailId(id);
   };
@@ -205,7 +219,7 @@ function AdminPageContent() {
   // 사업지구 변경 확정: 기존 탭 배열 초기화 → 새 사업지구 적용(데이터 전환) → 신청관리 홈 활성화
   const confirmProjectUnitChange = () => {
     if (!pendingProjectUnit) return;
-    // 1. 기존 가�� 상세 탭 ���체 초기화
+    // 1. 기존 열린 상세 탭 전체 초기화
     setDetailTabs([]);
     setActiveDetailId(null);
     // 2. 새 사업지구 데이터로 전환
@@ -265,7 +279,7 @@ function AdminPageContent() {
     return <LoginScreen onLogin={handleLogin} />;
   }
 
-  // 필지상세에서 신��상세로 이동
+  // 필지상세에서 신청상세로 이동
   const handleNavigateToApplication = (applicationId: string) => {
     const application = applications.find(app => app.id === applicationId);
     if (application) {
@@ -273,9 +287,17 @@ function AdminPageContent() {
     }
   };
 
+  // 현재 탭 닫고 베이스 화면 전환
+  const closeTabAndGoToBase = (tab: BaseTab) => {
+    setIsDetailDirty(false);
+    setDetailTabs((prev) => prev.filter((t) => t.id !== activeDetailId));
+    setActiveDetailId(null);
+    setBaseTab(tab);
+  };
+
   // 신청 목록(베이스)으로 이동
   const handleNavigateToApplicationList = () => {
-    goToBase("applications");
+    closeTabAndGoToBase("applications");
   };
 
   return (
@@ -381,7 +403,7 @@ function AdminPageContent() {
 
       {/* 오른쪽 콘텐츠 영역 */}
       <main className="flex-1 p-6 overflow-auto h-screen" style={{ backgroundColor: '#f3f6f9' }}>
-        {/* 동적 상세 탭 바 (열린 상세�� 있을 때만 노출, 고정 대시보드 탭 없음) */}
+        {/* 동적 상세 탭 바 (열린 상세가 있을 때만 노출, 고정 대시보드 탭 없음) */}
         {detailTabs.length > 0 && (
           <div className="sticky -top-6 z-[9999] -mx-6 -mt-6 mb-6 bg-[rgb(243,246,249)]">
             <WorkTabBar
@@ -403,13 +425,14 @@ function AdminPageContent() {
               onSave={handleSave}
               onNavigateToList={handleNavigateToApplicationList}
               onDirtyChange={setIsDetailDirty}
+              onOpenReview={openReviewTab}
             />
             {/* 콘텐츠 하단 - 버튼 영역 (목록, 취소, 저장) */}
             <div className="flex items-center justify-between mt-6 pb-6">
               {/* 좌측 - 목록보기 버튼 */}
               <Button
                 variant="outline"
-                onClick={() => requestNav(handleNavigateToApplicationList)}
+                onClick={() => requestNav(() => closeTabAndGoToBase("applications"))}
                 className="w-[80px] text-foreground border-foreground hover:bg-foreground/5"
               >
                 목록
@@ -441,10 +464,15 @@ function AdminPageContent() {
         {activeDetailTab && activeParcel && (
           <ParcelDetailReview
             parcel={activeParcel}
-            onBack={() => setActiveDetailId(null)}
+            onBack={() => closeTabAndGoToBase("parcel-management")}
             onUpdate={handleParcelUpdate}
             onNavigateToApplication={handleNavigateToApplication}
           />
+        )}
+
+        {/* 심의서 탭 */}
+        {activeReviewId && (
+          <ReviewDocumentView applicationId={activeReviewId} />
         )}
 
         {/* 베이스: 신청관리 목록 */}

@@ -257,59 +257,59 @@ export default function ReviewDocumentPage({
 
   if (!application) {
     return (
-      <div className="min-h-screen bg-background">
-        <main className="mx-auto w-full max-w-[1550px] px-4 py-8 sm:px-6 lg:px-8">
+      <div className="flex h-screen flex-col bg-[rgb(243,246,249)]">
+        <header className="flex h-14 shrink-0 items-center border-b bg-white px-6 print:hidden">
           <p className="text-muted-foreground">민원을 찾을 수 없습니다.</p>
-        </main>
+        </header>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className="mx-auto w-full max-w-[1550px] px-4 py-8 sm:px-6 lg:px-8">
-        <div className="space-y-6">
-          {/* 상단 네비게이션 */}
-          <div className="flex items-center justify-between print:hidden">
-            <Button variant="ghost" onClick={() => router.push(`/admin?appId=${resolvedParams.id}`)}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              돌아가기
-            </Button>
-            <div className="flex gap-2">
-              {isEditing && (
-                <Button onClick={handleGenerate}>
-                  완료
-                </Button>
-              )}
-              {isGenerated && !isEditing && (
-                <>
-                  <Button variant="outline" onClick={handleEdit}>
-                    <Edit3 className="mr-2 h-4 w-4" />
-                    수정
-                  </Button>
-                  <Button variant="outline" onClick={() => window.print()}>
-                    <Printer className="mr-2 h-4 w-4" />
-                    인쇄
-                  </Button>
-                  <Button variant="outline">
-                    <Download className="mr-2 h-4 w-4" />
-                    PDF 다운로드
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-
-          <div className="print:hidden">
-            <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
-              심의서 작성 {isGenerated && !isEditing && "완료"}
-            </h1>
-            <p className="mt-1 text-muted-foreground">
+    <div className="flex h-screen flex-col bg-[rgb(243,246,249)]">
+      {/* 상단 고정 헤더바 */}
+      <header className="flex h-14 shrink-0 items-center justify-between border-b bg-white px-6 print:hidden">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="sm" onClick={() => router.push(`/admin?appId=${resolvedParams.id}`)}>
+            <ArrowLeft className="mr-1.5 h-4 w-4" />
+            돌아가기
+          </Button>
+          <div className="h-4 w-px bg-gray-200" />
+          <div>
+            <span className="text-sm font-semibold text-gray-900">심의서 작성</span>
+            <span className="ml-2 text-xs text-muted-foreground">
               접수번호: {application?.applicationNumber ?? "-"}
-            </p>
+            </span>
           </div>
+        </div>
+        <div className="flex gap-2">
+          {isEditing && (
+            <Button size="sm" onClick={handleGenerate}>
+              완료
+            </Button>
+          )}
+          {isGenerated && !isEditing && (
+            <>
+              <Button variant="outline" size="sm" onClick={handleEdit}>
+                <Edit3 className="mr-1.5 h-4 w-4" />
+                수정
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => window.print()}>
+                <Printer className="mr-1.5 h-4 w-4" />
+                인쇄
+              </Button>
+              <Button variant="outline" size="sm">
+                <Download className="mr-1.5 h-4 w-4" />
+                PDF 다운로드
+              </Button>
+            </>
+          )}
+        </div>
+      </header>
 
-          {/* 심의서 본문 */}
+      {/* 메인 콘텐츠 - 스크롤 가능 */}
+      <main className="flex-1 overflow-auto p-6 print:p-0">
+        {/* 심의서 본문 */}
           <Card className="overflow-hidden print:border-none print:shadow-none">
             <CardContent className="p-0">
               <div className="bg-card p-6 print:p-0">
@@ -689,7 +689,6 @@ export default function ReviewDocumentPage({
               </div>
             </CardContent>
           </Card>
-        </div>
       </main>
     </div>
   );
