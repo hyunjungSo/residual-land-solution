@@ -254,6 +254,12 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
               <span className="text-sm font-medium">{parcel.landInfo.ownerName}</span>
             </div>
             <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">공부상 지목:</span>
+              <span className="text-sm font-medium">
+                {landCategories.find(c => c.value === parcel.landInfo.landCategory)?.label ?? parcel.landInfo.landCategory ?? "-"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">토지정보:</span>
               <button
                 type="button"
