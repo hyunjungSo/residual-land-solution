@@ -448,40 +448,36 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                   <Settings2 className="h-4 w-4 text-muted-foreground" />
                                   분석 적용 옵션
                                 </h5>
-                                <div className="rounded-lg p-3" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
-                                  <div className="flex items-center gap-6">
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-xs text-muted-foreground shrink-0">현재 활용지목:</span>
-                                      <span className="text-xs font-medium">
+                                <div className="rounded-lg p-3 space-y-3" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
+                                  <div className="grid grid-cols-3 gap-4">
+                                    <div className="space-y-0.5">
+                                      <p className="text-xs text-muted-foreground">현재 활용지목</p>
+                                      <p className="text-xs font-medium">
                                         {landCategories.find(c => c.value === history.changedOptions?.currentUsage)?.label ?? history.changedOptions?.currentUsage ?? "-"}
-                                      </span>
+                                      </p>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-xs text-muted-foreground shrink-0">토지 형상:</span>
-                                      <span className="text-xs font-medium">
+                                    <div className="space-y-0.5">
+                                      <p className="text-xs text-muted-foreground">토지 형상</p>
+                                      <p className="text-xs font-medium">
                                         {[...landShapes.regular, ...landShapes.irregular].find(s => s.value === history.changedOptions?.landShape)?.label ?? history.changedOptions?.landShape ?? "-"}
-                                      </span>
+                                      </p>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-xs text-muted-foreground shrink-0">담당자 확인항목:</span>
-                                      <span className="text-xs font-medium">
+                                    <div className="space-y-0.5">
+                                      <p className="text-xs text-muted-foreground">담당자 확인항목</p>
+                                      <p className="text-xs font-medium">
                                         {[
                                           history.changedOptions.farmMachineDifficulty && "농기계 진입 불가",
                                           history.changedOptions.accessRoadLost && "접면도로 상실",
                                           history.changedOptions.waterChannelLost && "관개수로 상실",
                                         ].filter(Boolean).join(", ") || "-"}
-                                      </span>
+                                      </p>
                                     </div>
+                                  </div>
+                                  <div className="space-y-0.5 border-t border-slate-200 pt-3">
+                                    <p className="text-xs text-muted-foreground">메모</p>
+                                    <p className="text-xs font-medium whitespace-pre-wrap break-words">{history.memo || "-"}</p>
                                   </div>
                                 </div>
-                                {history.memo && (
-                                  <div className="space-y-1">
-                                    <label className="text-xs font-semibold" style={{ color: "rgb(26, 26, 26)" }}>메모</label>
-                                    <div className="rounded-lg min-h-[80px] overflow-y-auto text-sm whitespace-pre-wrap break-words" style={{ backgroundColor: "rgb(251, 251, 251)", padding: "8px" }}>
-                                      {history.memo}
-                                    </div>
-                                  </div>
-                                )}
                               </div>
                             )}
                             {/* 판정 기준 - 잔여지 형상지수 기반 판정 */}
