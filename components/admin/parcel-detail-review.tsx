@@ -464,23 +464,17 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                     </div>
                                   </div>
                                   <div className="grid grid-cols-3 gap-2 pt-1 border-t border-slate-200">
-                                    <div className="flex items-center justify-between gap-1 p-1.5 rounded bg-white">
+                                    <div className="flex items-center gap-1.5 p-1.5 rounded bg-white">
+                                      <CheckCircle2 className={`h-3.5 w-3.5 shrink-0 ${history.changedOptions.farmMachineDifficulty ? "text-emerald-500" : "text-slate-300"}`} />
                                       <span className="text-xs text-muted-foreground">농기계 진입 불가</span>
-                                      <Badge variant={history.changedOptions.farmMachineDifficulty ? "destructive" : "outline"} className="text-xs px-1.5 py-0">
-                                        {history.changedOptions.farmMachineDifficulty ? "해당" : "미해당"}
-                                      </Badge>
                                     </div>
-                                    <div className="flex items-center justify-between gap-1 p-1.5 rounded bg-white">
+                                    <div className="flex items-center gap-1.5 p-1.5 rounded bg-white">
+                                      <CheckCircle2 className={`h-3.5 w-3.5 shrink-0 ${history.changedOptions.accessRoadLost ? "text-emerald-500" : "text-slate-300"}`} />
                                       <span className="text-xs text-muted-foreground">접면도로 상실</span>
-                                      <Badge variant={history.changedOptions.accessRoadLost ? "destructive" : "outline"} className="text-xs px-1.5 py-0">
-                                        {history.changedOptions.accessRoadLost ? "해당" : "미해당"}
-                                      </Badge>
                                     </div>
-                                    <div className="flex items-center justify-between gap-1 p-1.5 rounded bg-white">
+                                    <div className="flex items-center gap-1.5 p-1.5 rounded bg-white">
+                                      <CheckCircle2 className={`h-3.5 w-3.5 shrink-0 ${history.changedOptions.waterChannelLost ? "text-emerald-500" : "text-slate-300"}`} />
                                       <span className="text-xs text-muted-foreground">관개수로 상실</span>
-                                      <Badge variant={history.changedOptions.waterChannelLost ? "destructive" : "outline"} className="text-xs px-1.5 py-0">
-                                        {history.changedOptions.waterChannelLost ? "해당" : "미해당"}
-                                      </Badge>
                                     </div>
                                   </div>
                                 </div>
