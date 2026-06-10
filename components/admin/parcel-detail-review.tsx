@@ -463,19 +463,15 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                       </span>
                                     </div>
                                   </div>
-                                  <div className="grid grid-cols-3 gap-2 pt-1 border-t border-slate-200">
-                                    <div className="flex items-center gap-1.5 p-1.5 rounded bg-white">
-                                      <CheckCircle2 className={`h-3.5 w-3.5 shrink-0 ${history.changedOptions.farmMachineDifficulty ? "text-emerald-500" : "text-slate-300"}`} />
-                                      <span className="text-xs text-muted-foreground">농기계 진입 불가</span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5 p-1.5 rounded bg-white">
-                                      <CheckCircle2 className={`h-3.5 w-3.5 shrink-0 ${history.changedOptions.accessRoadLost ? "text-emerald-500" : "text-slate-300"}`} />
-                                      <span className="text-xs text-muted-foreground">접면도로 상실</span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5 p-1.5 rounded bg-white">
-                                      <CheckCircle2 className={`h-3.5 w-3.5 shrink-0 ${history.changedOptions.waterChannelLost ? "text-emerald-500" : "text-slate-300"}`} />
-                                      <span className="text-xs text-muted-foreground">관개수로 상실</span>
-                                    </div>
+                                  <div className="flex items-center gap-2 pt-1 border-t border-slate-200">
+                                    <span className="text-xs text-muted-foreground shrink-0">담당자 확인항목:</span>
+                                    <span className="text-xs font-medium">
+                                      {[
+                                        history.changedOptions.farmMachineDifficulty && "농기계 진입 불가",
+                                        history.changedOptions.accessRoadLost && "접면도로 상실",
+                                        history.changedOptions.waterChannelLost && "관개수로 상실",
+                                      ].filter(Boolean).join(", ") || "-"}
+                                    </span>
                                   </div>
                                 </div>
                               </div>
