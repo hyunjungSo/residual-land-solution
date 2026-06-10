@@ -26,6 +26,7 @@ import {
   ChevronRight,
   Loader2,
   Sparkles,
+  Settings2,
 } from "lucide-react";
 import type { 
   ProcessedParcel, 
@@ -440,6 +441,51 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                       <AccordionContent className="pb-4">
                         {aiResult ? (
                             <div className="space-y-4 pt-2">
+                            {/* 분석 적용 옵션 */}
+                            {history.changedOptions && (
+                              <div className="space-y-2">
+                                <h5 className="text-sm font-semibold flex items-center gap-2">
+                                  <Settings2 className="h-4 w-4 text-muted-foreground" />
+                                  분석 적용 옵션
+                                </h5>
+                                <div className="rounded-lg p-3 space-y-2" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
+                                  <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs text-muted-foreground shrink-0">현재 활용지목:</span>
+                                      <span className="text-xs font-medium">
+                                        {landCategories.find(c => c.value === history.changedOptions?.currentUsage)?.label ?? history.changedOptions?.currentUsage ?? "-"}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs text-muted-foreground shrink-0">토지 형상:</span>
+                                      <span className="text-xs font-medium">
+                                        {[...landShapes.regular, ...landShapes.irregular].find(s => s.value === history.changedOptions?.landShape)?.label ?? history.changedOptions?.landShape ?? "-"}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div className="grid grid-cols-3 gap-2 pt-1 border-t border-slate-200">
+                                    <div className="flex items-center justify-between gap-1 p-1.5 rounded bg-white">
+                                      <span className="text-xs text-muted-foreground">농기계 진입 불가</span>
+                                      <Badge variant={history.changedOptions.farmMachineDifficulty ? "destructive" : "outline"} className="text-xs px-1.5 py-0">
+                                        {history.changedOptions.farmMachineDifficulty ? "해당" : "미해당"}
+                                      </Badge>
+                                    </div>
+                                    <div className="flex items-center justify-between gap-1 p-1.5 rounded bg-white">
+                                      <span className="text-xs text-muted-foreground">접면도로 상실</span>
+                                      <Badge variant={history.changedOptions.accessRoadLost ? "destructive" : "outline"} className="text-xs px-1.5 py-0">
+                                        {history.changedOptions.accessRoadLost ? "해당" : "미해당"}
+                                      </Badge>
+                                    </div>
+                                    <div className="flex items-center justify-between gap-1 p-1.5 rounded bg-white">
+                                      <span className="text-xs text-muted-foreground">관개수로 상실</span>
+                                      <Badge variant={history.changedOptions.waterChannelLost ? "destructive" : "outline"} className="text-xs px-1.5 py-0">
+                                        {history.changedOptions.waterChannelLost ? "해당" : "미해당"}
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                             {/* 판정 기준 - 잔여지 형상지수 기반 판정 */}
                             <div className="space-y-4">
                               <div className="space-y-3">
