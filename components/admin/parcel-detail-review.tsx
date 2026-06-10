@@ -448,8 +448,8 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                   <Settings2 className="h-4 w-4 text-muted-foreground" />
                                   분석 적용 옵션
                                 </h5>
-                                <div className="rounded-lg p-3 space-y-2" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
-                                  <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+                                <div className="rounded-lg p-3" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
+                                  <div className="flex items-center gap-6">
                                     <div className="flex items-center gap-2">
                                       <span className="text-xs text-muted-foreground shrink-0">현재 활용지목:</span>
                                       <span className="text-xs font-medium">
@@ -462,18 +462,26 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                         {[...landShapes.regular, ...landShapes.irregular].find(s => s.value === history.changedOptions?.landShape)?.label ?? history.changedOptions?.landShape ?? "-"}
                                       </span>
                                     </div>
-                                  </div>
-                                  <div className="flex items-center gap-2 pt-1 border-t border-slate-200">
-                                    <span className="text-xs text-muted-foreground shrink-0">담당자 확인항목:</span>
-                                    <span className="text-xs font-medium">
-                                      {[
-                                        history.changedOptions.farmMachineDifficulty && "농기계 진입 불가",
-                                        history.changedOptions.accessRoadLost && "접면도로 상실",
-                                        history.changedOptions.waterChannelLost && "관개수로 상실",
-                                      ].filter(Boolean).join(", ") || "-"}
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs text-muted-foreground shrink-0">담당자 확인항목:</span>
+                                      <span className="text-xs font-medium">
+                                        {[
+                                          history.changedOptions.farmMachineDifficulty && "농기계 진입 불가",
+                                          history.changedOptions.accessRoadLost && "접면도로 상실",
+                                          history.changedOptions.waterChannelLost && "관개수로 상실",
+                                        ].filter(Boolean).join(", ") || "-"}
+                                      </span>
+                                    </div>
                                   </div>
                                 </div>
+                                {history.memo && (
+                                  <div className="space-y-1">
+                                    <label className="text-xs font-semibold" style={{ color: "rgb(26, 26, 26)" }}>메모</label>
+                                    <div className="rounded-lg min-h-[80px] overflow-y-auto text-sm whitespace-pre-wrap break-words" style={{ backgroundColor: "rgb(251, 251, 251)", padding: "8px" }}>
+                                      {history.memo}
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             )}
                             {/* 판정 기준 - 잔여지 형상지수 기반 판정 */}
@@ -551,17 +559,6 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                               )}
                             </div>
 
-                            {/* 메모 */}
-                            {history.memo && (
-                              <div className="space-y-2">
-                                <div className="space-y-1">
-                                  <label className="text-xs font-semibold" style={{ color: "rgb(26, 26, 26)" }}>메모</label>
-                                  <div className="rounded-lg min-h-[80px] overflow-y-auto text-sm whitespace-pre-wrap break-words" style={{ backgroundColor: "rgb(251, 251, 251)", padding: "8px" }}>
-                                    {history.memo}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
                           </div>
                         ) : (
                           <p className="text-sm text-muted-foreground py-2">상세 분석 결과가 없습니다.</p>
