@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { FormLabel } from "@/components/ui/form-label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Check, ChevronLeft, ChevronDown, MapPin, Search, FileText, Sparkles, ClipboardCheck, XCircle, X, Trash2, ClipboardList, ShoppingCart } from "lucide-react";
+import { Check, ChevronLeft, ChevronDown, MapPin, Search, FileText, Sparkles, ClipboardCheck, XCircle, X, Trash2, ClipboardList, ShoppingCart, AlertCircle } from "lucide-react";
 import type { LandInfo, AIAnalysisResult, Application } from "@/lib/types";
 import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/hooks/use-toast";
@@ -205,6 +205,18 @@ const myParcels = [
 
 // AI 분석을 위한 정보수집 질문들 (판독 일부 지원 항목만)
 const questions = [
+  // 0. 인접 토지 보유 여부 (공통 질문)
+  {
+    id: "hasAdjacentLand",
+    title: "잔여지에 인접해서 소유하신 땅이 또 있나요?",
+    subtitle: "같은 사업구역 내 인접하여 소유하신 토지가 있는지 확인해 주세요.",
+    type: "radio" as const,
+    layout: "segment" as const,
+    options: [
+      { value: "yes", label: "네, 있습니다" },
+      { value: "no", label: "아니요, 없습니다" },
+    ],
+  },
   // 1. 토지 유형 선택
   {
     id: "landType",
@@ -911,35 +923,54 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
           {/* 답변 옵션 */}
           <div className="space-y-3">
             {currentQuestionData.type === "radio" && currentQuestionData.options && (
-              <RadioGroup
-                value={answers[currentQuestionData.id] || ""}
-                onValueChange={(value) => handleAnswer(currentQuestionData.id, value)}
-                className="grid gap-3"
-              >
-                {currentQuestionData.options.map((option) => (
-                  <Label
-                    key={option.value}
-                    htmlFor={option.value}
-                    className={`flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all ${
-                      answers[currentQuestionData.id] === option.value
-                        ? "border-[#2E8B57] bg-green-50"
-                        : "border-gray-200 hover:border-gray-300 bg-white"
-                    }`}
-                  >
-                    <RadioGroupItem value={option.value} id={option.value} className="sr-only" />
-                    <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 ${
-                      answers[currentQuestionData.id] === option.value
-                        ? "border-[#2E8B57] bg-[#2E8B57]"
-                        : "border-gray-300"
-                    }`}>
-                      {answers[currentQuestionData.id] === option.value && (
-                        <Check className="w-3 h-3 text-white" />
-                      )}
-                    </div>
-                    <span className="text-gray-900">{option.label}</span>
-                  </Label>
-                ))}
-              </RadioGroup>
+              (currentQuestionData as any).layout === "segment" ? (
+                <div className="flex gap-3">
+                  {currentQuestionData.options.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => handleAnswer(currentQuestionData.id, option.value)}
+                      className={`flex-1 py-4 px-6 rounded-xl border-2 text-base font-medium transition-all ${
+                        answers[currentQuestionData.id] === option.value
+                          ? "border-[#2E8B57] bg-[#2E8B57] text-white"
+                          : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <RadioGroup
+                  value={answers[currentQuestionData.id] || ""}
+                  onValueChange={(value) => handleAnswer(currentQuestionData.id, value)}
+                  className="grid gap-3"
+                >
+                  {currentQuestionData.options.map((option) => (
+                    <Label
+                      key={option.value}
+                      htmlFor={option.value}
+                      className={`flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all ${
+                        answers[currentQuestionData.id] === option.value
+                          ? "border-[#2E8B57] bg-green-50"
+                          : "border-gray-200 hover:border-gray-300 bg-white"
+                      }`}
+                    >
+                      <RadioGroupItem value={option.value} id={option.value} className="sr-only" />
+                      <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 ${
+                        answers[currentQuestionData.id] === option.value
+                          ? "border-[#2E8B57] bg-[#2E8B57]"
+                          : "border-gray-300"
+                      }`}>
+                        {answers[currentQuestionData.id] === option.value && (
+                          <Check className="w-3 h-3 text-white" />
+                        )}
+                      </div>
+                      <span className="text-gray-900">{option.label}</span>
+                    </Label>
+                  ))}
+                </RadioGroup>
+              )
             )}
 
             {currentQuestionData.type === "textarea" && (
@@ -1164,7 +1195,15 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                 </Card>
               )}
 
-              <div className="flex gap-3 pt-4">
+              {/* AI 분석 활용 안내 */}
+              <div className="flex items-start gap-2.5 rounded-lg bg-gray-50 border border-gray-200 px-4 py-3">
+                <AlertCircle className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  ※ 본 분석 결과는 AI를 활용한 기초 판정으로, 담당자의 실제 현장 심사 및 관련 법규 검토 결과와는 다를 수 있으며, 신청 참고용으로 법적 효력을 가지지 않습니다.
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-2">
                 <Button
                   variant="outline"
                   onClick={handleReset}
