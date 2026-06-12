@@ -987,10 +987,10 @@ export function BatchAnalysis({
                   </TableHead>
                   <TableHead className="w-12 text-center">No.</TableHead>
                   <TableHead
-                    className="cursor-pointer select-none"
+                    className="w-[200px] text-center cursor-pointer select-none"
                     onClick={() => handleSort("address")}
                   >
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center justify-center gap-1">
                       소재지
                       {sortColumn === "address" ? (sortDirection === "asc" ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/50" />}
                     </div>
@@ -1047,7 +1047,7 @@ export function BatchAnalysis({
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </TableCell>
                     <TableCell
-                      className="font-medium max-w-[200px] truncate underline cursor-pointer hover:text-primary"
+                      className="w-[200px] text-center font-medium max-w-[200px] truncate underline cursor-pointer hover:text-primary"
                       title={parcel.landInfo.address}
                       onClick={(e) => {
                         e.stopPropagation();
