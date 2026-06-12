@@ -14,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { LandMap } from "@/components/land-map";
 import { Download, Printer, CheckCircle2, Edit3, Upload, X } from "lucide-react";
 
 interface LandParcel {
@@ -70,6 +69,7 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
 
   const [landParcels, setLandParcels] = useState<LandParcel[]>([]);
   const [ownerInfo, setOwnerInfo] = useState({ address: "", ownerName: "" });
+  const [cadastralMapImage, setCadastralMapImage] = useState<string | null>(null);
   const [aerialPhotoImage, setAerialPhotoImage] = useState<string | null>(null);
   const [fieldConditionReview, setFieldConditionReview] = useState("");
   const [ownerOpinion, setOwnerOpinion] = useState(
@@ -377,11 +377,33 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
 
             {/* 지적도 / 항공사진 */}
             <div className="mt-4 grid grid-cols-2 gap-0">
-              {/* 지적도 — 자동 연동 */}
+              {/* 지적도 — 이미지 */}
               <div className="border border-foreground">
                 <div className="border-b border-foreground bg-muted px-2 py-1 text-center text-base font-medium text-foreground">지적도</div>
-                <div className="h-[300px] overflow-hidden">
-                  <LandMap landInfo={application.landInfo} showOverlay={true} interactive={false} />
+                <div className="relative h-[300px] overflow-hidden">
+                  {cadastralMapImage ? (
+                    <>
+                      <img src={cadastralMapImage} alt="지적도" className="h-full w-full object-contain" />
+                      {isEditing && (
+                        <button onClick={() => setCadastralMapImage(null)} className="absolute right-2 top-2 rounded-full bg-destructive p-1 text-white hover:bg-destructive/80 print:hidden">
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    <div className="flex h-full w-full flex-col items-center justify-center bg-muted/30">
+                      <p className="mb-4 text-base text-muted-foreground">{isEditing ? "첨부할 파일을 여기에 끌어다 놓거나, 파일 선택 버튼을 직접 선택해주세요." : "지적도 미등록"}</p>
+                      {isEditing && (
+                        <label className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-[#222222] px-6 py-2.5 text-base font-medium text-white transition-colors hover:bg-[#333333]">
+                          <Upload className="h-4 w-4" />파일선택
+                          <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) { const r = new FileReader(); r.onload = (ev) => setCadastralMapImage(ev.target?.result as string); r.readAsDataURL(file); }
+                          }} />
+                        </label>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
               {/* 항공사진 — 파일 업로드 */}
