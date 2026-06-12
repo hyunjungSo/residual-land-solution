@@ -9,7 +9,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useToast } from "@/hooks/use-toast";
 import { LandMap } from "@/components/land-map";
 import {
   Select,
@@ -75,6 +77,9 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
   const [showAIAnalysisDialog, setShowAIAnalysisDialog] = useState(false);
   // 토지정보 상세보기 모달
   const [showLandInfoModal, setShowLandInfoModal] = useState(false);
+  // 검토 확인 컨펌 다이얼로그
+  const [showReviewConfirmDialog, setShowReviewConfirmDialog] = useState(false);
+  const { toast } = useToast();
 
   // 2차 분석 (재분석) 실행
   const handleReanalyze = async () => {
@@ -164,24 +169,73 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
         <div className="flex items-center gap-3">
           <h1 className="text-3xl font-bold">필지상세</h1>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">검토 여부</span>
-          <Select
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium text-muted-foreground">검토 확인</span>
+          <RadioGroup
             value={parcel.reviewStatus ?? (parcel.aiResult ? "완료" : "미완료")}
-            onValueChange={(value: "완료" | "미완료") => {
-              onUpdate({ ...parcel, reviewStatus: value });
+            onValueChange={(value: string) => {
+              if (value === "완료") {
+                setShowReviewConfirmDialog(true);
+              } else {
+                onUpdate({ ...parcel, reviewStatus: "미완료" });
+              }
             }}
+            className="flex items-center gap-4"
           >
-            <SelectTrigger className="w-[100px] h-8 text-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="완료">완료</SelectItem>
-              <SelectItem value="미완료">미완료</SelectItem>
-            </SelectContent>
-          </Select>
+            <div className="flex items-center gap-1.5">
+              <RadioGroupItem value="미완료" id="review-incomplete" />
+              <Label htmlFor="review-incomplete" className="text-sm cursor-pointer">미완료</Label>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <RadioGroupItem value="완료" id="review-complete" />
+              <Label htmlFor="review-complete" className="text-sm cursor-pointer">완료</Label>
+            </div>
+          </RadioGroup>
         </div>
       </div>
+
+      {/* 검토 완료 컨펌 다이얼로그 */}
+      <Dialog open={showReviewConfirmDialog} onOpenChange={setShowReviewConfirmDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">필지 검토를 완료하시겠습니까?</DialogTitle>
+          </DialogHeader>
+          <DialogDescription asChild>
+            <div className="space-y-3 text-sm text-foreground">
+              <div className="flex gap-2 rounded-md bg-blue-50 px-4 py-3 text-blue-800">
+                <span className="shrink-0 font-semibold">안내</span>
+                <span>완료 처리 시 해당 필지의 <span className="font-bold">AI 분석 결과가 민원인에게 노출</span>됩니다.</span>
+              </div>
+              <div className="flex gap-2 rounded-md bg-amber-50 px-4 py-3 text-amber-800">
+                <span className="shrink-0 font-semibold">주의</span>
+                <span>잘못된 정보가 노출되지 않도록 <span className="font-bold">데이터 및 지적도 분석 결과를 신중하게 재검토</span>해 주세요.</span>
+              </div>
+            </div>
+          </DialogDescription>
+          <DialogFooter className="gap-2 pt-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowReviewConfirmDialog(false)}
+            >
+              취소
+            </Button>
+            <Button
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              onClick={() => {
+                onUpdate({ ...parcel, reviewStatus: "완료" });
+                setShowReviewConfirmDialog(false);
+                toast({
+                  title: "검토 완료 처리가 되었습니다.",
+                  description: "이제 민원인에게 공개가 가능한 상태가 됩니다.",
+                  duration: 4000,
+                });
+              }}
+            >
+              검토 완료
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* 필지 기본 정보 - 통합 헤더 레이아웃 */}
         <Card className="border-0 shadow-none px-6">
