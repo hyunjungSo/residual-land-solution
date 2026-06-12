@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
-import { dummyApplications } from "@/lib/dummy-data";
+import { dummyApplications, landCategories } from "@/lib/dummy-data";
 import type { Application } from "@/lib/types";
 import {
   Select,
@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { LandMap } from "@/components/land-map";
 import { Download, Printer, CheckCircle2, Edit3, Upload, X } from "lucide-react";
 
 interface LandParcel {
@@ -69,7 +70,6 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
 
   const [landParcels, setLandParcels] = useState<LandParcel[]>([]);
   const [ownerInfo, setOwnerInfo] = useState({ address: "", ownerName: "" });
-  const [cadastralMapImage, setCadastralMapImage] = useState<string | null>(null);
   const [aerialPhotoImage, setAerialPhotoImage] = useState<string | null>(null);
   const [fieldConditionReview, setFieldConditionReview] = useState("");
   const [ownerOpinion, setOwnerOpinion] = useState(
@@ -183,7 +183,8 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
     }
 
     if (found.reason) setOwnerOpinion(found.reason);
-    if (found.reviewerComment) setFieldConditionReview(found.reviewerComment);
+    const reviewOpinion = found.finalReviewOpinion || found.reviewerComment;
+    if (reviewOpinion) setFieldConditionReview(reviewOpinion);
   }, [applicationId]);
 
   const handlePurchaseDecisionChange = (index: number, decision: "O" | "X" | "") => {
@@ -254,10 +255,18 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
                 <span className="text-primary">○ 사업명 : </span>
                 <span className="text-foreground">{documentMeta.projectName}</span>
               </div>
-              <div>
+              <div className="flex items-center gap-1">
                 <span className="text-muted-foreground">작성자 : </span>
-                <span className="inline-block w-24 border-b border-foreground" />
-                <span className="ml-2 text-muted-foreground">(인)</span>
+                {isEditing ? (
+                  <input
+                    value={documentMeta.author}
+                    onChange={(e) => setDocumentMeta((prev) => ({ ...prev, author: e.target.value }))}
+                    className="w-32 border-b border-foreground bg-transparent text-center text-base focus:outline-none"
+                  />
+                ) : (
+                  <span className="font-medium">{documentMeta.author || <span className="inline-block w-24 border-b border-foreground" />}</span>
+                )}
+                <span className="text-muted-foreground">(인)</span>
               </div>
             </div>
 
@@ -278,8 +287,27 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
                     <td colSpan={2} className="border border-foreground bg-muted px-2 py-2 text-center font-medium text-foreground">편입토지</td>
                     <td colSpan={4} className="border border-foreground bg-muted px-2 py-2 text-center font-medium text-foreground">잔여토지</td>
                     <td rowSpan={9} className="border border-foreground p-0 align-top" style={{ minWidth: "220px", height: "1px" }}>
+                      {/* 구조화 항목 (자동 연동) */}
+                      <div className="border-b border-foreground/30 p-2 space-y-1.5">
+                        {[
+                          { label: "토지유형", value: application.landInfo.landType },
+                          { label: "잔여면적", value: `${application.landInfo.remainingArea.toLocaleString()} ㎡` },
+                          { label: "토지모양", value: application.landInfo.remainingShape },
+                          { label: "실제용도", value: application.actualUsage },
+                          { label: "공부상 지목", value: landCategories.find(c => c.value === application.landInfo.landCategory)?.label ?? application.landInfo.landCategory },
+                          { label: "확인항목", value: application.farmMachineDifficulty ? "농기계 진입불가" : "해당없음" },
+                          { label: "인접 토지 소유", value: application.hasAdjacentLand ? "있음" : "없음" },
+                        ].map(({ label, value }) => (
+                          <div key={label} className="flex gap-1 text-xs">
+                            <span className="w-[72px] shrink-0 font-medium text-muted-foreground">{label}</span>
+                            <span className="text-foreground">{value ?? "-"}</span>
+                          </div>
+                        ))}
+                      </div>
+                      {/* 최종검토 의견 */}
+                      <div className="border-b border-foreground/20 bg-muted/30 px-2 py-1 text-xs font-medium text-muted-foreground">최종검토 의견</div>
                       {isEditing ? (
-                        <Textarea value={fieldConditionReview} onChange={(e) => setFieldConditionReview(e.target.value)} className="h-full min-h-[300px] cursor-text resize-none rounded-none border-0 text-base leading-relaxed focus-visible:ring-0 focus-visible:ring-offset-0" placeholder="현지상황 및 검토의견을 입력하세요" />
+                        <Textarea value={fieldConditionReview} onChange={(e) => setFieldConditionReview(e.target.value)} className="min-h-[160px] cursor-text resize-none rounded-none border-0 text-base leading-relaxed focus-visible:ring-0 focus-visible:ring-offset-0" placeholder="최종 검토 의견을 입력하세요" />
                       ) : (
                         <div className="whitespace-pre-wrap p-2 text-base leading-relaxed text-foreground">{fieldConditionReview}</div>
                       )}
@@ -354,39 +382,42 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
 
             {/* 지적도 / 항공사진 */}
             <div className="mt-4 grid grid-cols-2 gap-0">
-              {[
-                { label: "지적도", img: cadastralMapImage, setImg: setCadastralMapImage, borderClass: "border border-foreground" },
-                { label: "항공사진", img: aerialPhotoImage, setImg: setAerialPhotoImage, borderClass: "border border-l-0 border-foreground" },
-              ].map(({ label, img, setImg, borderClass }) => (
-                <div key={label} className={borderClass}>
-                  <div className="border-b border-foreground bg-muted px-2 py-1 text-center text-base font-medium text-foreground">{label}</div>
-                  <div className="relative h-[300px] overflow-hidden">
-                    {img ? (
-                      <>
-                        <img src={img} alt={label} className="h-full w-full object-contain" />
-                        {isEditing && (
-                          <button onClick={() => setImg(null)} className="absolute right-2 top-2 rounded-full bg-destructive p-1 text-white hover:bg-destructive/80 print:hidden">
-                            <X className="h-4 w-4" />
-                          </button>
-                        )}
-                      </>
-                    ) : (
-                      <div className="flex h-full w-full flex-col items-center justify-center bg-muted/30">
-                        <p className="mb-4 text-base text-muted-foreground">{isEditing ? "첨부할 파일을 여기에 끌어다 놓거나, 파일 선택 버튼을 직접 선택해주세요." : `${label} 미등록`}</p>
-                        {isEditing && (
-                          <label className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-[#222222] px-6 py-2.5 text-base font-medium text-white transition-colors hover:bg-[#333333]">
-                            <Upload className="h-4 w-4" />파일선택
-                            <input type="file" accept="image/*" className="hidden" onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) { const r = new FileReader(); r.onload = (ev) => setImg(ev.target?.result as string); r.readAsDataURL(file); }
-                            }} />
-                          </label>
-                        )}
-                      </div>
-                    )}
-                  </div>
+              {/* 지적도 — 자동 연동 */}
+              <div className="border border-foreground">
+                <div className="border-b border-foreground bg-muted px-2 py-1 text-center text-base font-medium text-foreground">지적도</div>
+                <div className="h-[300px] overflow-hidden">
+                  <LandMap landInfo={application.landInfo} showOverlay={true} interactive={false} />
                 </div>
-              ))}
+              </div>
+              {/* 항공사진 — 파일 업로드 */}
+              <div className="border border-l-0 border-foreground">
+                <div className="border-b border-foreground bg-muted px-2 py-1 text-center text-base font-medium text-foreground">항공사진</div>
+                <div className="relative h-[300px] overflow-hidden">
+                  {aerialPhotoImage ? (
+                    <>
+                      <img src={aerialPhotoImage} alt="항공사진" className="h-full w-full object-contain" />
+                      {isEditing && (
+                        <button onClick={() => setAerialPhotoImage(null)} className="absolute right-2 top-2 rounded-full bg-destructive p-1 text-white hover:bg-destructive/80 print:hidden">
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    <div className="flex h-full w-full flex-col items-center justify-center bg-muted/30">
+                      <p className="mb-4 text-base text-muted-foreground">{isEditing ? "첨부할 파일을 여기에 끌어다 놓거나, 파일 선택 버튼을 직접 선택해주세요." : "항공사진 미등록"}</p>
+                      {isEditing && (
+                        <label className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-[#222222] px-6 py-2.5 text-base font-medium text-white transition-colors hover:bg-[#333333]">
+                          <Upload className="h-4 w-4" />파일선택
+                          <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) { const r = new FileReader(); r.onload = (ev) => setAerialPhotoImage(ev.target?.result as string); r.readAsDataURL(file); }
+                          }} />
+                        </label>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             {isGenerated && !isEditing && (
