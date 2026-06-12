@@ -293,7 +293,7 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
     farmMachineDifficulty: application.farmMachineDifficulty ? "해당" : "미입력" as "미입력" | "해당" | "해당없음",
     accessRoadLost: application.aiResult?.accessRoadLost || false,
     waterChannelLost: application.aiResult?.waterChannelLost || false,
-    reviewerComment: application.reviewerComment || "",
+    reviewerComment: application.reviewerComment || application.finalReviewOpinion || "■ 현황: \n■ 토지모양: \n■ 실제 이용 상황: \n■ 농기계 진입 및 회전: \n■ 검토의견: ",
     finalReviewOpinion: application.finalReviewOpinion || "", // 최종 검토 의견 (복수 필지용)
     finalJudgment: application.finalJudgment || (null as unknown as JudgmentResult),
     adminStatus: application.adminStatus || ("접수완료" as AdminStatus),
@@ -2371,11 +2371,10 @@ purchaseDecision: result?.provisionalJudgment === "수용가능" ? "O" as const 
             </div>
           </div>
           <Textarea
-            placeholder="전체 필지에 대한 종합 검토 의견을 입력하세요."
-            rows={4}
+            rows={8}
             value={reviewData.reviewerComment || ""}
             onChange={(e) => { markDirty(); setReviewData((prev) => ({ ...prev, reviewerComment: e.target.value })); }}
-            className="resize-none bg-background"
+            className="resize-none bg-background font-mono text-sm leading-relaxed"
             disabled={isViewOnly}
           />
         </CardContent>

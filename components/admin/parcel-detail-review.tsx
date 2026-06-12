@@ -45,7 +45,6 @@ import {
   landCategories,
   landShapes,
   adminCheckItemOptions,
-  dummyApplications,
 } from "@/lib/dummy-data";
 import { formatDateTime } from "@/lib/format";
 import { AIAnalysisFlowDialog } from "@/components/admin/ai-analysis-flow-dialog";
@@ -70,10 +69,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
   const [landShape, setLandShape] = useState<LandShape>(parcel.landShape);
   const [checkItems, setCheckItems] = useState<AdminCheckItems>(parcel.adminCheckItems);
   
-  const MEMO_TEMPLATE =
-    "■ 현황: \n■ 토지모양: \n■ 실제 이용 상황: \n■ 농기계 진입 및 회전: \n■ 검토의견: ";
-  const [memo, setMemo] = useState(parcel.finalReviewOpinion ?? MEMO_TEMPLATE);
-  const [isSavingMemo, setIsSavingMemo] = useState(false);
+  const [memo, setMemo] = useState("");
   
   // 분석 상태
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -85,31 +81,6 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
   // 검토 확인 컨펌 다이얼로그
   const [showReviewConfirmDialog, setShowReviewConfirmDialog] = useState(false);
   const { toast } = useToast();
-
-  // Application localStorage에 finalReviewOpinion 동기화
-  const syncMemoToApplication = (memoText: string) => {
-    const appId = parcel.citizenActivity?.applicationId;
-    if (!appId) return;
-    try {
-      const savedApps = JSON.parse(localStorage.getItem("updatedApplications") || "{}");
-      const base = savedApps[appId] || dummyApplications.find((a) => a.id === appId);
-      if (base) {
-        savedApps[appId] = { ...base, finalReviewOpinion: memoText };
-        localStorage.setItem("updatedApplications", JSON.stringify(savedApps));
-      }
-    } catch {}
-  };
-
-  // 현지상황 및 검토의견 저장
-  const handleSaveMemo = async () => {
-    setIsSavingMemo(true);
-    const updated = { ...parcel, finalReviewOpinion: memo };
-    onUpdate(updated);
-    syncMemoToApplication(memo);
-    await new Promise((r) => setTimeout(r, 300));
-    setIsSavingMemo(false);
-    toast({ title: "검토의견이 저장되었습니다.", description: "심의서 작성 화면에 자동 반영됩니다.", duration: 3000 });
-  };
 
   // 2차 분석 (재분석) 실행
   const handleReanalyze = async () => {
@@ -181,15 +152,14 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
       landShape,
       adminCheckItems: checkItems,
       aiResult: newAiResult,
-      finalReviewOpinion: memo,
       publishStatus: (parcel.analysisHistory?.length || 0) === 0 ? "1차분석완료" : "2차분석중",
       analysisHistory: [...(parcel.analysisHistory || []), newHistory],
       lastAnalyzedAt: new Date().toISOString(),
     };
 
     onUpdate(updatedParcel);
-    syncMemoToApplication(memo);
     setIsAnalyzing(false);
+    setMemo("");
   };
 
 
@@ -399,28 +369,15 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
               </div>
             </div>
 
-            {/* 현지상황 및 검토의견 */}
+            {/* 메모 */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium">현지상황 및 검토의견</Label>
-                <span className="text-xs text-muted-foreground">심의서 자동 연동</span>
-              </div>
+              <Label className="text-sm">메모</Label>
               <Textarea
+                placeholder="추가 메모 (선택)"
                 value={memo}
                 onChange={(e) => setMemo(e.target.value)}
-                rows={8}
-                className="font-mono text-sm leading-relaxed resize-none"
+                rows={3}
               />
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="w-full"
-                onClick={handleSaveMemo}
-                disabled={isSavingMemo}
-              >
-                {isSavingMemo ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />저장 중...</> : "검토의견 저장 · 심의서 반영"}
-              </Button>
             </div>
 
             {/* AI 분석 실행 버튼 */}
