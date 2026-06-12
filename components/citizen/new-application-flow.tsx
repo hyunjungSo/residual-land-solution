@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { FormLabel } from "@/components/ui/form-label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Check, ChevronLeft, ChevronDown, MapPin, Search, FileText, Sparkles, ClipboardCheck, XCircle, X, Trash2, ClipboardList, ShoppingCart, AlertCircle } from "lucide-react";
+import { Check, ChevronLeft, ChevronDown, MapPin, Search, FileText, Sparkles, ClipboardCheck, XCircle, X, Trash2, ClipboardList, ShoppingCart, AlertTriangle } from "lucide-react";
 import type { LandInfo, AIAnalysisResult, Application } from "@/lib/types";
 import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/hooks/use-toast";
@@ -1033,6 +1033,14 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                 </p>
               </div>
 
+              {/* AI 분석 활용 안내 */}
+              <div className="flex items-start gap-3 rounded-lg bg-amber-50 border border-amber-200 border-l-4 border-l-amber-400 px-4 py-3.5">
+                <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                <p className="text-sm font-medium text-amber-900 leading-relaxed">
+                  ※ 본 분석 결과는 AI를 활용한 기초 판정으로, 담당자의 실제 현장 심사 및 관련 법규 검토 결과와는 다를 수 있으며, 신청 참고용으로 법적 효력을 가지지 않습니다.
+                </p>
+              </div>
+
               {/* 통합된 분석 결과 카드 */}
               {selectedParcel && (
                 <Card className="p-6 border border-gray-200">
@@ -1194,14 +1202,6 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                   )}
                 </Card>
               )}
-
-              {/* AI 분석 활용 안내 */}
-              <div className="flex items-start gap-2.5 rounded-lg bg-gray-50 border border-gray-200 px-4 py-3">
-                <AlertCircle className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-gray-500 leading-relaxed">
-                  ※ 본 분석 결과는 AI를 활용한 기초 판정으로, 담당자의 실제 현장 심사 및 관련 법규 검토 결과와는 다를 수 있으며, 신청 참고용으로 법적 효력을 가지지 않습니다.
-                </p>
-              </div>
 
               <div className="flex gap-3 pt-2">
                 <Button
