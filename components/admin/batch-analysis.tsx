@@ -50,6 +50,7 @@ import {
   isHighPossibility 
 } from "@/components/admin/shared";
 import { PaginationButton, PaginationNavButton } from "@/components/ui/pagination-button";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import type { 
   ProcessedParcel,
@@ -272,43 +273,49 @@ export function BatchAnalysis({
   const [isPurchaseAnalyzing, setIsPurchaseAnalyzing] = useState(false);
   const [analyzingParcelId, setAnalyzingParcelId] = useState<string | null>(null);
 
-  // 행별 통합 판독 로딩 상태
-  type RowLoadingState = "idle" | "step1" | "step2" | "success";
-  const [rowLoadingStates, setRowLoadingStates] = useState<Record<string, RowLoadingState>>({});
-  const setRowState = (parcelId: string, state: RowLoadingState) =>
-    setRowLoadingStates(prev => ({ ...prev, [parcelId]: state }));
+  // 통합 판독 실행 단계 상태
+  type IntegratedStep = "idle" | "step1" | "step2" | "success";
+  const [integratedStep, setIntegratedStep] = useState<IntegratedStep>("idle");
 
-  const handleIntegratedAnalysis = async (parcelId: string) => {
+  const handleIntegratedAnalysis = async () => {
+    if (selectedParcelIds.size === 0) return;
+
     // 1단계: 편입 유형 분석
-    setRowState(parcelId, "step1");
+    setIntegratedStep("step1");
+    setIsInclusionAnalyzing(true);
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    const residualStatus = Math.random() > 0.3 ? "잔여지 인정" : "기준 미달" as const;
-    setParcels(prev => prev.map(p => p.id === parcelId ? { ...p, residualStatus } as ProcessedParcel : p));
+    const updatedParcels = parcels.map(p => {
+      if (!selectedParcelIds.has(p.id)) return p;
+      const residualStatus = Math.random() > 0.3 ? "잔여지 인정" : "기준 미달" as const;
+      return { ...p, residualStatus } as ProcessedParcel;
+    });
+    setParcels(updatedParcels);
+    onParcelsUpdate?.(updatedParcels);
+    setIsInclusionAnalyzing(false);
 
-    if (residualStatus === "기준 미달") {
-      // 전체 편입 → 2단계 bypass
-      setRowState(parcelId, "success");
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setRowState(parcelId, "idle");
-      return;
+    // 잔여지 인정 필지만 2단계 진행
+    const residualIds = new Set(
+      updatedParcels.filter(p => selectedParcelIds.has(p.id) && p.residualStatus === "잔여지 인정").map(p => p.id)
+    );
+
+    if (residualIds.size > 0) {
+      setIntegratedStep("step2");
+      setIsPurchaseAnalyzing(true);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      await performAiAnalysis(residualIds, updatedParcels);
+      setIsPurchaseAnalyzing(false);
     }
 
-    // 2단계: AI 매수 가능성 분석
-    setRowState(parcelId, "step2");
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    const judgment: AIJudgmentResult = Math.random() > 0.5 ? "매수 가능성 높음" : "매수 가능성 낮음";
-    setParcels(prev => prev.map(p => {
-      if (p.id !== parcelId) return p;
-      const newAiResult: AIAnalysisResult = { ...p.aiResult, provisionalJudgment: judgment, landTypePath: p.aiResult?.landTypePath || "농지", criteriaChecks: p.aiResult?.criteriaChecks || [], originalShapeIndex: p.aiResult?.originalShapeIndex || 0, remainingShapeIndex: p.aiResult?.remainingShapeIndex || 0, shapeIndexChange: 0, isBlindLand: false, accessRoadLost: p.aiResult?.accessRoadLost || false, waterChannelLost: p.aiResult?.waterChannelLost || false, farmMachineDifficulty: p.aiResult?.farmMachineDifficulty || false, judgmentRationale: p.aiResult?.judgmentRationale || { summary: "", legalBasis: "", appliedCriteria: [], detailedExplanation: "" } };
-      const newHistory: AnalysisHistory = { id: `analysis_${Date.now()}_${Math.random()}`, parcelId, stage: p.analysisHistory?.length ? "2차분석" : "1차분석", analyzedAt: new Date().toISOString(), analyzedBy: "AI 자동 분석", newResult: judgment, previousResult: p.aiResult?.provisionalJudgment || undefined, changedOptions: {}, aiResult: newAiResult };
-      return { ...p, aiResult: newAiResult, analysisHistory: [...(p.analysisHistory || []), newHistory], lastAnalyzedAt: new Date().toISOString() } as ProcessedParcel;
-    }));
-
-    setRowState(parcelId, "success");
+    setIntegratedStep("success");
+    toast({
+      title: "AI 통합 판독 완료",
+      description: `${selectedParcelIds.size}건의 통합 판독이 완료되었습니다.`,
+      duration: 3500,
+    });
+    setSelectedParcelIds(new Set());
     await new Promise(resolve => setTimeout(resolve, 500));
-    setRowState(parcelId, "idle");
+    setIntegratedStep("idle");
     onAnalysisComplete?.();
   };
 
@@ -756,7 +763,12 @@ export function BatchAnalysis({
                 onClick={() => handleInclusionTypeClick("pending")}
                 className="flex cursor-pointer flex-col items-center rounded-lg bg-indigo-50 p-4 transition-all hover:bg-indigo-100"
               >
-                <span className="text-sm font-medium text-indigo-500" style={{ order: 1 }}>판독대기</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="text-sm font-medium text-indigo-500 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}>판독대기</span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">편입 유형 판독이 아직 실행되지 않은 필지입니다.</TooltipContent>
+                </Tooltip>
                 <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
                   <span className="font-bold text-indigo-600" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.pendingInclusion}</span>
                   <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
@@ -767,7 +779,12 @@ export function BatchAnalysis({
                 onClick={() => handleInclusionTypeClick("partial")}
                 className="flex cursor-pointer flex-col items-center rounded-lg bg-emerald-50 p-4 transition-all hover:bg-emerald-100"
               >
-                <span className="text-sm font-medium text-emerald-600" style={{ order: 1 }}>잔여지 발생</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="text-sm font-medium text-emerald-600 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}>잔여지 발생</span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">편입 후 잔여지가 발생하여 AI 매수 가능성 분석 대상인 필지입니다.</TooltipContent>
+                </Tooltip>
                 <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
                   <span className="font-bold text-emerald-700" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.partialInclusion}</span>
                   <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
@@ -821,29 +838,44 @@ export function BatchAnalysis({
                 onClick={() => handleAiJudgmentClick("pending")}
                 className="flex cursor-pointer flex-col items-center rounded-lg bg-amber-50 p-4 transition-all hover:bg-amber-100"
               >
-                <span className="text-sm font-medium text-amber-600" style={{ order: 1 }}>검토필요</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="text-sm font-medium text-amber-600 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}>검토필요</span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">잔여지 발생 필지 중 AI 매수 가능성 분석이 아직 실행되지 않은 필지입니다.</TooltipContent>
+                </Tooltip>
                 <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
                   <span className="font-bold text-amber-700" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.pendingReview}</span>
                   <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
                 </div>
               </div>
               {/* 높음: Emerald */}
-              <div 
+              <div
                 onClick={() => handleAiJudgmentClick("high")}
                 className="flex cursor-pointer flex-col items-center rounded-lg bg-emerald-50 p-4 transition-all hover:bg-emerald-100"
               >
-                <span className="text-sm font-medium text-emerald-600" style={{ order: 1 }}>높음</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="text-sm font-medium text-emerald-600 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}>높음</span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">AI가 매수 가능성이 높다고 판단한 필지입니다.</TooltipContent>
+                </Tooltip>
                 <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
                   <span className="font-bold text-emerald-700" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.highPossibility}</span>
                   <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
                 </div>
               </div>
               {/* 낮음: Rose */}
-              <div 
+              <div
                 onClick={() => handleAiJudgmentClick("low")}
                 className="flex cursor-pointer flex-col items-center rounded-lg bg-rose-50 p-4 transition-all hover:bg-rose-100"
               >
-                <span className="text-sm font-medium text-rose-500" style={{ order: 1 }}>낮음</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="text-sm font-medium text-rose-500 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}>낮음</span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">AI가 매수 가능성이 낮다고 판단한 필지입니다.</TooltipContent>
+                </Tooltip>
                 <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
                   <span className="font-bold text-rose-600" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.lowPossibility}</span>
                   <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
@@ -918,7 +950,7 @@ export function BatchAnalysis({
                 편입 유형 과 매수 가능성 판록 결과를 확인하세요. 소재지를 클릭하면 필지 상세 화면으로 이동합니다.
               </CardDescription>
             </div>
-            {/* 분석 버튼 + 엑셀 다운로드 */}
+            {/* 엑셀 다운로드 + AI 통합 판독 버튼 */}
             <div className="flex items-center gap-2">
               <Button
                 onClick={handleDownloadExcel}
@@ -930,33 +962,22 @@ export function BatchAnalysis({
                 엑셀 다운로드
               </Button>
               <Button
-                onClick={handleInclusionTypeAnalysis}
-                disabled={selectedParcelIds.size === 0 || isInclusionAnalyzing || isPurchaseAnalyzing}
-                variant="cta-outline"
-                className="whitespace-nowrap"
-              >
-                {isInclusionAnalyzing ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    판독 중...
-                  </>
-                ) : (
-                  `편입 유형 판독 실행 (${selectedParcelIds.size}건)`
-                )}
-              </Button>
-              <Button
-                onClick={handleBatchAnalysis}
-                disabled={selectedParcelIds.size === 0 || isInclusionAnalyzing || isPurchaseAnalyzing}
+                onClick={handleIntegratedAnalysis}
+                disabled={selectedParcelIds.size === 0 || integratedStep !== "idle"}
                 variant="cta"
-                className="whitespace-nowrap"
+                className={`whitespace-nowrap min-w-[230px] ${integratedStep !== "idle" ? "pointer-events-none opacity-80" : ""}`}
               >
-                {isPurchaseAnalyzing ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    분석 중...
-                  </>
-                ) : (
-                  `AI 매수 가능성 분석 (${selectedParcelIds.size}건)`
+                {integratedStep === "idle" && (
+                  <>AI 통합 판독 실행 ({selectedParcelIds.size}건)</>
+                )}
+                {integratedStep === "step1" && (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" />1단계: 편입 유형 분석 중...</>
+                )}
+                {integratedStep === "step2" && (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" />2단계: AI 매수 가능성 검토 중...</>
+                )}
+                {integratedStep === "success" && (
+                  <>통합 판독 완료</>
                 )}
               </Button>
             </div>
@@ -1017,7 +1038,6 @@ export function BatchAnalysis({
                   <TableHead className="text-center">편입 유형</TableHead>
                   <TableHead className="text-center">매수 가능성</TableHead>
                   <TableHead className="text-center">검토여부</TableHead>
-                  <TableHead className="text-center">작업 실행</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1105,43 +1125,11 @@ export function BatchAnalysis({
                         <Badge className="bg-slate-100 text-slate-500 hover:bg-slate-200 border-0">미완료</Badge>
                       )}
                     </TableCell>
-                    {/* 작업 실행 컬럼 */}
-                    <TableCell className="text-center">
-                      {(() => {
-                        const rowState = rowLoadingStates[parcel.id] ?? "idle";
-                        return (
-                          <button
-                            onClick={() => handleIntegratedAnalysis(parcel.id)}
-                            disabled={rowState !== "idle"}
-                            className={`inline-flex items-center justify-center rounded-md border text-xs font-medium transition-colors min-w-[210px] h-8 px-3
-                              ${rowState === "idle"
-                                ? "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-400 cursor-pointer"
-                                : rowState === "success"
-                                  ? "border-emerald-400 bg-emerald-50 text-emerald-700 pointer-events-none opacity-90"
-                                  : "border-slate-200 bg-slate-50 text-slate-500 pointer-events-none opacity-80 cursor-not-allowed"
-                              }`}
-                          >
-                            {rowState === "idle" && (
-                              <><Play className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />AI 통합 판독 실행</>
-                            )}
-                            {rowState === "step1" && (
-                              <><Loader2 className="h-3.5 w-3.5 mr-1.5 flex-shrink-0 animate-spin" />⏳ 1단계: 편입 유형 분석 중...</>
-                            )}
-                            {rowState === "step2" && (
-                              <><Loader2 className="h-3.5 w-3.5 mr-1.5 flex-shrink-0 animate-spin" />🧠 2단계: AI 매수 가능성 검토 중...</>
-                            )}
-                            {rowState === "success" && (
-                              <><CheckCircle2 className="h-3.5 w-3.5 mr-1.5 flex-shrink-0 text-emerald-600" />✓ 통합 판독 완료</>
-                            )}
-                          </button>
-                        );
-                      })()}
-                    </TableCell>
                   </TableRow>
                 ))}
                 {filteredParcels.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                       조건에 맞는 필지가 없습니다.
                     </TableCell>
                   </TableRow>
