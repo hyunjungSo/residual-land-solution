@@ -188,7 +188,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                     }
                   }}
                   className={cn(
-                    "rounded-md border px-3 py-1.5 text-xs font-medium transition-all",
+                    "rounded-md border text-xs font-medium transition-all h-[42px] w-[80px]",
                     current === val
                       ? "border-primary bg-primary/5 text-primary"
                       : "border-muted-foreground/30 text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
