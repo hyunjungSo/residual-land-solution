@@ -294,17 +294,12 @@ export function BatchAnalysis({
       "잔여비율(%)": p.landInfo.remainingRatio ?? "",
       편입유형: p.residualStatus === "잔여지 인정" ? "잔여지 발생" : !p.residualStatus ? "판독대기" : "-",
       매수가능성: p.residualStatus !== "잔여지 인정" ? "-" : p.aiResult ? (p.aiResult.provisionalJudgment === "매수 가능성 높음" ? "높음" : "낮음") : "검토필요",
-      공개여부: p.isVisible !== false ? "공개" : "비공개",
     }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "필지목록");
     XLSX.writeFile(wb, "필지관리목록.xlsx");
   };
-
-  // 관리 토글 확인 모달 상태
-  const [showVisibilityModal, setShowVisibilityModal] = useState(false);
-  const [pendingVisibilityChange, setPendingVisibilityChange] = useState<{parcelId: string, isVisible: boolean} | null>(null);
 
   // 필지 선택/해제 토글
   const handleToggleParcelSelection = (parcelId: string) => {
@@ -454,38 +449,6 @@ export function BatchAnalysis({
     }
   };
 
-  // 관리(노출/미노출) 토글 핸들러 - 모달 표시
-  const handleToggleVisibilityRequest = (parcelId: string, isVisible: boolean) => {
-    // 노출/미노출 모두 확인 모달 표시
-    setPendingVisibilityChange({ parcelId, isVisible });
-    setShowVisibilityModal(true);
-  };
-
-  // 실제 노출 상태 변경
-  const handleToggleVisibility = (parcelId: string, isVisible: boolean) => {
-    setParcels(prev => prev.map(p => 
-      p.id === parcelId ? { ...p, isVisible } : p
-    ));
-    onParcelsUpdate?.(parcels.map(p => 
-      p.id === parcelId ? { ...p, isVisible } : p
-    ));
-  };
-
-  // 모달 확인 시 노출 변경 적용
-  const handleConfirmVisibilityChange = () => {
-    if (pendingVisibilityChange) {
-      handleToggleVisibility(pendingVisibilityChange.parcelId, pendingVisibilityChange.isVisible);
-      toast({
-        title: pendingVisibilityChange.isVisible ? "공개 설정 완료" : "비공개 설정 완료",
-        description: pendingVisibilityChange.isVisible 
-          ? "해당 필지가 민원인에게 공개되었습니다." 
-          : "해당 필지가 민원인에게 비공개 처리되었습니다.",
-        duration: 3500,
-      });
-    }
-    setShowVisibilityModal(false);
-    setPendingVisibilityChange(null);
-  };
 
   // 선택 필지 편입 유형 분석 실행 핸들러 (기존 잔여지 판정)
   const handleInclusionTypeAnalysis = async () => {
@@ -899,18 +862,6 @@ export function BatchAnalysis({
                 ]}
               />
 
-              {/* 공개 여부 필터 */}
-              <RadioFilterGroup
-                label="공개 여부"
-                name="visibility"
-                value={visibilityFilter}
-                onChange={(v) => setVisibilityFilter(v as "all" | "visible" | "hidden")}
-                options={[
-                  { value: "all", label: "전체" },
-                  { value: "visible", label: "공개" },
-                  { value: "hidden", label: "비공개" }
-                ]}
-              />
             </div>
           </div>
         </CardContent>
@@ -1192,54 +1143,6 @@ export function BatchAnalysis({
         </CardContent>
       </Card>
 
-      {/* 관리 토글 확인 모달 */}
-      <Dialog open={showVisibilityModal} onOpenChange={setShowVisibilityModal}>
-        <DialogContent className="max-w-md p-8 relative">
-          {/* 우측 상단 닫기 버튼은 DialogContent 내부에서 자동 렌더링됨 */}
-          <DialogHeader className="pr-8">
-            <DialogTitle className="text-xl">
-              {pendingVisibilityChange?.isVisible ? "필지 정보 공개 확인" : "필지 정보 비공개 확인"}
-            </DialogTitle>
-            <DialogDescription className="pt-4 space-y-4 leading-7 text-base" asChild>
-              <div>
-                {pendingVisibilityChange?.isVisible ? (
-                  <>
-                    <span className="block">해당 필지의 상세 정보와 AI 분석 결과를 민원인에게 공개하시겠습니까?</span>
-                    <span className="block">공개 시 민원인이 직접 정보를 조회하고 매수 신청을 진행할 수 있습니다.</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="block">해당 필지의 상세 정보와 AI 분석 결과를 민원인에게 비공개 처리하시겠습니까?</span>
-                    <span className="block">비공개 시 민원인이 해당 필지 정보를 조회할 수 없습니다.</span>
-                  </>
-                )}
-              </div>
-            </DialogDescription>
-          </DialogHeader>
-          
-          <DialogFooter className="gap-2 sm:gap-2 mt-6">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setShowVisibilityModal(false);
-                setPendingVisibilityChange(null);
-              }}
-              className="border-gray-200 text-gray-600 bg-gray-50 hover:bg-gray-100 hover:text-gray-700"
-            >
-              취소
-            </Button>
-            <Button 
-              onClick={handleConfirmVisibilityChange}
-              className={pendingVisibilityChange?.isVisible 
-                ? "bg-emerald-700 hover:bg-emerald-800 text-white"
-                : "bg-gray-700 hover:bg-gray-800 text-white"
-              }
-            >
-              {pendingVisibilityChange?.isVisible ? "공개하기" : "비공개하기"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* 히스토리 다이얼로그 */}
       <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
