@@ -164,6 +164,18 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
         <div className="flex items-center gap-3">
           <h1 className="text-3xl font-bold">필지상세</h1>
         </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">검토 여부</span>
+          {parcel.aiResult ? (
+            <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-0 text-sm px-3 py-1">
+              완료
+            </Badge>
+          ) : (
+            <Badge className="bg-slate-100 text-slate-500 hover:bg-slate-200 border-0 text-sm px-3 py-1">
+              미완료
+            </Badge>
+          )}
+        </div>
       </div>
 
       {/* 필지 기본 정보 - 통합 헤더 레이아웃 */}
