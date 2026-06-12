@@ -1080,8 +1080,8 @@ export function BatchAnalysis({
                           잔여지 발생
                         </Badge>
                       ) : parcel.residualStatus === "기준 미달" ? (
-                        <Badge className="bg-rose-50 text-rose-600 hover:bg-rose-100 border-0">
-                          전체 편입
+                        <Badge className="bg-slate-100 text-slate-500 hover:bg-slate-200 border-0">
+                          기준 미달
                         </Badge>
                       ) : (
                         <Badge className="bg-indigo-50 text-indigo-500 hover:bg-indigo-100 border-0">

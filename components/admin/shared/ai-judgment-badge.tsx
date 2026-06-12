@@ -25,11 +25,11 @@ export function AIJudgmentBadge({ judgment, size = "md" }: AIJudgmentBadgeProps)
     : judgment;
   
   return (
-    <Badge 
-      className={`${sizeClasses[size]} text-white ${
-        isHigh 
-          ? "bg-emerald-500 hover:bg-emerald-500/90" 
-          : "bg-rose-500 hover:bg-rose-500/90"
+    <Badge
+      className={`${sizeClasses[size]} border-0 ${
+        isHigh
+          ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+          : "bg-rose-50 text-rose-600 hover:bg-rose-100"
       }`}
     >
       {displayText}
