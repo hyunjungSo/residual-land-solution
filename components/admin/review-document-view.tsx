@@ -183,8 +183,22 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
     }
 
     if (found.reason) setOwnerOpinion(found.reason);
-    const reviewOpinion = found.finalReviewOpinion || found.reviewerComment;
-    if (reviewOpinion) setFieldConditionReview(reviewOpinion);
+
+    const categoryLabel = landCategories.find(c => c.value === found.landInfo?.landCategory)?.label ?? found.landInfo?.landCategory ?? "-";
+    const reviewOpinion = found.finalReviewOpinion || found.reviewerComment || "";
+    const template = [
+      `■ 토지유형: ${found.landInfo?.landType ?? "-"}`,
+      `■ 잔여면적: ${found.landInfo?.remainingArea?.toLocaleString() ?? "-"} ㎡`,
+      `■ 토지모양: ${found.landInfo?.remainingShape ?? "-"}`,
+      `■ 실제용도: ${found.actualUsage ?? "-"}`,
+      `■ 공부상 지목: ${categoryLabel}`,
+      `■ 확인항목: ${found.farmMachineDifficulty ? "농기계 진입불가" : "해당없음"}`,
+      `■ 인접 토지 소유: ${found.hasAdjacentLand ? "있음" : "없음"}`,
+      "",
+      `■ 최종검토 의견:`,
+      reviewOpinion,
+    ].join("\n");
+    setFieldConditionReview(template);
   }, [applicationId]);
 
   const handlePurchaseDecisionChange = (index: number, decision: "O" | "X" | "") => {
@@ -287,29 +301,10 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
                     <td colSpan={2} className="border border-foreground bg-muted px-2 py-2 text-center font-medium text-foreground">편입토지</td>
                     <td colSpan={4} className="border border-foreground bg-muted px-2 py-2 text-center font-medium text-foreground">잔여토지</td>
                     <td rowSpan={9} className="border border-foreground p-0 align-top" style={{ minWidth: "220px", height: "1px" }}>
-                      {/* 구조화 항목 (자동 연동) */}
-                      <div className="border-b border-foreground/30 p-2 space-y-1.5">
-                        {[
-                          { label: "토지유형", value: application.landInfo.landType },
-                          { label: "잔여면적", value: `${application.landInfo.remainingArea.toLocaleString()} ㎡` },
-                          { label: "토지모양", value: application.landInfo.remainingShape },
-                          { label: "실제용도", value: application.actualUsage },
-                          { label: "공부상 지목", value: landCategories.find(c => c.value === application.landInfo.landCategory)?.label ?? application.landInfo.landCategory },
-                          { label: "확인항목", value: application.farmMachineDifficulty ? "농기계 진입불가" : "해당없음" },
-                          { label: "인접 토지 소유", value: application.hasAdjacentLand ? "있음" : "없음" },
-                        ].map(({ label, value }) => (
-                          <div key={label} className="flex gap-1 text-xs">
-                            <span className="w-[72px] shrink-0 font-medium text-muted-foreground">{label}</span>
-                            <span className="text-foreground">{value ?? "-"}</span>
-                          </div>
-                        ))}
-                      </div>
-                      {/* 최종검토 의견 */}
-                      <div className="border-b border-foreground/20 bg-muted/30 px-2 py-1 text-xs font-medium text-muted-foreground">최종검토 의견</div>
                       {isEditing ? (
-                        <Textarea value={fieldConditionReview} onChange={(e) => setFieldConditionReview(e.target.value)} className="min-h-[160px] cursor-text resize-none rounded-none border-0 text-base leading-relaxed focus-visible:ring-0 focus-visible:ring-offset-0" placeholder="최종 검토 의견을 입력하세요" />
+                        <Textarea value={fieldConditionReview} onChange={(e) => setFieldConditionReview(e.target.value)} className="h-full min-h-[300px] cursor-text resize-none rounded-none border-0 text-sm leading-relaxed focus-visible:ring-0 focus-visible:ring-offset-0" />
                       ) : (
-                        <div className="whitespace-pre-wrap p-2 text-base leading-relaxed text-foreground">{fieldConditionReview}</div>
+                        <div className="whitespace-pre-wrap p-2 text-sm leading-relaxed text-foreground">{fieldConditionReview}</div>
                       )}
                     </td>
                   </tr>
