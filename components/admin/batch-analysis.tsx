@@ -39,7 +39,8 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  Download
+  Download,
+  Play
 } from "lucide-react";
 import { 
   SearchInput, 
@@ -270,6 +271,46 @@ export function BatchAnalysis({
   const [isInclusionAnalyzing, setIsInclusionAnalyzing] = useState(false);
   const [isPurchaseAnalyzing, setIsPurchaseAnalyzing] = useState(false);
   const [analyzingParcelId, setAnalyzingParcelId] = useState<string | null>(null);
+
+  // 행별 통합 판독 로딩 상태
+  type RowLoadingState = "idle" | "step1" | "step2" | "success";
+  const [rowLoadingStates, setRowLoadingStates] = useState<Record<string, RowLoadingState>>({});
+  const setRowState = (parcelId: string, state: RowLoadingState) =>
+    setRowLoadingStates(prev => ({ ...prev, [parcelId]: state }));
+
+  const handleIntegratedAnalysis = async (parcelId: string) => {
+    // 1단계: 편입 유형 분석
+    setRowState(parcelId, "step1");
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    const residualStatus = Math.random() > 0.3 ? "잔여지 인정" : "기준 미달" as const;
+    setParcels(prev => prev.map(p => p.id === parcelId ? { ...p, residualStatus } as ProcessedParcel : p));
+
+    if (residualStatus === "기준 미달") {
+      // 전체 편입 → 2단계 bypass
+      setRowState(parcelId, "success");
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setRowState(parcelId, "idle");
+      return;
+    }
+
+    // 2단계: AI 매수 가능성 분석
+    setRowState(parcelId, "step2");
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    const judgment: AIJudgmentResult = Math.random() > 0.5 ? "매수 가능성 높음" : "매수 가능성 낮음";
+    setParcels(prev => prev.map(p => {
+      if (p.id !== parcelId) return p;
+      const newAiResult: AIAnalysisResult = { ...p.aiResult, provisionalJudgment: judgment, landTypePath: p.aiResult?.landTypePath || "농지", criteriaChecks: p.aiResult?.criteriaChecks || [], originalShapeIndex: p.aiResult?.originalShapeIndex || 0, remainingShapeIndex: p.aiResult?.remainingShapeIndex || 0, shapeIndexChange: 0, isBlindLand: false, accessRoadLost: p.aiResult?.accessRoadLost || false, waterChannelLost: p.aiResult?.waterChannelLost || false, farmMachineDifficulty: p.aiResult?.farmMachineDifficulty || false, judgmentRationale: p.aiResult?.judgmentRationale || { summary: "", legalBasis: "", appliedCriteria: [], detailedExplanation: "" } };
+      const newHistory: AnalysisHistory = { id: `analysis_${Date.now()}_${Math.random()}`, parcelId, stage: p.analysisHistory?.length ? "2차분석" : "1차분석", analyzedAt: new Date().toISOString(), analyzedBy: "AI 자동 분석", newResult: judgment, previousResult: p.aiResult?.provisionalJudgment || undefined, changedOptions: {}, aiResult: newAiResult };
+      return { ...p, aiResult: newAiResult, analysisHistory: [...(p.analysisHistory || []), newHistory], lastAnalyzedAt: new Date().toISOString() } as ProcessedParcel;
+    }));
+
+    setRowState(parcelId, "success");
+    await new Promise(resolve => setTimeout(resolve, 500));
+    setRowState(parcelId, "idle");
+    onAnalysisComplete?.();
+  };
 
   // 정렬 상태
   const [sortColumn, setSortColumn] = useState<"address" | "remainingArea" | "remainingRatio" | "includedArea" | null>(null);
@@ -976,6 +1017,7 @@ export function BatchAnalysis({
                   <TableHead className="text-center">편입 유형</TableHead>
                   <TableHead className="text-center">매수 가능성</TableHead>
                   <TableHead className="text-center">검토여부</TableHead>
+                  <TableHead className="text-center">작업 실행</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1063,11 +1105,43 @@ export function BatchAnalysis({
                         <Badge className="bg-slate-100 text-slate-500 hover:bg-slate-200 border-0">미완료</Badge>
                       )}
                     </TableCell>
+                    {/* 작업 실행 컬럼 */}
+                    <TableCell className="text-center">
+                      {(() => {
+                        const rowState = rowLoadingStates[parcel.id] ?? "idle";
+                        return (
+                          <button
+                            onClick={() => handleIntegratedAnalysis(parcel.id)}
+                            disabled={rowState !== "idle"}
+                            className={`inline-flex items-center justify-center rounded-md border text-xs font-medium transition-colors min-w-[210px] h-8 px-3
+                              ${rowState === "idle"
+                                ? "border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-400 cursor-pointer"
+                                : rowState === "success"
+                                  ? "border-emerald-400 bg-emerald-50 text-emerald-700 pointer-events-none opacity-90"
+                                  : "border-slate-200 bg-slate-50 text-slate-500 pointer-events-none opacity-80 cursor-not-allowed"
+                              }`}
+                          >
+                            {rowState === "idle" && (
+                              <><Play className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />AI 통합 판독 실행</>
+                            )}
+                            {rowState === "step1" && (
+                              <><Loader2 className="h-3.5 w-3.5 mr-1.5 flex-shrink-0 animate-spin" />⏳ 1단계: 편입 유형 분석 중...</>
+                            )}
+                            {rowState === "step2" && (
+                              <><Loader2 className="h-3.5 w-3.5 mr-1.5 flex-shrink-0 animate-spin" />🧠 2단계: AI 매수 가능성 검토 중...</>
+                            )}
+                            {rowState === "success" && (
+                              <><CheckCircle2 className="h-3.5 w-3.5 mr-1.5 flex-shrink-0 text-emerald-600" />✓ 통합 판독 완료</>
+                            )}
+                          </button>
+                        );
+                      })()}
+                    </TableCell>
                   </TableRow>
                 ))}
                 {filteredParcels.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
                       조건에 맞는 필지가 없습니다.
                     </TableCell>
                   </TableRow>
