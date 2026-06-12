@@ -10,8 +10,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 import { LandMap } from "@/components/land-map";
 import {
   Select,
@@ -171,26 +171,32 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
         </div>
         <div className="flex items-center gap-3">
           <span className="text-sm font-medium text-muted-foreground">검토 확인</span>
-          <RadioGroup
-            value={parcel.reviewStatus ?? (parcel.aiResult ? "완료" : "미완료")}
-            onValueChange={(value: string) => {
-              if (value === "완료") {
-                setShowReviewConfirmDialog(true);
-              } else {
-                onUpdate({ ...parcel, reviewStatus: "미완료" });
-              }
-            }}
-            className="flex items-center gap-4"
-          >
-            <div className="flex items-center gap-1.5">
-              <RadioGroupItem value="미완료" id="review-incomplete" className="size-4" />
-              <Label htmlFor="review-incomplete" className="text-sm font-normal cursor-pointer">미완료</Label>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <RadioGroupItem value="완료" id="review-complete" className="size-4" />
-              <Label htmlFor="review-complete" className="text-sm font-normal cursor-pointer">완료</Label>
-            </div>
-          </RadioGroup>
+          <div className="flex items-center gap-1">
+            {(["미완료", "완료"] as const).map((val) => {
+              const current = parcel.reviewStatus ?? (parcel.aiResult ? "완료" : "미완료");
+              return (
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => {
+                    if (val === current) return;
+                    if (val === "완료") {
+                      setShowReviewConfirmDialog(true);
+                    } else {
+                      onUpdate({ ...parcel, reviewStatus: "미완료" });
+                    }
+                  }}
+                  className={cn(
+                    "rounded-md border px-3 py-1.5 text-xs font-medium transition-all",
+                    current === val
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-muted-foreground/30 text-muted-foreground hover:border-muted-foreground/50 hover:text-foreground"
+                  )}
+                >
+                  {val}
+                </button>
+              );
+            })}</div>
         </div>
       </div>
 
