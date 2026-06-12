@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
-import { dummyApplications, landCategories } from "@/lib/dummy-data";
+import { dummyApplications } from "@/lib/dummy-data";
 import type { Application } from "@/lib/types";
 import {
   Select,
@@ -184,21 +184,10 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
 
     if (found.reason) setOwnerOpinion(found.reason);
 
-    const categoryLabel = landCategories.find(c => c.value === found.landInfo?.landCategory)?.label ?? found.landInfo?.landCategory ?? "-";
+    const DEFAULT_TEMPLATE =
+      "■ 현황: \n■ 토지모양: \n■ 실제 이용 상황: \n■ 농기계 진입 및 회전: \n■ 검토의견: ";
     const reviewOpinion = found.finalReviewOpinion || found.reviewerComment || "";
-    const template = [
-      `■ 토지유형: ${found.landInfo?.landType ?? "-"}`,
-      `■ 잔여면적: ${found.landInfo?.remainingArea?.toLocaleString() ?? "-"} ㎡`,
-      `■ 토지모양: ${found.landInfo?.remainingShape ?? "-"}`,
-      `■ 실제용도: ${found.actualUsage ?? "-"}`,
-      `■ 공부상 지목: ${categoryLabel}`,
-      `■ 확인항목: ${found.farmMachineDifficulty ? "농기계 진입불가" : "해당없음"}`,
-      `■ 인접 토지 소유: ${found.hasAdjacentLand ? "있음" : "없음"}`,
-      "",
-      `■ 최종검토 의견:`,
-      reviewOpinion,
-    ].join("\n");
-    setFieldConditionReview(template);
+    setFieldConditionReview(reviewOpinion || DEFAULT_TEMPLATE);
   }, [applicationId]);
 
   const handlePurchaseDecisionChange = (index: number, decision: "O" | "X" | "") => {
@@ -304,7 +293,13 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
                       {isEditing ? (
                         <Textarea value={fieldConditionReview} onChange={(e) => setFieldConditionReview(e.target.value)} className="h-full min-h-[300px] cursor-text resize-none rounded-none border-0 text-sm leading-relaxed focus-visible:ring-0 focus-visible:ring-offset-0" />
                       ) : (
-                        <div className="whitespace-pre-wrap p-2 text-sm leading-relaxed text-foreground">{fieldConditionReview}</div>
+                        <div className="p-2 text-sm leading-relaxed text-foreground">
+                          {fieldConditionReview.split("\n").map((line, i) => (
+                            <p key={i} className={line.startsWith("■") ? "font-semibold" : undefined} style={{ minHeight: "1.5em" }}>
+                              {line || " "}
+                            </p>
+                          ))}
+                        </div>
                       )}
                     </td>
                   </tr>
