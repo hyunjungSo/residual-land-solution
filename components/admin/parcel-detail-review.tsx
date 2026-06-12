@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { LandMap } from "@/components/land-map";
@@ -183,12 +183,12 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
             className="flex items-center gap-4"
           >
             <div className="flex items-center gap-1.5">
-              <RadioGroupItem value="미완료" id="review-incomplete" />
-              <Label htmlFor="review-incomplete" className="text-sm cursor-pointer">미완료</Label>
+              <RadioGroupItem value="미완료" id="review-incomplete" className="size-4" />
+              <Label htmlFor="review-incomplete" className="text-sm font-normal cursor-pointer">미완료</Label>
             </div>
             <div className="flex items-center gap-1.5">
-              <RadioGroupItem value="완료" id="review-complete" />
-              <Label htmlFor="review-complete" className="text-sm cursor-pointer">완료</Label>
+              <RadioGroupItem value="완료" id="review-complete" className="size-4" />
+              <Label htmlFor="review-complete" className="text-sm font-normal cursor-pointer">완료</Label>
             </div>
           </RadioGroup>
         </div>
@@ -196,23 +196,21 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
 
       {/* 검토 완료 컨펌 다이얼로그 */}
       <Dialog open={showReviewConfirmDialog} onOpenChange={setShowReviewConfirmDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="z-[10000] bg-white sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold">필지 검토를 완료하시겠습니까?</DialogTitle>
+            <DialogTitle className="text-gray-900">필지 검토를 완료하시겠습니까?</DialogTitle>
           </DialogHeader>
-          <DialogDescription asChild>
-            <div className="space-y-3 text-sm text-foreground">
-              <div className="flex gap-2 rounded-md bg-blue-50 px-4 py-3 text-blue-800">
-                <span className="shrink-0 font-semibold">안내</span>
-                <span>완료 처리 시 해당 필지의 <span className="font-bold">AI 분석 결과가 민원인에게 노출</span>됩니다.</span>
-              </div>
-              <div className="flex gap-2 rounded-md bg-amber-50 px-4 py-3 text-amber-800">
-                <span className="shrink-0 font-semibold">주의</span>
-                <span>잘못된 정보가 노출되지 않도록 <span className="font-bold">데이터 및 지적도 분석 결과를 신중하게 재검토</span>해 주세요.</span>
-              </div>
+          <div className="space-y-3 text-sm">
+            <div className="flex gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-blue-800">
+              <span className="shrink-0 font-semibold">안내</span>
+              <span>완료 처리 시 해당 필지의 <span className="font-bold">AI 분석 결과가 민원인에게 노출</span>됩니다.</span>
             </div>
-          </DialogDescription>
-          <DialogFooter className="gap-2 pt-2">
+            <div className="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800">
+              <span className="shrink-0 font-semibold">주의</span>
+              <span>잘못된 정보가 노출되지 않도록 <span className="font-bold">데이터 및 지적도 분석 결과를 신중하게 재검토</span>해 주세요.</span>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 pt-1">
             <Button
               variant="outline"
               onClick={() => setShowReviewConfirmDialog(false)}
@@ -233,7 +231,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
             >
               검토 완료
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 
