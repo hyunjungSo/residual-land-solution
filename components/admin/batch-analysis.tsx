@@ -1025,7 +1025,7 @@ export function BatchAnalysis({
                   </TableHead>
                   <TableHead className="text-center">편입 유형</TableHead>
                   <TableHead className="text-center">매수 가능성</TableHead>
-                  <TableHead className="text-center">공개 여부</TableHead>
+                  <TableHead className="text-center">검토여부</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1109,25 +1109,13 @@ export function BatchAnalysis({
                         </Badge>
                       )}
                     </TableCell>
-                    {/* 공개 여부 컬럼 - 토글 스위치 (공개 상태에서 민원인 활동이 있을 때만 비활성화) */}
+                    {/* 검토여부 컬럼 */}
                     <TableCell className="text-center">
-                      {(() => {
-                        const isVisible = parcel.isVisible !== false;
-                        const hasCitizenActivity = parcel.citizenActivity?.inCart || parcel.citizenActivity?.applicationSubmitted;
-                        // 비공개 필지는 이미 민원인에게 미노출되므로 항상 수정 가능. 공개 상태에서 민원인 활동이 있을 때만 수정 불가.
-                        const isLocked = isVisible && !!hasCitizenActivity;
-                        return (
-                          <div className="flex items-center justify-center gap-1.5">
-                            <Switch
-                              checked={parcel.isVisible !== false}
-                              onCheckedChange={(checked) => handleToggleVisibilityRequest(parcel.id, checked)}
-                              disabled={isLocked}
-                              className="data-[state=checked]:bg-[#2E8B57]"
-                            />
-                            <span className="text-sm text-muted-foreground w-[42px] text-left">{parcel.isVisible !== false ? "공개" : "비공개"}</span>
-                          </div>
-                        );
-                      })()}
+                      {parcel.aiResult ? (
+                        <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-0">완료</Badge>
+                      ) : (
+                        <Badge className="bg-slate-100 text-slate-500 hover:bg-slate-200 border-0">미완료</Badge>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
