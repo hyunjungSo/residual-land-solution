@@ -124,6 +124,12 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
     });
     setDocumentMeta((prev) => ({ ...prev, projectName: found!.landInfo?.projectName || prev.projectName }));
 
+    // fieldConditionReview: Application 데이터 우선 (신청상세 저장값 항상 반영)
+    const DEFAULT_TEMPLATE =
+      "■ 현황: \n■ 토지모양: \n■ 실제 이용 상황: \n■ 농기계 진입 및 회전: \n■ 검토의견: ";
+    const reviewOpinion = found.finalReviewOpinion || found.reviewerComment || "";
+    setFieldConditionReview(reviewOpinion || DEFAULT_TEMPLATE);
+
     let savedReviewData = null;
     try {
       const savedDocs = JSON.parse(localStorage.getItem("reviewDocuments") || "{}");
@@ -135,7 +141,6 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
     if (savedReviewData?.landParcels?.length > 0) {
       setLandParcels(savedReviewData.landParcels);
       if (savedReviewData.ownerOpinion) setOwnerOpinion(savedReviewData.ownerOpinion);
-      if (savedReviewData.fieldConditionReview) setFieldConditionReview(savedReviewData.fieldConditionReview);
       if (savedReviewData.committeeDecisions) setCommitteeDecisions(savedReviewData.committeeDecisions);
       if (savedReviewData.documentMeta) setDocumentMeta(savedReviewData.documentMeta);
       return;
@@ -183,11 +188,6 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
     }
 
     if (found.reason) setOwnerOpinion(found.reason);
-
-    const DEFAULT_TEMPLATE =
-      "■ 현황: \n■ 토지모양: \n■ 실제 이용 상황: \n■ 농기계 진입 및 회전: \n■ 검토의견: ";
-    const reviewOpinion = found.finalReviewOpinion || found.reviewerComment || "";
-    setFieldConditionReview(reviewOpinion || DEFAULT_TEMPLATE);
   }, [applicationId]);
 
   const handlePurchaseDecisionChange = (index: number, decision: "O" | "X" | "") => {
