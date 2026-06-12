@@ -957,20 +957,20 @@ export function BatchAnalysis({
                   </TableHead>
                   <TableHead
                     className="text-center cursor-pointer select-none"
-                    onClick={() => handleSort("includedArea")}
-                  >
-                    <div className="flex items-center justify-center gap-1">
-                      편입면적(㎡)
-                      {sortColumn === "includedArea" ? (sortDirection === "asc" ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/50" />}
-                    </div>
-                  </TableHead>
-                  <TableHead
-                    className="text-center cursor-pointer select-none"
                     onClick={() => handleSort("remainingRatio")}
                   >
                     <div className="flex items-center justify-center gap-1">
                       잔여비율(%)
                       {sortColumn === "remainingRatio" ? (sortDirection === "asc" ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/50" />}
+                    </div>
+                  </TableHead>
+                  <TableHead
+                    className="text-center cursor-pointer select-none"
+                    onClick={() => handleSort("includedArea")}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      편입면적(㎡)
+                      {sortColumn === "includedArea" ? (sortDirection === "asc" ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/50" />}
                     </div>
                   </TableHead>
                   <TableHead className="text-center">편입 유형</TableHead>
@@ -1013,10 +1013,10 @@ export function BatchAnalysis({
                       {parcel.landInfo.remainingArea.toLocaleString()}
                     </TableCell>
                     <TableCell className="text-center">
-                      {parcel.landInfo.includedArea != null ? parcel.landInfo.includedArea.toLocaleString() : "-"}
+                      {parcel.landInfo.remainingRatio != null ? `${parcel.landInfo.remainingRatio}%` : "-"}
                     </TableCell>
                     <TableCell className="text-center">
-                      {parcel.landInfo.remainingRatio != null ? `${parcel.landInfo.remainingRatio}%` : "-"}
+                      {parcel.landInfo.includedArea != null ? parcel.landInfo.includedArea.toLocaleString() : "-"}
                     </TableCell>
                     {/* 편입 유형 컬럼 */}
                     <TableCell className="text-center">
