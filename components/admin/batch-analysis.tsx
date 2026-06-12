@@ -936,7 +936,7 @@ export function BatchAnalysis({
                 title="Excel 다운로드"
               >
                 <Download className="h-4 w-4 mr-1.5" />
-                Excel
+                엑셀 다운로드
               </Button>
               <Button
                 onClick={handleInclusionTypeAnalysis}
