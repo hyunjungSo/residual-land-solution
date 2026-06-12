@@ -166,15 +166,20 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">검토 여부</span>
-          {parcel.aiResult ? (
-            <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-0 text-sm px-3 py-1">
-              완료
-            </Badge>
-          ) : (
-            <Badge className="bg-slate-100 text-slate-500 hover:bg-slate-200 border-0 text-sm px-3 py-1">
-              미완료
-            </Badge>
-          )}
+          <Select
+            value={parcel.reviewStatus ?? (parcel.aiResult ? "완료" : "미완료")}
+            onValueChange={(value: "완료" | "미완료") => {
+              onUpdate({ ...parcel, reviewStatus: value });
+            }}
+          >
+            <SelectTrigger className="w-[100px] h-8 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="완료">완료</SelectItem>
+              <SelectItem value="미완료">미완료</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

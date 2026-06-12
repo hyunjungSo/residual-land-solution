@@ -1120,7 +1120,7 @@ export function BatchAnalysis({
                     </TableCell>
                     {/* 검토여부 컬럼 */}
                     <TableCell className="text-center">
-                      {parcel.aiResult ? (
+                      {(parcel.reviewStatus ?? (parcel.aiResult ? "완료" : "미완료")) === "완료" ? (
                         <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-0">완료</Badge>
                       ) : (
                         <Badge className="bg-slate-100 text-slate-500 hover:bg-slate-200 border-0">미완료</Badge>

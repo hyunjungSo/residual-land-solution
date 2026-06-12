@@ -340,6 +340,7 @@ export interface ProcessedParcel extends PreRegisteredParcel {
   ownerIdentifier?: string;                   // 소유자 식별자 (주민번호 뒷자리 등)
   isVisible?: boolean;                        // 노출 여부 (true: 노출, false: 미노출)
   reportCompleted?: boolean;                  // 보고서 완료 여부
+  reviewStatus?: "완료" | "미완료";            // 검토 여부 (수동 설정)
   // 민원인 활동 상태
   citizenActivity?: {
     inCart?: boolean;                         // 장바구니에 담김
