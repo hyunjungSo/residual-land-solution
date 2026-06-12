@@ -292,8 +292,8 @@ export function BatchAnalysis({
       "잔여면적(㎡)": p.landInfo.remainingArea,
       "편입면적(㎡)": p.landInfo.includedArea ?? "",
       "잔여비율(%)": p.landInfo.remainingRatio ?? "",
-      편입유형: p.residualStatus === "잔여지 인정" ? "잔여지 발생" : p.residualStatus === "기준 미달" ? "전체 편입" : "판독대기",
-      매수가능성: p.aiResult?.provisionalJudgment ?? "검토필요",
+      편입유형: p.residualStatus === "잔여지 인정" ? "잔여지 발생" : !p.residualStatus ? "판독대기" : "-",
+      매수가능성: p.residualStatus !== "잔여지 인정" ? "-" : p.aiResult ? (p.aiResult.provisionalJudgment === "매수 가능성 높음" ? "높음" : "낮음") : "검토필요",
       공개여부: p.isVisible !== false ? "공개" : "비공개",
     }));
     const ws = XLSX.utils.json_to_sheet(rows);
@@ -881,7 +881,6 @@ export function BatchAnalysis({
                 options={[
                   { value: "all", label: "전체" },
                   { value: "pending", label: "판독대기" },
-                  { value: "full", label: "전체 편입" },
                   { value: "partial", label: "잔여지 발생" }
                 ]}
               />
@@ -1080,9 +1079,7 @@ export function BatchAnalysis({
                           잔여지 발생
                         </Badge>
                       ) : parcel.residualStatus === "기준 미달" ? (
-                        <Badge className="bg-slate-100 text-slate-500 hover:bg-slate-200 border-0">
-                          기준 미달
-                        </Badge>
+                        <span className="text-sm text-muted-foreground">-</span>
                       ) : (
                         <Badge className="bg-indigo-50 text-indigo-500 hover:bg-indigo-100 border-0">
                           판독대기
@@ -1091,11 +1088,9 @@ export function BatchAnalysis({
                     </TableCell>
                     {/* 매수 가능성 컬럼 */}
                     <TableCell className="text-center">
-                      {/* 편입 유형이 판독대기면 매수 가능성도 판독대기 */}
-                      {parcel.residualStatus !== "잔여지 인정" && parcel.residualStatus !== "기준 미달" ? (
-                        <Badge className="bg-indigo-50 text-indigo-500 hover:bg-indigo-100 border-0">
-                          판독대기
-                        </Badge>
+                      {/* 잔여지 인정 아닌 경우 AI 분석 미해당 */}
+                      {parcel.residualStatus !== "잔여지 인정" ? (
+                        <span className="text-sm text-muted-foreground">-</span>
                       ) : isPurchaseAnalyzing && selectedParcelIds.has(parcel.id) ? (
                         <div className="flex items-center justify-center gap-1">
                           <Loader2 className="h-4 w-4 animate-spin text-[#2E8B57]" />
