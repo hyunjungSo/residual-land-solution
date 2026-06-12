@@ -483,11 +483,7 @@ function LandInfoSection({
         </div>
         <div className="flex flex-1 items-center px-4 py-3">
           <span className="text-sm">
-            {application.hasAdjacentLand === true
-              ? "있음"
-              : application.hasAdjacentLand === false
-              ? "없음"
-              : "-"}
+            {application.hasAdjacentLand ? "있음" : "없음"}
           </span>
         </div>
       </div>

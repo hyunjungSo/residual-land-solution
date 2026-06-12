@@ -1155,11 +1155,7 @@ purchaseDecision: result?.provisionalJudgment === "수용가능" ? "O" as const 
                     <tr>
                       <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground">인접 토지 소유</td>
                       <td className="px-4 py-3" colSpan={3}>
-                        {application.hasAdjacentLand === true
-                          ? "있음"
-                          : application.hasAdjacentLand === false
-                          ? "없음"
-                          : "-"}
+                        {application.hasAdjacentLand ? "있음" : "없음"}
                       </td>
                     </tr>
                     <tr>
