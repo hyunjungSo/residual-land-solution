@@ -30,12 +30,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { 
-  CheckCircle2, 
-  XCircle, 
+import {
+  CheckCircle2,
+  XCircle,
   ChevronLeft,
   ChevronRight,
-  Loader2
+  Loader2,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Download
 } from "lucide-react";
 import { 
   SearchInput, 
@@ -62,6 +66,7 @@ import {
   landShapes, 
 } from "@/lib/dummy-data";
 import { formatDateTime } from "@/lib/format";
+import * as XLSX from "xlsx";
 
 interface BatchAnalysisProps {
   businessUnit?: string;
@@ -266,6 +271,37 @@ export function BatchAnalysis({
   const [isPurchaseAnalyzing, setIsPurchaseAnalyzing] = useState(false);
   const [analyzingParcelId, setAnalyzingParcelId] = useState<string | null>(null);
 
+  // 정렬 상태
+  const [sortColumn, setSortColumn] = useState<"address" | "remainingArea" | "remainingRatio" | "includedArea" | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+  const handleSort = (column: "address" | "remainingArea" | "remainingRatio" | "includedArea") => {
+    if (sortColumn === column) {
+      setSortDirection(prev => prev === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
+
+  const handleDownloadExcel = () => {
+    const rows = filteredParcels.map((p, i) => ({
+      "No.": i + 1,
+      소재지: p.landInfo.address,
+      소유자: p.landInfo.ownerName,
+      "잔여면적(㎡)": p.landInfo.remainingArea,
+      "편입면적(㎡)": p.landInfo.includedArea ?? "",
+      "잔여비율(%)": p.landInfo.remainingRatio ?? "",
+      편입유형: p.residualStatus === "잔여지 인정" ? "잔여지 발생" : p.residualStatus === "기준 미달" ? "전체 편입" : "판독대기",
+      매수가능성: p.aiResult?.provisionalJudgment ?? "검토필요",
+      공개여부: p.isVisible !== false ? "공개" : "비공개",
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "필지목록");
+    XLSX.writeFile(wb, "필지관리목록.xlsx");
+  };
+
   // 관리 토글 확인 모달 상태
   const [showVisibilityModal, setShowVisibilityModal] = useState(false);
   const [pendingVisibilityChange, setPendingVisibilityChange] = useState<{parcelId: string, isVisible: boolean} | null>(null);
@@ -379,54 +415,38 @@ export function BatchAnalysis({
     }
   };
 
-  // AI 매수 가능성 분석 실행
+  // AI 분석 공통 헬퍼 (선택 배치 및 자동 트리거 공용)
+  const performAiAnalysis = async (targetIds: Set<string>, baseParcels: ProcessedParcel[]) => {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    const parcelsToAnalyze = baseParcels.filter(p => targetIds.has(p.id));
+    const analyzed = parcelsToAnalyze.map(parcel => {
+      const judgment: AIJudgmentResult = Math.random() > 0.5 ? "매수 가능성 높음" : "매수 가능성 낮음";
+      const newAiResult: AIAnalysisResult = { ...parcel.aiResult, provisionalJudgment: judgment, landTypePath: parcel.aiResult?.landTypePath || "농지", criteriaChecks: parcel.aiResult?.criteriaChecks || [], originalShapeIndex: parcel.aiResult?.originalShapeIndex || 0, remainingShapeIndex: parcel.aiResult?.remainingShapeIndex || 0, shapeIndexChange: 0, isBlindLand: false, accessRoadLost: parcel.aiResult?.accessRoadLost || false, waterChannelLost: parcel.aiResult?.waterChannelLost || false, farmMachineDifficulty: parcel.aiResult?.farmMachineDifficulty || false, judgmentRationale: parcel.aiResult?.judgmentRationale || { summary: "", legalBasis: "", appliedCriteria: [], detailedExplanation: "" } };
+      const newHistory: AnalysisHistory = { id: `analysis_${Date.now()}_${Math.random()}`, parcelId: parcel.id, stage: parcel.analysisHistory?.length ? "2차분석" : "1차분석", analyzedAt: new Date().toISOString(), analyzedBy: "AI 자동 분석", newResult: judgment, previousResult: parcel.aiResult?.provisionalJudgment || undefined, changedOptions: {}, aiResult: newAiResult };
+      return { ...parcel, aiResult: newAiResult, analysisHistory: [...(parcel.analysisHistory || []), newHistory], lastAnalyzedAt: new Date().toISOString(), isVisible: true } as ProcessedParcel;
+    });
+    setParcels(prev => {
+      const updated = [...prev];
+      analyzed.forEach(a => {
+        const idx = updated.findIndex(p => p.id === a.id);
+        if (idx !== -1) updated[idx] = a;
+      });
+      return updated;
+    });
+    return analyzed.length;
+  };
+
+  // AI 매수 가능성 분석 실행 (수동 선택)
   const handleBatchAnalysis = async () => {
     if (selectedParcelIds.size === 0) return;
-
     setIsPurchaseAnalyzing(true);
     try {
-      // 분석 시뮬레이션 (1초 딜레이)
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // 선택된 필지들에 대해 분석 수행
-      const parcelsToAnalyze = parcels.filter(p => selectedParcelIds.has(p.id));
-      
-      const updatedParcels = parcelsToAnalyze.map(parcel => {
-        const judgment: AIJudgmentResult = Math.random() > 0.5 ? "매수 가능성 높음" : "매수 가능성 낮음";
-        const newAiResult: AIAnalysisResult = { ...parcel.aiResult, provisionalJudgment: judgment, landTypePath: parcel.aiResult?.landTypePath || "농지", criteriaChecks: parcel.aiResult?.criteriaChecks || [], originalShapeIndex: parcel.aiResult?.originalShapeIndex || 0, remainingShapeIndex: parcel.aiResult?.remainingShapeIndex || 0, shapeIndexChange: 0, isBlindLand: false, accessRoadLost: parcel.aiResult?.accessRoadLost || false, waterChannelLost: parcel.aiResult?.waterChannelLost || false, farmMachineDifficulty: parcel.aiResult?.farmMachineDifficulty || false, judgmentRationale: parcel.aiResult?.judgmentRationale || { summary: "", legalBasis: "", appliedCriteria: [], detailedExplanation: "" } };
-        const newHistory: AnalysisHistory = {
-          id: `analysis_${Date.now()}_${Math.random()}`,
-          parcelId: parcel.id,
-          stage: parcel.analysisHistory?.length ? "2차분석" : "1차분석",
-          analyzedAt: new Date().toISOString(),
-          analyzedBy: "AI 자동 분석",
-          newResult: judgment,
-          previousResult: parcel.aiResult?.provisionalJudgment || undefined,
-          changedOptions: {},
-          aiResult: newAiResult,
-        };
-        return { ...parcel, aiResult: newAiResult, analysisHistory: [...(parcel.analysisHistory || []), newHistory], lastAnalyzedAt: new Date().toISOString(), isVisible: true } as ProcessedParcel;
-      });
-
-      // 기존 필지들과 분석된 필지들 병합
-      setParcels(prev => {
-        const updated = [...prev];
-        parcelsToAnalyze.forEach(analyzedParcel => {
-          const idx = updated.findIndex(p => p.id === analyzedParcel.id);
-          if (idx !== -1) {
-            updated[idx] = updatedParcels.find(p => p.id === analyzedParcel.id)!;
-          }
-        });
-        return updated;
-      });
-
+      const count = await performAiAnalysis(selectedParcelIds, parcels);
       toast({
         title: "AI 매수 가능성 분석 완료",
-        description: `${selectedParcelIds.size}건의 AI 매수 가능성 분석이 완료되었습니다.`,
+        description: `${count}건의 AI 매수 가능성 분석이 완료되었습니다.`,
         duration: 3500,
       });
-
-      // 선택 초기화
       setSelectedParcelIds(new Set());
       onAnalysisComplete?.();
     } finally {
@@ -470,34 +490,44 @@ export function BatchAnalysis({
   // 선택 필지 편입 유형 분석 실행 핸들러 (기존 잔여지 판정)
   const handleInclusionTypeAnalysis = async () => {
     if (selectedParcelIds.size === 0) return;
-    
+
     setIsInclusionAnalyzing(true);
     try {
-      // 분석 시뮬레이션 (1초 딜레이)
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       const updatedParcels = parcels.map(p => {
         if (!selectedParcelIds.has(p.id)) return p;
-        
-        // 편입 유형 결과 생성 (전체 편입 또는 부분 편입)
         const residualStatus = Math.random() > 0.3 ? "잔여지 인정" : "기준 미달" as const;
-        
-        return {
-          ...p,
-          residualStatus,
-        } as ProcessedParcel;
+        return { ...p, residualStatus } as ProcessedParcel;
       });
-      
+
       setParcels(updatedParcels);
       onParcelsUpdate?.(updatedParcels);
-      
+
       toast({
         title: "편입 유형 판독 완료",
         description: `${selectedParcelIds.size}건의 편입 유형 판독이 완료되었습니다.`,
         duration: 3500,
       });
-      
+
       setSelectedParcelIds(new Set());
+
+      // 잔여지 인정 필지에 대해 AI 매수 가능성 자동 분석
+      const autoIds = new Set(updatedParcels.filter(p => selectedParcelIds.has(p.id) && p.residualStatus === "잔여지 인정").map(p => p.id));
+      if (autoIds.size > 0) {
+        setIsPurchaseAnalyzing(true);
+        try {
+          const count = await performAiAnalysis(autoIds, updatedParcels);
+          toast({
+            title: "AI 매수 가능성 자동 분석 완료",
+            description: `잔여지 인정 ${count}건에 대한 AI 분석이 자동으로 완료되었습니다.`,
+            duration: 3500,
+          });
+          onAnalysisComplete?.();
+        } finally {
+          setIsPurchaseAnalyzing(false);
+        }
+      }
     } finally {
       setIsInclusionAnalyzing(false);
     }
@@ -505,7 +535,7 @@ export function BatchAnalysis({
 
   // 필터링된 필지 목록
   const filteredParcels = useMemo(() => {
-    return parcels.filter(parcel => {
+    const result = parcels.filter(parcel => {
       // 면적이 0인 필지 제외
       if (parcel.landInfo.remainingArea === 0) return false;
       
@@ -559,7 +589,22 @@ export function BatchAnalysis({
       
       return true;
     });
-  }, [parcels, businessUnit, businessUnitFilter, searchQuery, aiJudgmentFilter, visibilityFilter, inclusionTypeFilter, periodFilter, selectedYear, customDateRange]);
+
+    if (sortColumn) {
+      result.sort((a: ProcessedParcel, b: ProcessedParcel) => {
+        let valA: string | number;
+        let valB: string | number;
+        if (sortColumn === "address") { valA = a.landInfo.address; valB = b.landInfo.address; }
+        else if (sortColumn === "remainingArea") { valA = a.landInfo.remainingArea; valB = b.landInfo.remainingArea; }
+        else if (sortColumn === "remainingRatio") { valA = a.landInfo.remainingRatio ?? 0; valB = b.landInfo.remainingRatio ?? 0; }
+        else { valA = a.landInfo.includedArea ?? 0; valB = b.landInfo.includedArea ?? 0; }
+        if (typeof valA === "string") return sortDirection === "asc" ? valA.localeCompare(valB as string) : (valB as string).localeCompare(valA);
+        return sortDirection === "asc" ? valA - (valB as number) : (valB as number) - valA;
+      });
+    }
+
+    return result;
+  }, [parcels, businessUnit, businessUnitFilter, searchQuery, aiJudgmentFilter, visibilityFilter, inclusionTypeFilter, periodFilter, selectedYear, customDateRange, sortColumn, sortDirection]);
 
   // 페이지네이션 계산
   const totalPages = Math.ceil(filteredParcels.length / itemsPerPage);
@@ -590,8 +635,8 @@ export function BatchAnalysis({
     const fullInclusion = relevantParcels.filter(p => p.residualStatus === "기준 미달").length;
     // 부분 편입 = 잔여지 인정 (잔여지 발생)
     const partialInclusion = relevantParcels.filter(p => p.residualStatus === "잔여지 인정").length;
-    // 심사 대기 = 편입 유형은 나왔으나, 매수 가능성 분석을 아직 실행하지 않은 필지
-    const pendingReview = relevantParcels.filter(p => p.residualStatus && !p.aiResult).length;
+    // 검토필요 = 잔여지 인정이지만 AI 분석을 아직 실행하지 않은 필지
+    const pendingReview = relevantParcels.filter(p => p.residualStatus === "잔여지 인정" && !p.aiResult).length;
     const highPossibility = relevantParcels.filter(p => 
       p.aiResult && isHighPossibility(p.aiResult.provisionalJudgment)
     ).length;
@@ -689,10 +734,10 @@ export function BatchAnalysis({
               />
             </div>
             
-            {/* 상태별 현황 그리드 - 4개 카드 */}
-            <div className="grid grid-cols-4 gap-2 pt-2">
+            {/* 상태별 현황 그리드 - 3개 카드 */}
+            <div className="grid grid-cols-3 gap-2 pt-2">
               {/* 전체: Black */}
-              <div 
+              <div
                 onClick={() => handleInclusionTypeClick("all")}
                 className="flex cursor-pointer flex-col items-center rounded-lg bg-slate-50 p-4 transition-all hover:bg-slate-100"
               >
@@ -703,7 +748,7 @@ export function BatchAnalysis({
                 </div>
               </div>
               {/* 판독대기: Indigo */}
-              <div 
+              <div
                 onClick={() => handleInclusionTypeClick("pending")}
                 className="flex cursor-pointer flex-col items-center rounded-lg bg-indigo-50 p-4 transition-all hover:bg-indigo-100"
               >
@@ -713,25 +758,14 @@ export function BatchAnalysis({
                   <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
                 </div>
               </div>
-              {/* 부분 편입: Emerald (매수 색상과 동일) */}
-              <div 
+              {/* 잔여지 발생: Emerald */}
+              <div
                 onClick={() => handleInclusionTypeClick("partial")}
                 className="flex cursor-pointer flex-col items-center rounded-lg bg-emerald-50 p-4 transition-all hover:bg-emerald-100"
               >
                 <span className="text-sm font-medium text-emerald-600" style={{ order: 1 }}>잔여지 발생</span>
                 <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
                   <span className="font-bold text-emerald-700" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.partialInclusion}</span>
-                  <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
-                </div>
-              </div>
-              {/* 전체 편입: Rose (기각 색상과 동일) */}
-              <div 
-                onClick={() => handleInclusionTypeClick("full")}
-                className="flex cursor-pointer flex-col items-center rounded-lg bg-rose-50 p-4 transition-all hover:bg-rose-100"
-              >
-                <span className="text-sm font-medium text-rose-500" style={{ order: 1 }}>전체 편입</span>
-                <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
-                  <span className="font-bold text-rose-600" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.fullInclusion}</span>
                   <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
                 </div>
               </div>
@@ -767,25 +801,25 @@ export function BatchAnalysis({
             
             {/* 상태별 현황 그리드 - 4개 카드 */}
             <div className="grid grid-cols-4 gap-2 pt-2">
-              {/* 전체: Black */}
-              <div 
+              {/* 전체: Black — 잔여지 발생 건수와 동일 */}
+              <div
                 onClick={() => handleAiJudgmentClick("all")}
                 className="flex cursor-pointer flex-col items-center rounded-lg bg-slate-50 p-4 transition-all hover:bg-slate-100"
               >
                 <span className="text-sm font-medium text-black" style={{ order: 1 }}>전체</span>
                 <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
-                  <span className="font-bold text-black" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.highPossibility + stats.lowPossibility + stats.pendingReview}</span>
+                  <span className="font-bold text-black" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.partialInclusion}</span>
                   <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
                 </div>
               </div>
-              {/* 판독 대기: Indigo */}
-              <div 
+              {/* 검토필요: Amber */}
+              <div
                 onClick={() => handleAiJudgmentClick("pending")}
-                className="flex cursor-pointer flex-col items-center rounded-lg bg-indigo-50 p-4 transition-all hover:bg-indigo-100"
+                className="flex cursor-pointer flex-col items-center rounded-lg bg-amber-50 p-4 transition-all hover:bg-amber-100"
               >
-                <span className="text-sm font-medium text-indigo-500" style={{ order: 1 }}>판독대기</span>
+                <span className="text-sm font-medium text-amber-600" style={{ order: 1 }}>검토필요</span>
                 <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
-                  <span className="font-bold text-indigo-600" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.pendingReview}</span>
+                  <span className="font-bold text-amber-700" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.pendingReview}</span>
                   <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
                 </div>
               </div>
@@ -860,7 +894,7 @@ export function BatchAnalysis({
                 onChange={(v) => setAiJudgmentFilter(v as "all" | "high" | "low" | "pending")}
                 options={[
                   { value: "all", label: "전체" },
-                  { value: "pending", label: "판독대기" },
+                  { value: "pending", label: "검토필요" },
                   { value: "high", label: "높음" },
                   { value: "low", label: "낮음" }
                 ]}
@@ -893,8 +927,17 @@ export function BatchAnalysis({
                 편입 유형 과 매수 가능성 판록 결과를 확인하세요. 소재지를 클릭하면 필지 상세 화면으로 이동합니다.
               </CardDescription>
             </div>
-            {/* 분석 버튼 */}
+            {/* 분석 버튼 + 엑셀 다운로드 */}
             <div className="flex items-center gap-2">
+              <Button
+                onClick={handleDownloadExcel}
+                variant="outline"
+                className="whitespace-nowrap"
+                title="Excel 다운로드"
+              >
+                <Download className="h-4 w-4 mr-1.5" />
+                Excel
+              </Button>
               <Button
                 onClick={handleInclusionTypeAnalysis}
                 disabled={selectedParcelIds.size === 0 || isInclusionAnalyzing || isPurchaseAnalyzing}
@@ -943,8 +986,43 @@ export function BatchAnalysis({
                     />
                   </TableHead>
                   <TableHead className="w-12 text-center">No.</TableHead>
-                  <TableHead>소재지</TableHead>
-                  <TableHead className="text-center">잔여면적(m²)</TableHead>
+                  <TableHead
+                    className="cursor-pointer select-none"
+                    onClick={() => handleSort("address")}
+                  >
+                    <div className="flex items-center gap-1">
+                      소재지
+                      {sortColumn === "address" ? (sortDirection === "asc" ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/50" />}
+                    </div>
+                  </TableHead>
+                  <TableHead className="text-center">소유자</TableHead>
+                  <TableHead
+                    className="text-center cursor-pointer select-none"
+                    onClick={() => handleSort("remainingArea")}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      잔여면적(㎡)
+                      {sortColumn === "remainingArea" ? (sortDirection === "asc" ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/50" />}
+                    </div>
+                  </TableHead>
+                  <TableHead
+                    className="text-center cursor-pointer select-none"
+                    onClick={() => handleSort("includedArea")}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      편입면적(㎡)
+                      {sortColumn === "includedArea" ? (sortDirection === "asc" ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/50" />}
+                    </div>
+                  </TableHead>
+                  <TableHead
+                    className="text-center cursor-pointer select-none"
+                    onClick={() => handleSort("remainingRatio")}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      잔여비율(%)
+                      {sortColumn === "remainingRatio" ? (sortDirection === "asc" ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/50" />}
+                    </div>
+                  </TableHead>
                   <TableHead className="text-center">편입 유형</TableHead>
                   <TableHead className="text-center">매수 가능성</TableHead>
                   <TableHead className="text-center">공개 여부</TableHead>
@@ -968,8 +1046,8 @@ export function BatchAnalysis({
                     <TableCell className="text-center text-muted-foreground">
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </TableCell>
-                    <TableCell 
-                      className="font-medium max-w-[200px] truncate underline cursor-pointer hover:text-primary" 
+                    <TableCell
+                      className="font-medium max-w-[200px] truncate underline cursor-pointer hover:text-primary"
                       title={parcel.landInfo.address}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -978,8 +1056,17 @@ export function BatchAnalysis({
                     >
                       {parcel.landInfo.address}
                     </TableCell>
+                    <TableCell className="text-center text-sm">
+                      {parcel.landInfo.ownerName}
+                    </TableCell>
                     <TableCell className="text-center">
                       {parcel.landInfo.remainingArea.toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {parcel.landInfo.includedArea != null ? parcel.landInfo.includedArea.toLocaleString() : "-"}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {parcel.landInfo.remainingRatio != null ? `${parcel.landInfo.remainingRatio}%` : "-"}
                     </TableCell>
                     {/* 편입 유형 컬럼 */}
                     <TableCell className="text-center">
@@ -1017,8 +1104,8 @@ export function BatchAnalysis({
                       ) : parcel.aiResult ? (
                         <AIJudgmentBadge judgment={parcel.aiResult.provisionalJudgment} />
                       ) : (
-                        <Badge className="bg-indigo-50 text-indigo-500 hover:bg-indigo-100 border-0">
-                          판독대기
+                        <Badge className="bg-amber-50 text-amber-600 hover:bg-amber-100 border-0">
+                          검토필요
                         </Badge>
                       )}
                     </TableCell>
@@ -1046,7 +1133,7 @@ export function BatchAnalysis({
                 ))}
                 {filteredParcels.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
                       조건에 맞는 필지가 없습니다.
                     </TableCell>
                   </TableRow>
