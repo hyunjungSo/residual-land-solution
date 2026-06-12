@@ -986,7 +986,7 @@ export function BatchAnalysis({
                   </TableHead>
                   <TableHead className="w-12 text-center">No.</TableHead>
                   <TableHead
-                    className="w-[320px] text-center cursor-pointer select-none"
+                    className="min-w-[400px] text-center cursor-pointer select-none"
                     onClick={() => handleSort("address")}
                   >
                     <div className="flex items-center justify-center gap-1">
@@ -1046,7 +1046,7 @@ export function BatchAnalysis({
                       {(currentPage - 1) * itemsPerPage + index + 1}
                     </TableCell>
                     <TableCell
-                      className="w-[320px] text-center font-medium underline cursor-pointer hover:text-primary"
+                      className="min-w-[400px] text-center font-medium underline cursor-pointer hover:text-primary"
                       title={parcel.landInfo.address}
                       onClick={(e) => {
                         e.stopPropagation();
