@@ -40,7 +40,8 @@ import {
   ArrowUp,
   ArrowDown,
   Download,
-  Play
+  Play,
+  Info
 } from "lucide-react";
 import { 
   SearchInput, 
@@ -765,7 +766,7 @@ export function BatchAnalysis({
               >
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="text-sm font-medium text-indigo-500 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}>판독대기</span>
+                    <span className="inline-flex items-center gap-1 text-sm font-medium text-indigo-500 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}><Info className="h-3.5 w-3.5 flex-shrink-0" />판독대기</span>
                   </TooltipTrigger>
                   <TooltipContent side="top">편입 유형 판독이 아직 실행되지 않은 필지입니다.</TooltipContent>
                 </Tooltip>
@@ -781,7 +782,7 @@ export function BatchAnalysis({
               >
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="text-sm font-medium text-emerald-600 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}>잔여지 발생</span>
+                    <span className="inline-flex items-center gap-1 text-sm font-medium text-emerald-600 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}><Info className="h-3.5 w-3.5 flex-shrink-0" />잔여지 발생</span>
                   </TooltipTrigger>
                   <TooltipContent side="top">편입 후 잔여지가 발생하여 AI 매수 가능성 분석 대상인 필지입니다.</TooltipContent>
                 </Tooltip>
@@ -840,7 +841,7 @@ export function BatchAnalysis({
               >
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="text-sm font-medium text-amber-600 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}>검토필요</span>
+                    <span className="inline-flex items-center gap-1 text-sm font-medium text-amber-600 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}><Info className="h-3.5 w-3.5 flex-shrink-0" />검토필요</span>
                   </TooltipTrigger>
                   <TooltipContent side="top">잔여지 발생 필지 중 AI 매수 가능성 분석이 아직 실행되지 않은 필지입니다.</TooltipContent>
                 </Tooltip>
@@ -856,7 +857,7 @@ export function BatchAnalysis({
               >
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="text-sm font-medium text-emerald-600 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}>높음</span>
+                    <span className="inline-flex items-center gap-1 text-sm font-medium text-emerald-600 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}><Info className="h-3.5 w-3.5 flex-shrink-0" />높음</span>
                   </TooltipTrigger>
                   <TooltipContent side="top">AI가 매수 가능성이 높다고 판단한 필지입니다.</TooltipContent>
                 </Tooltip>
@@ -872,7 +873,7 @@ export function BatchAnalysis({
               >
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="text-sm font-medium text-rose-500 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}>낮음</span>
+                    <span className="inline-flex items-center gap-1 text-sm font-medium text-rose-500 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}><Info className="h-3.5 w-3.5 flex-shrink-0" />낮음</span>
                   </TooltipTrigger>
                   <TooltipContent side="top">AI가 매수 가능성이 낮다고 판단한 필지입니다.</TooltipContent>
                 </Tooltip>
