@@ -205,18 +205,6 @@ const myParcels = [
 
 // AI 분석을 위한 정보수집 질문들 (판독 일부 지원 항목만)
 const questions = [
-  // 0. 인접 토지 보유 여부 (공통 질문)
-  {
-    id: "hasAdjacentLand",
-    title: "잔여지에 인접해서 소유하신 땅이 또 있나요?",
-    subtitle: "같은 사업구역 내 인접하여 소유하신 토지가 있는지 확인해 주세요.",
-    type: "radio" as const,
-    layout: "segment" as const,
-    options: [
-      { value: "yes", label: "네, 있습니다" },
-      { value: "no", label: "아니요, 없습니다" },
-    ],
-  },
   // 1. 토지 유형 선택
   {
     id: "landType",
@@ -326,6 +314,18 @@ const questions = [
     options: [
       { value: "yes", label: "네, 종래 목적 사용이 곤란합니다." },
       { value: "no", label: "아니요, 기존 용도 사용 가능" },
+    ],
+  },
+  // 마지막. 인접 토지 보유 여부 (공통 질문)
+  {
+    id: "hasAdjacentLand",
+    title: "잔여지에 인접해서 소유하신 땅이 또 있나요?",
+    subtitle: "같은 사업구역 내 인접하여 소유하신 토지가 있는지 확인해 주세요.",
+    type: "radio" as const,
+    layout: "segment" as const,
+    options: [
+      { value: "yes", label: "네, 있습니다" },
+      { value: "no", label: "아니요, 없습니다" },
     ],
   },
 ];
