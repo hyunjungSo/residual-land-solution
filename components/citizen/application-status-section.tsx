@@ -476,6 +476,22 @@ function LandInfoSection({
         </div>
       </div>
 
+      {/* 인접 토지 소유 여부 행 */}
+      <div className="flex border-b border-border">
+        <div className="flex w-28 shrink-0 items-center bg-muted/30 px-4 py-3">
+          <span className="text-sm font-medium">인접 토지 소유</span>
+        </div>
+        <div className="flex flex-1 items-center px-4 py-3">
+          <span className="text-sm">
+            {application.hasAdjacentLand === true
+              ? "있음"
+              : application.hasAdjacentLand === false
+              ? "없음"
+              : "-"}
+          </span>
+        </div>
+      </div>
+
       {/* 신청사유 행 */}
       <div className="flex border-b border-border">
         <div className="flex w-28 shrink-0 items-start bg-muted/30 px-4 py-3">

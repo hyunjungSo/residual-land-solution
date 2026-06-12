@@ -1153,6 +1153,16 @@ purchaseDecision: result?.provisionalJudgment === "수용가능" ? "O" as const 
                       </td>
                     </tr>
                     <tr>
+                      <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground">인접 토지 소유</td>
+                      <td className="px-4 py-3" colSpan={3}>
+                        {application.hasAdjacentLand === true
+                          ? "있음"
+                          : application.hasAdjacentLand === false
+                          ? "없음"
+                          : "-"}
+                      </td>
+                    </tr>
+                    <tr>
                       <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground align-top">신청 사유</td>
                       <td className="px-4 py-3" colSpan={3}>
                         <p className="text-sm leading-relaxed">도로 개설로 인해 토지가 분할되어 잔여지의 형상이 불규칙하고, 농기계 진입이 어려워 농업 활용이 곤란합니다. 또한 기존 접면도로가 상실되어 토지 이용에 심각한 제한이 발생하였습니다.</p>

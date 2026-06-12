@@ -154,6 +154,7 @@ export interface Application {
   actualUsage: LandCategory; // 실제 이용 상황
   reportedShape: LandShape; // 신청인 입력 토지 모양
   farmMachineDifficulty?: boolean; // 농기계 회전 곤란
+  hasAdjacentLand?: boolean; // 잔여지 인접한 토지 소유 여부
   reason: string; // 신청 사유
   attachments: string[]; // 첨부 서류
   status: ProcessStatus;
