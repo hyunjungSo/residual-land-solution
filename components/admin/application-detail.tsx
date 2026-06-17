@@ -2227,7 +2227,7 @@ purchaseDecision: result?.provisionalJudgment === "수용가능" ? "O" as const 
                   
                   {/* 검토 의견 */}
                   <div className="space-y-5">
-                    <Label className="text-sm font-medium">검토 의견</Label>
+                    <Label className="text-sm font-medium">검토 의견 <span className="font-normal text-muted-foreground">(선택)</span></Label>
                     <Textarea
                       placeholder="해당 필지에 대한 검토 의견을 입력하세요."
                       value={landReview.landComment}
@@ -2326,7 +2326,7 @@ purchaseDecision: result?.provisionalJudgment === "수용가능" ? "O" as const 
       {/* Section 04. 최종 검토 의견 */}
       <Card className="border-0 shadow-none">
         <CardHeader>
-          <CardTitle className="text-lg" style={{ fontSize: '20px' }}>최종 검토 의견</CardTitle>
+          <CardTitle className="text-lg" style={{ fontSize: '20px' }}>최종 검토 의견 <span className="text-base font-normal text-muted-foreground">(선택)</span></CardTitle>
           <CardDescription>
             모든 필지에 대한 종합적인 검토 의견을 작성해주세요. 이 내용은 심의서에 자동 입력됩니다.
           </CardDescription>

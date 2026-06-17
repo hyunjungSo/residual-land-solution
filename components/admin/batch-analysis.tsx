@@ -228,6 +228,8 @@ export function BatchAnalysis({
   const [visibilityFilter, setVisibilityFilter] = useState<"all" | "visible" | "hidden">("all");
   // 편입 유형 필터 (기존 잔여지 판정)
   const [inclusionTypeFilter, setInclusionTypeFilter] = useState<"all" | "full" | "partial" | "pending">("all");
+  // 검토여부 필터
+  const [reviewStatusFilter, setReviewStatusFilter] = useState<"all" | "done" | "undone">("all");
   
   // 편입 유형 카드 클릭 핸들러 (필터 리셋 포함)
   const handleInclusionTypeClick = (value: "all" | "full" | "partial" | "pending") => {
@@ -598,7 +600,14 @@ export function BatchAnalysis({
           if (parcel.residualStatus !== "잔여지 인정") return false;
         }
       }
-      
+
+      // 검토여부 필터
+      if (reviewStatusFilter !== "all") {
+        const isDone = (parcel.reviewStatus ?? (parcel.aiResult ? "완료" : "미완료")) === "완료";
+        if (reviewStatusFilter === "done" && !isDone) return false;
+        if (reviewStatusFilter === "undone" && isDone) return false;
+      }
+
       return true;
     });
 
@@ -649,11 +658,11 @@ export function BatchAnalysis({
     const partialInclusion = relevantParcels.filter(p => p.residualStatus === "잔여지 인정").length;
     // 검토필요 = 잔여지 인정이지만 AI 분석을 아직 실행하지 않은 필지
     const pendingReview = relevantParcels.filter(p => p.residualStatus === "잔여지 인정" && !p.aiResult).length;
-    const highPossibility = relevantParcels.filter(p => 
-      p.aiResult && isHighPossibility(p.aiResult.provisionalJudgment)
+    const highPossibility = relevantParcels.filter(p =>
+      p.residualStatus === "잔여지 인정" && p.aiResult && isHighPossibility(p.aiResult.provisionalJudgment)
     ).length;
-    const lowPossibility = relevantParcels.filter(p => 
-      p.aiResult && !isHighPossibility(p.aiResult.provisionalJudgment)
+    const lowPossibility = relevantParcels.filter(p =>
+      p.residualStatus === "잔여지 인정" && p.aiResult && !isHighPossibility(p.aiResult.provisionalJudgment)
     ).length;
     
     return { total, pendingInclusion, fullInclusion, partialInclusion, pendingReview, highPossibility, lowPossibility };
@@ -735,11 +744,11 @@ export function BatchAnalysis({
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">편입 유형 판독 완료율</span>
                 <span style={{ fontSize: '30px', fontWeight: '800', color: 'rgb(20, 113, 97)' }}>
-                  {stats.total > 0 ? Math.round(((stats.fullInclusion + stats.partialInclusion) / stats.total) * 100) : 0}%
+                  {(stats.fullInclusion + stats.partialInclusion) > 0 ? Math.round(((stats.fullInclusion + stats.partialInclusion) / (stats.fullInclusion + stats.partialInclusion + stats.pendingInclusion)) * 100) : 0}%
                 </span>
               </div>
-              <Progress 
-                value={stats.total > 0 ? ((stats.fullInclusion + stats.partialInclusion) / stats.total) * 100 : 0} 
+              <Progress
+                value={(stats.fullInclusion + stats.partialInclusion + stats.pendingInclusion) > 0 ? ((stats.fullInclusion + stats.partialInclusion) / (stats.fullInclusion + stats.partialInclusion + stats.pendingInclusion)) * 100 : 0}
                 className="h-[9px]" 
                 indicatorClassName="bg-[#2E8B57]"
                 style={{ backgroundColor: '#e8f2f0' }}
@@ -755,23 +764,23 @@ export function BatchAnalysis({
               >
                 <span className="text-sm font-medium text-black" style={{ order: 1 }}>전체</span>
                 <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
-                  <span className="font-bold text-black" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.total}</span>
+                  <span className="font-bold text-black" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.fullInclusion + stats.partialInclusion}</span>
                   <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
                 </div>
               </div>
-              {/* 판독대기: Indigo */}
+              {/* 전체 편입: Gray */}
               <div
-                onClick={() => handleInclusionTypeClick("pending")}
-                className="flex cursor-pointer flex-col items-center rounded-lg bg-indigo-50 p-4 transition-all hover:bg-indigo-100"
+                onClick={() => handleInclusionTypeClick("full")}
+                className="flex cursor-pointer flex-col items-center rounded-lg bg-gray-50 p-4 transition-all hover:bg-gray-100"
               >
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="inline-flex items-center gap-1 text-sm font-medium text-indigo-500 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}><Info className="h-3.5 w-3.5 flex-shrink-0" />판독대기</span>
+                    <span className="inline-flex items-center gap-1 text-sm font-medium text-gray-500 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}><Info className="h-3.5 w-3.5 flex-shrink-0" />전체 편입</span>
                   </TooltipTrigger>
-                  <TooltipContent side="top">편입 유형 판독이 아직 실행되지 않은 필지입니다.</TooltipContent>
+                  <TooltipContent side="top">전체 편입으로 잔여지가 발생하지 않은 필지입니다.</TooltipContent>
                 </Tooltip>
                 <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
-                  <span className="font-bold text-indigo-600" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.pendingInclusion}</span>
+                  <span className="font-bold text-gray-600" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.fullInclusion}</span>
                   <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
                 </div>
               </div>
@@ -808,7 +817,7 @@ export function BatchAnalysis({
             {/* 진행률 바 - 좌측과 동일한 포맷 */}
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">AI 매수 가능성 판독 완료율</span>
+                <span className="text-muted-foreground">AI 매수 가능성 높음 비율</span>
                 <span style={{ fontSize: '30px', fontWeight: '800', color: 'rgb(20, 113, 97)' }}>
                   {stats.partialInclusion > 0 ? Math.min(100, Math.round(((stats.highPossibility + stats.lowPossibility) / stats.partialInclusion) * 100)) : 0}%
                 </span>
@@ -841,7 +850,7 @@ export function BatchAnalysis({
               >
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="inline-flex items-center gap-1 text-sm font-medium text-amber-600 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}><Info className="h-3.5 w-3.5 flex-shrink-0" />검토필요</span>
+                    <span className="inline-flex items-center gap-1 text-sm font-medium text-amber-600 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}><Info className="h-3.5 w-3.5 flex-shrink-0" />검토대기</span>
                   </TooltipTrigger>
                   <TooltipContent side="top">잔여지 발생 필지 중 AI 매수 가능성 분석이 아직 실행되지 않은 필지입니다.</TooltipContent>
                 </Tooltip>
@@ -917,7 +926,7 @@ export function BatchAnalysis({
                 onChange={(v) => setInclusionTypeFilter(v as "all" | "full" | "partial" | "pending")}
                 options={[
                   { value: "all", label: "전체" },
-                  { value: "pending", label: "판독대기" },
+                  { value: "full", label: "전체 편입" },
                   { value: "partial", label: "잔여지 발생" }
                 ]}
               />
@@ -930,9 +939,22 @@ export function BatchAnalysis({
                 onChange={(v) => setAiJudgmentFilter(v as "all" | "high" | "low" | "pending")}
                 options={[
                   { value: "all", label: "전체" },
-                  { value: "pending", label: "검토필요" },
+                  { value: "pending", label: "검토대기" },
                   { value: "high", label: "높음" },
                   { value: "low", label: "낮음" }
+                ]}
+              />
+
+              {/* 검토여부 필터 */}
+              <RadioFilterGroup
+                label="검토여부"
+                name="review-status"
+                value={reviewStatusFilter}
+                onChange={(v) => setReviewStatusFilter(v as "all" | "done" | "undone")}
+                options={[
+                  { value: "all", label: "전체" },
+                  { value: "done", label: "완료" },
+                  { value: "undone", label: "미완료" }
                 ]}
               />
 
@@ -948,7 +970,7 @@ export function BatchAnalysis({
             <div>
               <CardTitle className="text-lg">필지 관리 목록</CardTitle>
               <CardDescription>
-                편입 유형 과 매수 가능성 판록 결과를 확인하세요. 소재지를 클릭하면 필지 상세 화면으로 이동합니다.
+                AI 판독은 7일에 한 번씩 자동으로 업데이트됩니다.
               </CardDescription>
             </div>
             {/* 엑셀 다운로드 + AI 통합 판독 버튼 */}
@@ -1011,6 +1033,15 @@ export function BatchAnalysis({
                   <TableHead className="text-center">소유자</TableHead>
                   <TableHead
                     className="text-center cursor-pointer select-none"
+                    onClick={() => handleSort("includedArea")}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      편입면적(㎡)
+                      {sortColumn === "includedArea" ? (sortDirection === "asc" ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/50" />}
+                    </div>
+                  </TableHead>
+                  <TableHead
+                    className="text-center cursor-pointer select-none"
                     onClick={() => handleSort("remainingArea")}
                   >
                     <div className="flex items-center justify-center gap-1">
@@ -1025,15 +1056,6 @@ export function BatchAnalysis({
                     <div className="flex items-center justify-center gap-1">
                       잔여비율(%)
                       {sortColumn === "remainingRatio" ? (sortDirection === "asc" ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/50" />}
-                    </div>
-                  </TableHead>
-                  <TableHead
-                    className="text-center cursor-pointer select-none"
-                    onClick={() => handleSort("includedArea")}
-                  >
-                    <div className="flex items-center justify-center gap-1">
-                      편입면적(㎡)
-                      {sortColumn === "includedArea" ? (sortDirection === "asc" ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/50" />}
                     </div>
                   </TableHead>
                   <TableHead className="text-center">편입 유형</TableHead>
@@ -1057,7 +1079,7 @@ export function BatchAnalysis({
                       />
                     </TableCell>
                     <TableCell className="text-center text-muted-foreground">
-                      {(currentPage - 1) * itemsPerPage + index + 1}
+                      {filteredParcels.length - ((currentPage - 1) * itemsPerPage + index)}
                     </TableCell>
                     <TableCell
                       className="min-w-[400px] text-center font-medium underline cursor-pointer hover:text-primary"
@@ -1073,13 +1095,13 @@ export function BatchAnalysis({
                       {parcel.landInfo.ownerName}
                     </TableCell>
                     <TableCell className="text-center">
+                      {parcel.landInfo.includedArea != null ? parcel.landInfo.includedArea.toLocaleString() : "-"}
+                    </TableCell>
+                    <TableCell className="text-center">
                       {parcel.landInfo.remainingArea.toLocaleString()}
                     </TableCell>
                     <TableCell className="text-center">
                       {parcel.landInfo.remainingRatio != null ? `${parcel.landInfo.remainingRatio}%` : "-"}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {parcel.landInfo.includedArea != null ? parcel.landInfo.includedArea.toLocaleString() : "-"}
                     </TableCell>
                     {/* 편입 유형 컬럼 */}
                     <TableCell className="text-center">
@@ -1096,7 +1118,7 @@ export function BatchAnalysis({
                         <span className="text-sm text-muted-foreground">-</span>
                       ) : (
                         <Badge className="bg-indigo-50 text-indigo-500 hover:bg-indigo-100 border-0">
-                          판독대기
+                          검토대기
                         </Badge>
                       )}
                     </TableCell>
@@ -1114,7 +1136,7 @@ export function BatchAnalysis({
                         <AIJudgmentBadge judgment={parcel.aiResult.provisionalJudgment} />
                       ) : (
                         <Badge className="bg-amber-50 text-amber-600 hover:bg-amber-100 border-0">
-                          검토필요
+                          검토대기
                         </Badge>
                       )}
                     </TableCell>

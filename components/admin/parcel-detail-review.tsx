@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { JUDGMENT_COLORS } from "@/components/ui/judgment-badge";
 import { LandMap } from "@/components/land-map";
 import {
   Select,
@@ -30,6 +31,11 @@ import {
   Loader2,
   Sparkles,
   Settings2,
+  AlignJustify,
+  Scale,
+  Bookmark,
+  MapPin,
+  LayoutGrid,
 } from "lucide-react";
 import type { 
   ProcessedParcel, 
@@ -404,7 +410,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
         {/* 오른쪽: AI 분석결과 */}
         <Card className="border-0 shadow-none">
           <CardHeader>
-            <CardTitle>AI 분석결과</CardTitle>
+            <CardTitle>AI 분석결과 검토</CardTitle>
             <CardDescription>
               AI 분석 결과와 매수 가능성 판정을 확인합니다.
             </CardDescription>
@@ -450,8 +456,8 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                       </AccordionTrigger>
                       <AccordionContent className="pb-4">
                         {aiResult ? (
-                            <div className="space-y-4 pt-2">
-                            {/* 분석 적용 옵션 */}
+                          <div className="space-y-4 pt-2">
+                            {/* 1. 분석 적용 옵션 */}
                             {history.changedOptions && (
                               <div className="space-y-2">
                                 <h5 className="text-sm font-semibold flex items-center gap-2">
@@ -490,81 +496,393 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                 </div>
                               </div>
                             )}
-                            {/* 판정 기준 - 잔여지 형상지수 기반 판정 */}
-                            <div className="space-y-4">
-                              <div className="space-y-3">
+
+                            {/* 2. 편입 정보 */}
+                            <div className="space-y-2">
+                              <h5 className="text-sm font-semibold flex items-center gap-2">
+                                <LayoutGrid className="h-4 w-4 text-muted-foreground" />
+                                편입 정보
+                              </h5>
+                              <div className="rounded-lg p-3 grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-3" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
+                                <div className="space-y-0.5">
+                                  <p className="text-xs text-muted-foreground">편입 전 면적</p>
+                                  <p className="text-sm font-semibold">{parcel.landInfo.originalArea.toLocaleString()}m²</p>
+                                </div>
+                                <div className="space-y-0.5">
+                                  <p className="text-xs text-muted-foreground">편입 면적</p>
+                                  <p className="text-sm font-semibold">{(parcel.landInfo.includedArea ?? (parcel.landInfo.originalArea - parcel.landInfo.remainingArea)).toLocaleString()}m²</p>
+                                </div>
+                                <div className="space-y-0.5">
+                                  <p className="text-xs text-muted-foreground">잔여 면적</p>
+                                  <p className="text-sm font-semibold">{parcel.landInfo.remainingArea.toLocaleString()}m²</p>
+                                </div>
+                                {parcel.landInfo.remainingRatio != null && (
+                                  <div className="space-y-0.5">
+                                    <p className="text-xs text-muted-foreground">잔여 비율</p>
+                                    <p className="text-sm font-semibold">{parcel.landInfo.remainingRatio}%</p>
+                                  </div>
+                                )}
+                                {parcel.landInfo.originalShapeIndex != null && parcel.landInfo.remainingShapeIndex != null && (
+                                  <div className="space-y-0.5">
+                                    <p className="text-xs text-muted-foreground">형상지수 변화</p>
+                                    <p className="text-sm font-semibold">
+                                      {parcel.landInfo.originalShapeIndex.toFixed(3)} → {parcel.landInfo.remainingShapeIndex.toFixed(3)}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* 3. 형상 분석 */}
+                            <div className="space-y-2">
+                              <h5 className="text-sm font-semibold flex items-center gap-2">
+                                <Shapes className="h-4 w-4 text-muted-foreground" />
+                                형상 분석
+                              </h5>
+                              <div className="overflow-hidden rounded-lg border">
+                                <table className="w-full text-sm">
+                                  <thead>
+                                    <tr className="bg-muted/50">
+                                      <th className="px-3 py-2 text-left font-medium text-muted-foreground text-xs">항목</th>
+                                      <th className="px-3 py-2 text-center font-medium text-muted-foreground text-xs">편입 전</th>
+                                      <th className="px-3 py-2 text-center font-medium text-muted-foreground text-xs">편입 후</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-border">
+                                    <tr>
+                                      <td className="px-3 py-1.5 text-xs text-muted-foreground">형상</td>
+                                      <td className="px-3 py-1.5 text-center text-xs">{parcel.landInfo.originalShape || "-"}</td>
+                                      <td className="px-3 py-1.5 text-center text-xs font-semibold">{parcel.landInfo.remainingShape || "-"}</td>
+                                    </tr>
+                                    <tr>
+                                      <td className="px-3 py-1.5 text-xs text-muted-foreground">형상지수 (SI)</td>
+                                      <td className="px-3 py-1.5 text-center text-xs">{parcel.landInfo.originalShapeIndex?.toFixed(3) ?? "-"}</td>
+                                      <td className="px-3 py-1.5 text-center text-xs font-semibold">{parcel.landInfo.remainingShapeIndex?.toFixed(3) ?? "-"}</td>
+                                    </tr>
+                                    <tr>
+                                      <td className="px-3 py-1.5 text-xs text-muted-foreground">면적</td>
+                                      <td className="px-3 py-1.5 text-center text-xs">{parcel.landInfo.originalArea.toLocaleString()}</td>
+                                      <td className="px-3 py-1.5 text-center text-xs font-semibold">{parcel.landInfo.remainingArea.toLocaleString()}</td>
+                                    </tr>
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+
+                            {/* 4. 판단 요약 */}
+                            {aiResult.judgmentRationale?.summary && (
+                              <div className="space-y-2">
                                 <h5 className="text-sm font-semibold flex items-center gap-2">
-                                  <Shapes className="h-4 w-4 text-muted-foreground" />
-                                  잔여지 형상지수 기반 판정
+                                  <FileText className="h-4 w-4 text-muted-foreground" />
+                                  판단 요약
                                 </h5>
-                                <div className="grid grid-cols-3 gap-5">
-                                  <div className="p-2 rounded" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
-                                    <p className="text-xs text-muted-foreground">잔여지 형상지수</p>
-                                    <p className="text-lg font-semibold">{aiResult.remainingShapeIndex?.toFixed(3) || "-"}</p>
+                                <p className="text-sm text-muted-foreground rounded-lg p-3 leading-relaxed" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
+                                  {aiResult.judgmentRationale.summary}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* 5. 법적 근거 */}
+                            {aiResult.judgmentRationale?.legalBasis && (
+                              <div className="space-y-2">
+                                <h5 className="text-sm font-semibold flex items-center gap-2">
+                                  <Scale className="h-4 w-4 text-muted-foreground" />
+                                  법적 근거
+                                </h5>
+                                <p className="text-sm text-muted-foreground rounded-lg p-3 leading-relaxed" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
+                                  {aiResult.judgmentRationale.legalBasis}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* 6. 판정결과 적용조문 */}
+                            {aiResult.judgmentRationale?.appliedCriteria && aiResult.judgmentRationale.appliedCriteria.length > 0 && (
+                              <div className="space-y-2">
+                                <h5 className="text-sm font-semibold flex items-center gap-2">
+                                  <Bookmark className="h-4 w-4 text-muted-foreground" />
+                                  판정결과 적용조문
+                                </h5>
+                                <ul className="rounded-lg p-3 space-y-1" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
+                                  {aiResult.judgmentRationale.appliedCriteria.map((item, idx) => (
+                                    <li key={idx} className="text-sm text-muted-foreground flex items-start gap-1.5">
+                                      <span className="mt-1 shrink-0">•</span><span>{item}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {/* 7. 일단토지 */}
+                            {aiResult.unifiedParcelAnalysis && (
+                              <div className="space-y-2">
+                                <h5 className="text-sm font-semibold flex items-center gap-2">
+                                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                                  일단토지
+                                </h5>
+                                <div className="rounded-lg p-3 space-y-2" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
+                                  <div className="flex flex-wrap gap-x-6 gap-y-1.5">
+                                    <div className="space-y-0.5">
+                                      <p className="text-xs text-muted-foreground">합산 면적</p>
+                                      <p className="text-sm font-semibold">{aiResult.unifiedParcelAnalysis.combinedArea?.toLocaleString() ?? "-"}m²</p>
+                                    </div>
+                                    <div className="space-y-0.5">
+                                      <p className="text-xs text-muted-foreground">합산 잔여 면적</p>
+                                      <p className="text-sm font-semibold">{parcel.landInfo.remainingArea.toLocaleString()}m²</p>
+                                    </div>
+                                    <div className="space-y-0.5">
+                                      <p className="text-xs text-muted-foreground">합산 편입 면적</p>
+                                      <p className="text-sm font-semibold">{(parcel.landInfo.originalArea - parcel.landInfo.remainingArea).toLocaleString()}m²</p>
+                                    </div>
                                   </div>
-                                  <div className="p-2 rounded" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
-                                    <p className="text-xs text-muted-foreground">최소 폭</p>
-                                    <p className="text-lg font-semibold">-</p>
-                                  </div>
-                                  <div className="p-2 rounded" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
-                                    <p className="text-xs text-muted-foreground">잔여 면적</p>
-                                    <p className="text-lg font-semibold">{parcel.landInfo.remainingArea?.toLocaleString() || "-"}㎡</p>
-                                  </div>
+                                  {aiResult.unifiedParcelAnalysis.explanation && (
+                                    <p className="text-xs text-muted-foreground pt-2 border-t border-slate-200">{aiResult.unifiedParcelAnalysis.explanation}</p>
+                                  )}
                                 </div>
                               </div>
+                            )}
 
-                              {/* 수동 확인 항목 */}
-                              <div className="space-y-3">
+                            {/* 8. 프로세스 */}
+                            <div className="space-y-2">
+                              <h5 className="text-sm font-semibold flex items-center gap-1.5">
+                                <AlignJustify className="h-4 w-4 text-muted-foreground" />
+                                프로세스
+                              </h5>
+                              <div className="space-y-1.5">
+
+                                {/* 1단계: 잔여지 발생여부 */}
+                                {(() => {
+                                  const isMet1 = parcel.landInfo.remainingArea > 0;
+                                  const includedArea1 = parcel.landInfo.includedArea ?? (parcel.landInfo.originalArea - parcel.landInfo.remainingArea);
+                                  return (
+                                    <div className="rounded-lg border overflow-hidden">
+                                      <div className="flex items-center justify-between px-3 py-2 bg-muted/40">
+                                        <div className="flex items-center gap-2">
+                                          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-foreground/10 text-foreground text-xs font-bold leading-none">1</span>
+                                          <span className="text-xs font-semibold">잔여지 발생여부</span>
+                                        </div>
+                                        <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", isMet1 ? `${JUDGMENT_COLORS.충족.bgLight} ${JUDGMENT_COLORS.충족.textDark}` : `${JUDGMENT_COLORS.미충족.bgLight} ${JUDGMENT_COLORS.미충족.textDark}`)}>
+                                          {isMet1 ? "충족" : "미충족"}
+                                        </span>
+                                      </div>
+                                      <div className="px-3 py-2 space-y-1.5 divide-y divide-border/50">
+                                        <div className="flex items-center gap-3 pb-1.5">
+                                          <span className="text-xs text-[#666666] shrink-0 w-6">기준</span>
+                                          <p className="text-xs text-[#666666]">토지편입으로 인해 잔여토지가 발생 (면적 0㎡ 이상)</p>
+                                        </div>
+                                        <div className="flex items-center gap-3 pt-1.5">
+                                          <span className="text-xs text-[#1a1a1a] shrink-0 w-6">결과</span>
+                                          <div className="flex items-center gap-2 flex-wrap text-xs text-[#1a1a1a]">
+                                            <span className={"font-semibold text-[#1a1a1a]"}>
+                                              {isMet1 ? "잔여지 발생" : "잔여지 미발생"}
+                                            </span>
+                                            <span className="text-[#1a1a1a]/20">|</span>
+                                            <span>원면적 <strong className="font-bold">{parcel.landInfo.originalArea.toLocaleString()}m²</strong></span>
+                                            <span className="text-[#1a1a1a]/20">·</span>
+                                            <span>편입 <strong className="font-bold">{includedArea1.toLocaleString()}m²</strong></span>
+                                            <span className="text-[#1a1a1a]/20">·</span>
+                                            <span>잔여 <strong className="font-bold">{parcel.landInfo.remainingArea.toLocaleString()}m²</strong></span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })()}
+
+                                {/* 2단계: 단독필지 여부 */}
+                                {(() => {
+                                  const isUnified = aiResult.unifiedParcelAnalysis?.isUnifiedParcel ?? false;
+                                  const isMet2 = !isUnified;
+                                  const explanation2 = aiResult.unifiedParcelAnalysis?.explanation
+                                    ?? `동일소유자·인접·동일용도(${landCategories.find(c => c.value === parcel.landInfo.landCategory)?.label ?? parcel.landInfo.landCategory}) 필지 없음`;
+                                  return (
+                                    <div className="rounded-lg border overflow-hidden">
+                                      <div className="flex items-center justify-between px-3 py-2 bg-muted/40">
+                                        <div className="flex items-center gap-2">
+                                          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-foreground/10 text-foreground text-xs font-bold leading-none">2</span>
+                                          <span className="text-xs font-semibold">단독필지 여부 (일단의 토지 여부)</span>
+                                        </div>
+                                        <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", isMet2 ? `${JUDGMENT_COLORS.충족.bgLight} ${JUDGMENT_COLORS.충족.textDark}` : `${JUDGMENT_COLORS.미충족.bgLight} ${JUDGMENT_COLORS.미충족.textDark}`)}>
+                                          {isMet2 ? "충족" : "미충족"}
+                                        </span>
+                                      </div>
+                                      <div className="px-3 py-2 space-y-1.5 divide-y divide-border/50">
+                                        <div className="flex items-center gap-3 pb-1.5">
+                                          <span className="text-xs text-[#666666] shrink-0 w-6">기준</span>
+                                          <p className="text-xs text-[#666666]">편입토지와 동일소유자이며, 인접한 동일용도 필지 없음</p>
+                                        </div>
+                                        <div className="flex items-start gap-3 pt-1.5">
+                                          <span className="text-xs text-[#1a1a1a] shrink-0 w-6">결과</span>
+                                          <div className="text-xs text-[#1a1a1a] space-y-1">
+                                            <span className={"font-semibold text-[#1a1a1a]"}>
+                                              {isUnified ? "일단의 토지" : "단독필지"}
+                                            </span>
+                                            <p>· 사유 : {explanation2}</p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })()}
+
+                                {/* 3단계: 소규모 토지 여부 */}
+                                {(() => {
+                                  const threshold3 = aiResult.landTypePath === "택지" ? 90 : 330;
+                                  const originalArea3 = parcel.landInfo.originalArea;
+                                  const isMet3 = originalArea3 <= threshold3;
+                                  return (
+                                    <div className="rounded-lg border overflow-hidden">
+                                      <div className="flex items-center justify-between px-3 py-2 bg-muted/40">
+                                        <div className="flex items-center gap-2">
+                                          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-foreground/10 text-foreground text-xs font-bold leading-none">3</span>
+                                          <span className="text-xs font-semibold">소규모 토지 여부</span>
+                                        </div>
+                                        <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", isMet3 ? `${JUDGMENT_COLORS.충족.bgLight} ${JUDGMENT_COLORS.충족.textDark}` : `${JUDGMENT_COLORS.미충족.bgLight} ${JUDGMENT_COLORS.미충족.textDark}`)}>
+                                          {isMet3 ? "충족" : "미충족"}
+                                        </span>
+                                      </div>
+                                      <div className="px-3 py-2 space-y-1.5 divide-y divide-border/50">
+                                        <div className="flex items-center gap-3 pb-1.5">
+                                          <span className="text-xs text-[#666666] shrink-0 w-6">기준</span>
+                                          <p className="text-xs text-[#666666]">원면적이 기준면적(<strong className="font-bold">{threshold3.toLocaleString()}m²</strong>) 이하</p>
+                                        </div>
+                                        <div className="flex items-start gap-3 pt-1.5">
+                                          <span className="text-xs text-[#1a1a1a] shrink-0 w-6">결과</span>
+                                          <div className="text-xs text-[#1a1a1a] space-y-1">
+                                            <span className={"font-semibold text-[#1a1a1a]"}>
+                                              {isMet3 ? "부합" : "부합하지 않음"}
+                                            </span>
+                                            <p>· 사유 : 잔여지 면적이 <strong className="font-bold">{originalArea3.toLocaleString()}m²</strong></p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })()}
+
+                                {/* 5단계: 면적미달 여부 */}
+                                {(() => {
+                                  const threshold5 = aiResult.landTypePath === "택지" ? 90 : 330;
+                                  const areaCheck = aiResult.criteriaChecks?.find(c => c.criteriaName.includes("면적"));
+                                  const isMet5 = areaCheck?.isMet ?? false;
+                                  return (
+                                    <div className="rounded-lg border overflow-hidden">
+                                      <div className="flex items-center justify-between px-3 py-2 bg-muted/40">
+                                        <div className="flex items-center gap-2">
+                                          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-foreground/10 text-foreground text-xs font-bold leading-none">5</span>
+                                          <span className="text-xs font-semibold">면적미달 여부</span>
+                                        </div>
+                                        <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", isMet5 ? `${JUDGMENT_COLORS.충족.bgLight} ${JUDGMENT_COLORS.충족.textDark}` : `${JUDGMENT_COLORS.미충족.bgLight} ${JUDGMENT_COLORS.미충족.textDark}`)}>
+                                          {isMet5 ? "충족" : "미충족"}
+                                        </span>
+                                      </div>
+                                      <div className="px-3 py-2 space-y-1.5 divide-y divide-border/50">
+                                        <div className="flex items-center gap-3 pb-1.5">
+                                          <span className="text-xs text-[#666666] shrink-0 w-6">기준</span>
+                                          <p className="text-xs text-[#666666]"><strong className="font-bold">{threshold5.toLocaleString()}m²</strong></p>
+                                        </div>
+                                        <div className="flex items-center gap-3 pt-1.5">
+                                          <span className="text-xs text-[#1a1a1a] shrink-0 w-6">결과</span>
+                                          <p className="text-xs text-[#1a1a1a]"><strong className="font-bold">{parcel.landInfo.remainingArea.toLocaleString()}m²</strong></p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })()}
+
+                                {/* 6단계: 접근도로 상실 여부 */}
+                                {(() => {
+                                  const isMet6 = aiResult.accessRoadLost ?? false;
+                                  const roadDesc = aiResult.criteriaChecks?.find(c => c.criteriaName.includes("도로") || c.criteriaName.includes("접면"))?.criteriaDescription;
+                                  return (
+                                    <div className="rounded-lg border overflow-hidden">
+                                      <div className="flex items-center justify-between px-3 py-2 bg-muted/40">
+                                        <div className="flex items-center gap-2">
+                                          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-foreground/10 text-foreground text-xs font-bold leading-none">6</span>
+                                          <span className="text-xs font-semibold">접근도로 상실 여부</span>
+                                        </div>
+                                        <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", isMet6 ? `${JUDGMENT_COLORS.충족.bgLight} ${JUDGMENT_COLORS.충족.textDark}` : `${JUDGMENT_COLORS.미충족.bgLight} ${JUDGMENT_COLORS.미충족.textDark}`)}>
+                                          {isMet6 ? "충족" : "미충족"}
+                                        </span>
+                                      </div>
+                                      <div className="px-3 py-2 space-y-1.5 divide-y divide-border/50">
+                                        <div className="flex items-center gap-3 pb-1.5">
+                                          <span className="text-xs text-[#666666] shrink-0 w-6">기준</span>
+                                          <p className="text-xs text-[#666666]">{roadDesc ?? ""}</p>
+                                        </div>
+                                        <div className="flex items-start gap-3 pt-1.5">
+                                          <span className="text-xs text-[#1a1a1a] shrink-0 w-6">결과</span>
+                                          <div className="text-xs text-[#1a1a1a] space-y-1">
+                                            <span className={"font-semibold text-[#1a1a1a]"}>
+                                              {isMet6 ? "접근도로 상실" : "접근도로 유지"}
+                                            </span>
+                                            {isMet6 && (
+                                              <p>· 근거) 영상AI분석 결과, 민원인 주장</p>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })()}
+
+                                {/* 7단계: 잔여지 형상에 따른 폭 */}
+                                {(() => {
+                                  const shapeCheck = aiResult.criteriaChecks?.find(c =>
+                                    c.criteriaName.includes("형상") || c.criteriaName.includes("내접") || c.criteriaName.includes("폭") || c.criteriaName.includes("삼각")
+                                  );
+                                  const isMet7 = shapeCheck?.isMet ?? false;
+                                  return (
+                                    <div className="rounded-lg border overflow-hidden">
+                                      <div className="flex items-center justify-between px-3 py-2 bg-muted/40">
+                                        <div className="flex items-center gap-2">
+                                          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-foreground/10 text-foreground text-xs font-bold leading-none">7</span>
+                                          <span className="text-xs font-semibold">잔여지 형상에 따른 폭</span>
+                                        </div>
+                                        <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", isMet7 ? `${JUDGMENT_COLORS.충족.bgLight} ${JUDGMENT_COLORS.충족.textDark}` : `${JUDGMENT_COLORS.미충족.bgLight} ${JUDGMENT_COLORS.미충족.textDark}`)}>
+                                          {isMet7 ? "충족" : "미충족"}
+                                        </span>
+                                      </div>
+                                      <div className="px-3 py-2 space-y-1.5 divide-y divide-border/50">
+                                        <div className="flex items-center gap-3 pb-1.5">
+                                          <span className="text-xs text-[#666666] shrink-0 w-6">기준</span>
+                                          <p className="text-xs text-[#666666]">내접사각형 폭 5m 이하 또는 삼각형 한 변 11m 이하</p>
+                                        </div>
+                                        <div className="flex items-center gap-3 pt-1.5">
+                                          <span className="text-xs text-[#1a1a1a] shrink-0 w-6">결과</span>
+                                          {shapeCheck?.criteriaDescription && (
+                                            <p className="text-xs text-[#1a1a1a]">
+                                              {shapeCheck.criteriaDescription.split(/(비정형)/).map((part, i) =>
+                                                part === "비정형"
+                                                  ? <strong key={i} className="font-bold">{part}</strong>
+                                                  : part
+                                              )}
+                                            </p>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })()}
+
+                              </div>
+                            </div>
+
+                            {/* 9. 수동 확인 항목 */}
+                            {aiResult.judgmentRationale?.manualCheckItems && aiResult.judgmentRationale.manualCheckItems.length > 0 && (
+                              <div className="space-y-2">
                                 <h5 className="text-sm font-semibold flex items-center gap-2">
                                   <AlertTriangle className="h-4 w-4 text-amber-500" />
                                   수동 확인 항목
                                 </h5>
-                                <div className="grid grid-cols-2 gap-5">
-                                  <div className="p-2 rounded flex items-center justify-between" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
-                                    <span className="text-sm">농기계 진입 불가</span>
-                                    <Badge variant={aiResult.farmMachineDifficulty ? "destructive" : "outline"}>
-                                      {aiResult.farmMachineDifficulty ? "해당" : "미해당"}
-                                    </Badge>
-                                  </div>
-                                  <div className="p-2 rounded flex items-center justify-between" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
-                                    <span className="text-sm">접면도로 상실</span>
-                                    <Badge variant={aiResult.accessRoadLost ? "destructive" : "outline"}>
-                                      {aiResult.accessRoadLost ? "해당" : "미해당"}
-                                    </Badge>
-                                  </div>
-                                  <div className="p-2 rounded flex items-center justify-between" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
-                                    <span className="text-sm">관개수로 상실</span>
-                                    <Badge variant={aiResult.waterChannelLost ? "destructive" : "outline"}>
-                                      {aiResult.waterChannelLost ? "해당" : "미해당"}
-                                    </Badge>
-                                  </div>
-                                  <div className="p-2 rounded flex items-center justify-between" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
-                                    <span className="text-sm">고저차 발생</span>
-                                    <Badge variant="outline">미해당</Badge>
-                                  </div>
-                                </div>
+                                <ul className="rounded-lg p-3 space-y-1" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
+                                  {aiResult.judgmentRationale.manualCheckItems.map((item, idx) => (
+                                    <li key={idx} className="text-sm text-amber-600 flex items-start gap-1.5">
+                                      <span className="mt-0.5 shrink-0">•</span><span>{item}</span>
+                                    </li>
+                                  ))}
+                                </ul>
                               </div>
-
-                              {/* 판정 기준 충족 여부 */}
-                              {aiResult.criteriaChecks && aiResult.criteriaChecks.length > 0 && (
-                                <div>
-                                  <h5 className="text-sm font-semibold mb-2">판정 기준 충족 여부</h5>
-                                  <div className="space-y-1 rounded-lg p-2" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
-                                    {aiResult.criteriaChecks.map((check, idx) => (
-                                      <div key={idx} className="flex items-center gap-2 text-sm py-1">
-                                        {check.isMet ? (
-                                          <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
-                                        ) : (
-                                          <AlertTriangle className="h-4 w-4 text-rose-500 shrink-0" />
-                                        )}
-                                        <span>{check.criteriaName}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-
+                            )}
                           </div>
                         ) : (
                           <p className="text-sm text-muted-foreground py-2">상세 분석 결과가 없습니다.</p>

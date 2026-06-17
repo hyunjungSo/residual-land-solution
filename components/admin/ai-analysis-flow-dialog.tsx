@@ -455,6 +455,24 @@ interface Criteria {
   showStep: number;
 }
 
+// 설명 텍스트 렌더 헬퍼: 민원인 잔여지 데이터를 기준값보다 더 뚜렷하게 표시
+// "잔여면적 123㎡ ≤ 기준 90㎡" 형태에서 ≤/>가 있으면 "기준" 앞까지를 굵게, 기준값은 흐리게 처리
+function ExplanationText({ text, colorClass }: { text: string; colorClass: string }) {
+  const hasComparison = (text.includes(' ≤ ') || text.includes(' > ')) && text.includes('기준');
+  if (hasComparison) {
+    const kijunIdx = text.indexOf('기준');
+    const citizenPart = text.slice(0, kijunIdx).trimEnd();
+    const referencePart = text.slice(kijunIdx);
+    return (
+      <>
+        <span className={`font-bold ${colorClass}`}>{citizenPart}</span>
+        <span className="text-xs text-muted-foreground/70 font-normal"> {referencePart}</span>
+      </>
+    );
+  }
+  return <span className={`font-medium ${colorClass}`}>{text}</span>;
+}
+
 // 경로 컬럼 컴포넌트
 function PathColumn({
   type,
@@ -614,15 +632,15 @@ function PathColumn({
                       {item.subLabel && (
                         <p className="text-sm text-gray-400 mt-0.5">{item.subLabel}</p>
                       )}
-                      {/* 충족/미충족 상세 설명 */}
+                      {/* 충족/미충족 상세 설명 — 민원인 값은 굵게, 기준값은 흐리게 */}
                       {isActive && item.isSelected && item.isMet && item.explanationMet && (
-                        <p className={`text-sm ${JUDGMENT_COLORS.충족.text} mt-1 font-medium`}>
-                          → {item.explanationMet}
+                        <p className={`text-sm ${JUDGMENT_COLORS.충족.text} mt-1`}>
+                          → <ExplanationText text={item.explanationMet} colorClass={JUDGMENT_COLORS.충족.text} />
                         </p>
                       )}
                       {isActive && item.isSelected && !item.isMet && item.explanationUnmet && (
-                        <p className={`text-sm ${JUDGMENT_COLORS.미충족.text} mt-1 font-medium`}>
-                          → {item.explanationUnmet}
+                        <p className={`text-sm ${JUDGMENT_COLORS.미충족.text} mt-1`}>
+                          → <ExplanationText text={item.explanationUnmet} colorClass={JUDGMENT_COLORS.미충족.text} />
                         </p>
                       )}
                     </div>

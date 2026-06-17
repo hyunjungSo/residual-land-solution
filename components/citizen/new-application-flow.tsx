@@ -1069,17 +1069,17 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
 
                   {/* 상세 분석 정보 */}
                   <div className="mb-4 space-y-3">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-2">분석 세부 내용</h4>
+                    <h4 className="text-base font-semibold text-gray-700 mb-2">분석 세부 내용</h4>
                     
                     {/* 토지 유형 및 면적 기준 */}
                     <div className="grid grid-cols-2 gap-3">
                       <div className="bg-gray-50 rounded-lg p-3">
                         <p className="text-xs text-gray-500 mb-1">토지 유형</p>
-                        <p className="text-sm font-medium text-gray-900">{selectedParcel.landCategory}</p>
+                        <p className="text-base font-medium text-gray-900">{selectedParcel.landCategory}</p>
                       </div>
                       <div className="bg-gray-50 rounded-lg p-3">
                         <p className="text-xs text-gray-500 mb-1">잔여 면적</p>
-                        <p className="text-sm font-medium text-gray-900">{selectedParcel.remainingArea}m<sup>2</sup></p>
+                        <p className="text-base font-medium text-gray-900">{selectedParcel.remainingArea}m<sup>2</sup></p>
                       </div>
                     </div>
 
@@ -1092,8 +1092,8 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-xs text-gray-500 mb-1">면적 기준 충족 여부</p>
-                          <p className="text-sm text-gray-700">
-                            {selectedParcel.landCategory === "대" ? "택지 기준: 90m² 이하" : 
+                          <p className="text-base text-gray-700">
+                            {selectedParcel.landCategory === "대" ? "택지 기준: 90m² 이하" :
                              selectedParcel.landCategory === "전" || selectedParcel.landCategory === "답" ? "농지 기준: 330m² 이하" :
                              selectedParcel.landCategory === "임" ? "산지 기준: 330m² 이하" : "기준: 330m² 이하"}
                           </p>
@@ -1180,8 +1180,8 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                       <div className="flex items-start gap-3">
                         <Sparkles className="w-5 h-5 mt-0.5 flex-shrink-0 text-emerald-600" />
                         <div>
-                          <p className="text-sm font-medium text-gray-700 mb-1">AI 종합 의견</p>
-                          <p className="text-gray-600 text-sm leading-relaxed">
+                          <p className="text-base font-medium text-gray-700 mb-1">AI 종합 의견</p>
+                          <p className="text-gray-600 text-base leading-relaxed">
                             {aiResult.reasoning}
                           </p>
                         </div>
@@ -1192,8 +1192,8 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                       <div className="flex items-start gap-3">
                         <Sparkles className="w-5 h-5 mt-0.5 flex-shrink-0 text-rose-600" />
                         <div>
-                          <p className="text-sm font-medium text-gray-700 mb-1">AI 종합 의견</p>
-                          <p className="text-gray-600 text-sm leading-relaxed">
+                          <p className="text-base font-medium text-gray-700 mb-1">AI 종합 의견</p>
+                          <p className="text-gray-600 text-base leading-relaxed">
                             {aiResult.reasoning}
                           </p>
                         </div>

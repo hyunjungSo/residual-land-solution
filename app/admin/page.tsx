@@ -32,15 +32,12 @@ import {
 type BaseTab = "applications" | "parcel-management";
 
 // 사업지구 타입 정의
-type ProjectUnit = "gangjin-gwangju" | "sudogwon" | "cheonan-anseong" | "yangpyeong-icheon" | "pyeongtaek-hwaseong";
+type ProjectUnit = "gangjin-gwangju" | "gyeongnam";
 
 // 사업지구 옵션 목록
 const PROJECT_UNIT_OPTIONS: { value: ProjectUnit; label: string; dataFilter: string }[] = [
   { value: "gangjin-gwangju", label: "강진광주건설사업단", dataFilter: "강진광주" },
-  { value: "sudogwon", label: "수도권건설사업단", dataFilter: "수도권" },
-  { value: "cheonan-anseong", label: "천안안성건설사업단", dataFilter: "천안안성" },
-  { value: "yangpyeong-icheon", label: "양평이천건설사업단", dataFilter: "양평이천" },
-  { value: "pyeongtaek-hwaseong", label: "평택화성건설사업단", dataFilter: "평택화성" },
+  { value: "gyeongnam", label: "경남권건설사업단", dataFilter: "경남권" },
 ];
 
 function AdminPageContent() {
