@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Label } from "@/components/ui/label";
@@ -23,7 +22,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  CheckCircle2,
   Shapes,
   FileText,
   AlertTriangle,
@@ -130,6 +128,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
         appliedCriteria: [],
         detailedExplanation: "",
       },
+      analysisSource: "manual",
     };
 
     // 히스토리에 바로 추가
@@ -177,7 +176,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
           <h1 className="text-3xl font-bold">필지상세</h1>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-muted-foreground">검토 확인</span>
+          <span className="text-[15px] font-medium text-muted-foreground">검토 확인</span>
           <div className="flex items-center gap-1">
             {(["미완료", "완료"] as const).map((val) => {
               const current = parcel.reviewStatus ?? (parcel.aiResult ? "완료" : "미완료");
@@ -257,31 +256,31 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
           <div className="grid grid-cols-3 gap-x-8 gap-y-3 pt-4">
             {/* 1행 */}
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">사업명:</span>
-              <span className="text-sm font-medium">{parcel.projectName}</span>
+              <span className="text-[15px] text-muted-foreground">사업명:</span>
+              <span className="text-[15px] font-medium">{parcel.projectName}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">잔여 면적 (비율):</span>
-              <span className="text-sm font-medium">{parcel.landInfo.remainingArea.toLocaleString()} ㎡ ({parcel.landInfo.remainingRatio}%)</span>
+              <span className="text-[15px] text-muted-foreground">잔여 면적 (비율):</span>
+              <span className="text-[15px] font-medium">{parcel.landInfo.remainingArea.toLocaleString()} ㎡ ({parcel.landInfo.remainingRatio}%)</span>
             </div>
             
             {/* 2행 */}
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">소유자:</span>
-              <span className="text-sm font-medium">{parcel.landInfo.ownerName}</span>
+              <span className="text-[15px] text-muted-foreground">소유자:</span>
+              <span className="text-[15px] font-medium">{parcel.landInfo.ownerName}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">공부상 지목:</span>
-              <span className="text-sm font-medium">
+              <span className="text-[15px] text-muted-foreground">공부상 지목:</span>
+              <span className="text-[15px] font-medium">
                 {landCategories.find(c => c.value === parcel.landInfo.landCategory)?.label ?? parcel.landInfo.landCategory ?? "-"}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">토지정보:</span>
+              <span className="text-[15px] text-muted-foreground">토지정보:</span>
               <button
                 type="button"
                 onClick={() => setShowLandInfoModal(true)}
-                className="inline-flex items-center gap-1 rounded-md border border-[#00875a]/30 bg-[#00875a]/5 px-2.5 py-0.5 text-sm font-medium text-[#00875a] underline-offset-2 transition-all hover:border-[#00875a]/60 hover:bg-[#00875a]/10 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00875a]/40 focus-visible:ring-offset-1"
+                className="inline-flex items-center gap-1 rounded-md border border-[#00875a]/30 bg-[#00875a]/5 px-2.5 py-0.5 text-[15px] font-medium text-[#00875a] underline-offset-2 transition-all hover:border-[#00875a]/60 hover:bg-[#00875a]/10 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00875a]/40 focus-visible:ring-offset-1"
               >
                 <FileText className="h-3.5 w-3.5" />
                 상세보기
@@ -313,7 +312,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
             {/* 현재 활용지목 및 토지 형상 */}
             <div className="grid grid-cols-2 gap-5">
               <div className="space-y-2">
-                <Label className="text-sm">현재 활용지목</Label>
+                <Label className="text-[15px]">현재 활용지목</Label>
                 <Select value={currentUsage} onValueChange={(v) => setCurrentUsage(v as LandCategory)}>
                   <SelectTrigger className="h-[40px]">
                     <SelectValue />
@@ -326,7 +325,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label className="text-sm">토지 형상</Label>
+                <Label className="text-[15px]">토지 형상</Label>
                 <Select value={landShape} onValueChange={(v) => setLandShape(v as LandShape)}>
                   <SelectTrigger className="h-[40px]">
                     <SelectValue />
@@ -347,7 +346,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
 
             {/* 담당자 확인항목 */}
             <div className="space-y-2">
-              <Label className="text-sm">담당자 확인항목</Label>
+              <Label className="text-[15px]">담당자 확인항목</Label>
               <div className="grid grid-cols-3 gap-5">
                 {adminCheckItemOptions.map((option) => (
                   <div 
@@ -377,7 +376,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
 
             {/* 메모 */}
             <div className="space-y-2">
-              <Label className="text-sm">메모</Label>
+              <Label className="text-[15px]">메모</Label>
               <Textarea
                 placeholder="추가 메모 (선택)"
                 value={memo}
@@ -417,14 +416,21 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
           </CardHeader>
           <CardContent>
             {(parcel.analysisHistory?.length || 0) > 0 ? (
-              <Accordion 
-                type="single" 
-                collapsible 
-                defaultValue={`history-${parcel.analysisHistory[parcel.analysisHistory.length - 1]?.id}`}
+              <Accordion
+                type="multiple"
+                defaultValue={parcel.analysisHistory.map(h => `history-${h.id}`)}
                 className="space-y-2"
               >
-                {parcel.analysisHistory.slice().reverse().map((history, index) => {
+                {parcel.analysisHistory.slice().reverse().map((history) => {
                   const aiResult = history.aiResult;
+                  const originalHistory = parcel.analysisHistory;
+                  const currentIndex = originalHistory.findIndex(h => h.id === history.id);
+                  const prevHistory = currentIndex > 0 ? originalHistory[currentIndex - 1] : null;
+                  const isChangeDriven = history.aiResult?.analysisSource === "auto-change";
+                  const shapeIndexChanged = isChangeDriven && prevHistory != null &&
+                    prevHistory.aiResult?.remainingShapeIndex !== history.aiResult?.remainingShapeIndex;
+                  const accessRoadChanged = isChangeDriven && prevHistory != null &&
+                    prevHistory.aiResult?.accessRoadLost !== history.aiResult?.accessRoadLost;
                   return (
                     <AccordionItem 
                       key={history.id} 
@@ -437,18 +443,30 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                           <Badge variant="outline">
                             {history.stage}
                           </Badge>
-                          <Badge 
+                          {history.aiResult?.analysisSource === "manual" ? (
+                            <Badge variant="outline" className="text-xs border-blue-300 text-blue-600 bg-blue-50">
+                              수동판독
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-xs border-slate-300 text-slate-500 bg-slate-50">
+                              자동판독
+                            </Badge>
+                          )}
+                          <Badge
                             className={
-                              history.newResult === "매수 가능성 높음" || 
+                              history.newResult === "매수 가능성 높음" ||
                               history.newResult === "수용가능"
                                 ? "bg-emerald-500 text-white"
                                 : "bg-rose-500 text-white"
                             }
                           >
-                            {history.newResult === "수용가능" ? "매수 가능성 높음" : 
+                            {history.newResult === "수용가능" ? "매수 가능성 높음" :
                              history.newResult === "수용불가" ? "매수 가능성 낮음" :
                              history.newResult}
                           </Badge>
+                          {history.aiResult?.analysisSource === "auto-change" && (
+                            <span className="text-xs text-amber-600 font-medium">※ 토지정보 변동 감지</span>
+                          )}
                           <span className="text-xs text-muted-foreground ml-auto mr-2">
                             {formatDateTime(history.analyzedAt)}
                           </span>
@@ -457,10 +475,19 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                       <AccordionContent className="pb-4">
                         {aiResult ? (
                           <div className="space-y-4 pt-2">
+                            {/* 변동 감지 배너 */}
+                            {isChangeDriven && (
+                              <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-3 flex items-start gap-2">
+                                <AlertTriangle className="h-3.5 w-3.5 text-amber-600 mt-0.5 shrink-0" />
+                                <p className="text-xs text-amber-700 leading-relaxed">
+                                  본 분석은 <strong>토지 정보 변동 감지</strong>에 따라 자동으로 재판독되었습니다. 변동된 데이터 항목은 강조 표시됩니다.
+                                </p>
+                              </div>
+                            )}
                             {/* 1. 분석 적용 옵션 */}
                             {history.changedOptions && (
                               <div className="space-y-2">
-                                <h5 className="text-sm font-semibold flex items-center gap-2">
+                                <h5 className="text-[15px] font-semibold flex items-center gap-2">
                                   <Settings2 className="h-4 w-4 text-muted-foreground" />
                                   분석 적용 옵션
                                 </h5>
@@ -499,34 +526,34 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
 
                             {/* 2. 편입 정보 */}
                             <div className="space-y-2">
-                              <h5 className="text-sm font-semibold flex items-center gap-2">
+                              <h5 className="text-[15px] font-semibold flex items-center gap-2">
                                 <LayoutGrid className="h-4 w-4 text-muted-foreground" />
                                 편입 정보
                               </h5>
                               <div className="rounded-lg p-3 grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-3" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
                                 <div className="space-y-0.5">
                                   <p className="text-xs text-muted-foreground">편입 전 면적</p>
-                                  <p className="text-sm font-semibold">{parcel.landInfo.originalArea.toLocaleString()}m²</p>
+                                  <p className="text-[15px] font-semibold">{parcel.landInfo.originalArea.toLocaleString()}m²</p>
                                 </div>
                                 <div className="space-y-0.5">
                                   <p className="text-xs text-muted-foreground">편입 면적</p>
-                                  <p className="text-sm font-semibold">{(parcel.landInfo.includedArea ?? (parcel.landInfo.originalArea - parcel.landInfo.remainingArea)).toLocaleString()}m²</p>
+                                  <p className="text-[15px] font-semibold">{(parcel.landInfo.includedArea ?? (parcel.landInfo.originalArea - parcel.landInfo.remainingArea)).toLocaleString()}m²</p>
                                 </div>
                                 <div className="space-y-0.5">
                                   <p className="text-xs text-muted-foreground">잔여 면적</p>
-                                  <p className="text-sm font-semibold">{parcel.landInfo.remainingArea.toLocaleString()}m²</p>
+                                  <p className="text-[15px] font-semibold">{parcel.landInfo.remainingArea.toLocaleString()}m²</p>
                                 </div>
                                 {parcel.landInfo.remainingRatio != null && (
                                   <div className="space-y-0.5">
                                     <p className="text-xs text-muted-foreground">잔여 비율</p>
-                                    <p className="text-sm font-semibold">{parcel.landInfo.remainingRatio}%</p>
+                                    <p className="text-[15px] font-semibold">{parcel.landInfo.remainingRatio}%</p>
                                   </div>
                                 )}
                                 {parcel.landInfo.originalShapeIndex != null && parcel.landInfo.remainingShapeIndex != null && (
-                                  <div className="space-y-0.5">
+                                  <div className={cn("space-y-0.5 rounded-md transition-colors", shapeIndexChanged && "bg-amber-50 px-2 py-1 -mx-2")}>
                                     <p className="text-xs text-muted-foreground">형상지수 변화</p>
-                                    <p className="text-sm font-semibold">
-                                      {parcel.landInfo.originalShapeIndex.toFixed(3)} → {parcel.landInfo.remainingShapeIndex.toFixed(3)}
+                                    <p className={cn("text-[15px] font-semibold", shapeIndexChanged && "text-amber-700")}>
+                                      {(aiResult.originalShapeIndex ?? parcel.landInfo.originalShapeIndex).toFixed(3)} → <strong className={cn(shapeIndexChanged ? "font-bold" : "")}>{(aiResult.remainingShapeIndex ?? parcel.landInfo.remainingShapeIndex).toFixed(3)}</strong>
                                     </p>
                                   </div>
                                 )}
@@ -535,12 +562,12 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
 
                             {/* 3. 형상 분석 */}
                             <div className="space-y-2">
-                              <h5 className="text-sm font-semibold flex items-center gap-2">
+                              <h5 className="text-[15px] font-semibold flex items-center gap-2">
                                 <Shapes className="h-4 w-4 text-muted-foreground" />
                                 형상 분석
                               </h5>
                               <div className="overflow-hidden rounded-lg border">
-                                <table className="w-full text-sm">
+                                <table className="w-full text-[15px]">
                                   <thead>
                                     <tr className="bg-muted/50">
                                       <th className="px-3 py-2 text-left font-medium text-muted-foreground text-xs">항목</th>
@@ -554,10 +581,10 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                       <td className="px-3 py-1.5 text-center text-xs">{parcel.landInfo.originalShape || "-"}</td>
                                       <td className="px-3 py-1.5 text-center text-xs font-semibold">{parcel.landInfo.remainingShape || "-"}</td>
                                     </tr>
-                                    <tr>
+                                    <tr className={shapeIndexChanged ? "bg-amber-50" : ""}>
                                       <td className="px-3 py-1.5 text-xs text-muted-foreground">형상지수 (SI)</td>
-                                      <td className="px-3 py-1.5 text-center text-xs">{parcel.landInfo.originalShapeIndex?.toFixed(3) ?? "-"}</td>
-                                      <td className="px-3 py-1.5 text-center text-xs font-semibold">{parcel.landInfo.remainingShapeIndex?.toFixed(3) ?? "-"}</td>
+                                      <td className="px-3 py-1.5 text-center text-xs">{(aiResult.originalShapeIndex ?? parcel.landInfo.originalShapeIndex)?.toFixed(3) ?? "-"}</td>
+                                      <td className={cn("px-3 py-1.5 text-center text-xs font-semibold", shapeIndexChanged && "text-amber-700 font-bold")}>{(aiResult.remainingShapeIndex ?? parcel.landInfo.remainingShapeIndex)?.toFixed(3) ?? "-"}</td>
                                     </tr>
                                     <tr>
                                       <td className="px-3 py-1.5 text-xs text-muted-foreground">면적</td>
@@ -572,11 +599,11 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                             {/* 4. 판단 요약 */}
                             {aiResult.judgmentRationale?.summary && (
                               <div className="space-y-2">
-                                <h5 className="text-sm font-semibold flex items-center gap-2">
+                                <h5 className="text-[15px] font-semibold flex items-center gap-2">
                                   <FileText className="h-4 w-4 text-muted-foreground" />
                                   판단 요약
                                 </h5>
-                                <p className="text-sm text-muted-foreground rounded-lg p-3 leading-relaxed" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
+                                <p className="text-[15px] text-muted-foreground rounded-lg p-3 leading-relaxed" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
                                   {aiResult.judgmentRationale.summary}
                                 </p>
                               </div>
@@ -585,11 +612,11 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                             {/* 5. 법적 근거 */}
                             {aiResult.judgmentRationale?.legalBasis && (
                               <div className="space-y-2">
-                                <h5 className="text-sm font-semibold flex items-center gap-2">
+                                <h5 className="text-[15px] font-semibold flex items-center gap-2">
                                   <Scale className="h-4 w-4 text-muted-foreground" />
                                   법적 근거
                                 </h5>
-                                <p className="text-sm text-muted-foreground rounded-lg p-3 leading-relaxed" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
+                                <p className="text-[15px] text-muted-foreground rounded-lg p-3 leading-relaxed" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
                                   {aiResult.judgmentRationale.legalBasis}
                                 </p>
                               </div>
@@ -598,13 +625,13 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                             {/* 6. 판정결과 적용조문 */}
                             {aiResult.judgmentRationale?.appliedCriteria && aiResult.judgmentRationale.appliedCriteria.length > 0 && (
                               <div className="space-y-2">
-                                <h5 className="text-sm font-semibold flex items-center gap-2">
+                                <h5 className="text-[15px] font-semibold flex items-center gap-2">
                                   <Bookmark className="h-4 w-4 text-muted-foreground" />
                                   판정결과 적용조문
                                 </h5>
                                 <ul className="rounded-lg p-3 space-y-1" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
                                   {aiResult.judgmentRationale.appliedCriteria.map((item, idx) => (
-                                    <li key={idx} className="text-sm text-muted-foreground flex items-start gap-1.5">
+                                    <li key={idx} className="text-[15px] text-muted-foreground flex items-start gap-1.5">
                                       <span className="mt-1 shrink-0">•</span><span>{item}</span>
                                     </li>
                                   ))}
@@ -615,7 +642,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                             {/* 7. 일단토지 */}
                             {aiResult.unifiedParcelAnalysis && (
                               <div className="space-y-2">
-                                <h5 className="text-sm font-semibold flex items-center gap-2">
+                                <h5 className="text-[15px] font-semibold flex items-center gap-2">
                                   <MapPin className="h-4 w-4 text-muted-foreground" />
                                   일단토지
                                 </h5>
@@ -623,15 +650,15 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                   <div className="flex flex-wrap gap-x-6 gap-y-1.5">
                                     <div className="space-y-0.5">
                                       <p className="text-xs text-muted-foreground">합산 면적</p>
-                                      <p className="text-sm font-semibold">{aiResult.unifiedParcelAnalysis.combinedArea?.toLocaleString() ?? "-"}m²</p>
+                                      <p className="text-[15px] font-semibold">{aiResult.unifiedParcelAnalysis.combinedArea?.toLocaleString() ?? "-"}m²</p>
                                     </div>
                                     <div className="space-y-0.5">
                                       <p className="text-xs text-muted-foreground">합산 잔여 면적</p>
-                                      <p className="text-sm font-semibold">{parcel.landInfo.remainingArea.toLocaleString()}m²</p>
+                                      <p className="text-[15px] font-semibold">{parcel.landInfo.remainingArea.toLocaleString()}m²</p>
                                     </div>
                                     <div className="space-y-0.5">
                                       <p className="text-xs text-muted-foreground">합산 편입 면적</p>
-                                      <p className="text-sm font-semibold">{(parcel.landInfo.originalArea - parcel.landInfo.remainingArea).toLocaleString()}m²</p>
+                                      <p className="text-[15px] font-semibold">{(parcel.landInfo.originalArea - parcel.landInfo.remainingArea).toLocaleString()}m²</p>
                                     </div>
                                   </div>
                                   {aiResult.unifiedParcelAnalysis.explanation && (
@@ -643,7 +670,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
 
                             {/* 8. 프로세스 */}
                             <div className="space-y-2">
-                              <h5 className="text-sm font-semibold flex items-center gap-1.5">
+                              <h5 className="text-[15px] font-semibold flex items-center gap-1.5">
                                 <AlignJustify className="h-4 w-4 text-muted-foreground" />
                                 프로세스
                               </h5>
@@ -811,8 +838,8 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                         </div>
                                         <div className="flex items-start gap-3 pt-1.5">
                                           <span className="text-xs text-[#1a1a1a] shrink-0 w-6">결과</span>
-                                          <div className="text-xs text-[#1a1a1a] space-y-1">
-                                            <span className={"font-semibold text-[#1a1a1a]"}>
+                                          <div className={cn("text-xs text-[#1a1a1a] space-y-1 rounded-md transition-colors", accessRoadChanged && "bg-amber-50 px-2 py-1 -mx-2")}>
+                                            <span className={cn("font-semibold text-[#1a1a1a]", accessRoadChanged && "text-amber-700")}>
                                               {isMet6 ? "접근도로 상실" : "접근도로 유지"}
                                             </span>
                                             {isMet6 && (
@@ -870,13 +897,13 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                             {/* 9. 수동 확인 항목 */}
                             {aiResult.judgmentRationale?.manualCheckItems && aiResult.judgmentRationale.manualCheckItems.length > 0 && (
                               <div className="space-y-2">
-                                <h5 className="text-sm font-semibold flex items-center gap-2">
-                                  <AlertTriangle className="h-4 w-4 text-amber-500" />
+                                <h5 className="text-[15px] font-semibold flex items-center gap-2">
+                                  <AlertTriangle className="h-4 w-4 text-blue-500" />
                                   수동 확인 항목
                                 </h5>
-                                <ul className="rounded-lg p-3 space-y-1" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
+                                <ul className="rounded-lg border border-blue-100 bg-blue-50/50 p-3 space-y-1">
                                   {aiResult.judgmentRationale.manualCheckItems.map((item, idx) => (
-                                    <li key={idx} className="text-sm text-amber-600 flex items-start gap-1.5">
+                                    <li key={idx} className="text-[15px] text-blue-700 flex items-start gap-1.5">
                                       <span className="mt-0.5 shrink-0">•</span><span>{item}</span>
                                     </li>
                                   ))}
@@ -885,7 +912,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                             )}
                           </div>
                         ) : (
-                          <p className="text-sm text-muted-foreground py-2">상세 분석 결과가 없습니다.</p>
+                          <p className="text-[15px] text-muted-foreground py-2">상세 분석 결과가 없습니다.</p>
                         )}
                       </AccordionContent>
                     </AccordionItem>
@@ -896,7 +923,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
               <div className="p-8 text-center text-muted-foreground border rounded-lg bg-muted/30">
                 <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
                 <p>아직 분석 결과가 없습니다.</p>
-                <p className="text-sm mt-1">왼쪽에서 분석을 실행하세요.</p>
+                <p className="text-[15px] mt-1">왼쪽에서 분석을 실행하세요.</p>
               </div>
             )}
           </CardContent>
@@ -928,9 +955,9 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
 
             {/* 1. 토지이용계획 */}
             <div>
-              <h4 className="mb-2 text-sm font-semibold">토지이용계획 (7개 항목)</h4>
+              <h4 className="mb-2 text-[15px] font-semibold">토지이용계획 (7개 항목)</h4>
               <div className="overflow-hidden rounded-lg border border-slate-200">
-              <table className="w-full text-sm">
+              <table className="w-full text-[15px]">
                 <tbody className="divide-y divide-slate-100">
                   <tr>
                     <td className="w-[160px] bg-slate-50 px-4 py-2.5 font-medium text-slate-600">용도구역 명칭</td>
@@ -955,9 +982,9 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
 
             {/* 2. 소유 정보 */}
             <div>
-              <h4 className="mb-2 text-sm font-semibold">소유 정보</h4>
+              <h4 className="mb-2 text-[15px] font-semibold">소유 정보</h4>
               <div className="overflow-hidden rounded-lg border border-slate-200">
-              <table className="w-full text-sm">
+              <table className="w-full text-[15px]">
                 <tbody className="divide-y divide-slate-100">
                   <tr>
                     <td className="w-[160px] bg-slate-50 px-4 py-2.5 font-medium text-slate-600">소유 구분</td>
@@ -998,9 +1025,9 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
 
             {/* 3. 토지이동 이력 */}
             <div>
-              <h4 className="mb-2 text-sm font-semibold">{"토지이동 이력 (5건)"}</h4>
+              <h4 className="mb-2 text-[15px] font-semibold">{"토지이동 이력 (5건)"}</h4>
               <div className="overflow-hidden rounded-lg border border-slate-200">
-              <table className="w-full text-sm">
+              <table className="w-full text-[15px]">
                 <tbody className="divide-y divide-slate-100">
                   <tr>
                     <td className="w-[160px] bg-slate-50 px-4 py-2.5 font-medium text-slate-600">이력 순번</td>
@@ -1029,9 +1056,9 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
 
             {/* 4. 연도별 공시지가 이력 */}
             <div>
-              <h4 className="mb-2 text-sm font-semibold">{"연도별 공시지가 이력 (10건)"}</h4>
+              <h4 className="mb-2 text-[15px] font-semibold">{"연도별 공시지가 이력 (10건)"}</h4>
               <div className="overflow-hidden rounded-lg border border-slate-200">
-              <table className="w-full text-sm">
+              <table className="w-full text-[15px]">
                 <tbody className="divide-y divide-slate-100">
                   <tr>
                     <td className="w-[160px] bg-slate-50 px-4 py-2.5 font-medium text-slate-600">공시 기준 연도</td>

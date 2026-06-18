@@ -239,10 +239,10 @@ export function BatchAnalysis({
     setCurrentPage(1);
   };
   
-  // AI 매수 가능성 카드 클릭 핸들러 (필터 리셋 포함)
+  // AI 매수 가능성 카드 클릭 핸들러 — 항상 잔여지인정 필지 기준으로 필터
   const handleAiJudgmentClick = (value: "all" | "high" | "low" | "pending") => {
     setAiJudgmentFilter(value);
-    setInclusionTypeFilter("all");
+    setInclusionTypeFilter("partial");
     setVisibilityFilter("all");
     setCurrentPage(1);
   };
@@ -306,7 +306,7 @@ export function BatchAnalysis({
       setIntegratedStep("step2");
       setIsPurchaseAnalyzing(true);
       await new Promise(resolve => setTimeout(resolve, 2000));
-      await performAiAnalysis(residualIds, updatedParcels);
+      await performAiAnalysis(residualIds, updatedParcels, "auto");
       setIsPurchaseAnalyzing(false);
     }
 
@@ -462,13 +462,13 @@ export function BatchAnalysis({
   };
 
   // AI 분석 공통 헬퍼 (선택 배치 및 자동 트리거 공용)
-  const performAiAnalysis = async (targetIds: Set<string>, baseParcels: ProcessedParcel[]) => {
+  const performAiAnalysis = async (targetIds: Set<string>, baseParcels: ProcessedParcel[], source: "auto" | "manual" = "manual") => {
     await new Promise(resolve => setTimeout(resolve, 1000));
     const parcelsToAnalyze = baseParcels.filter(p => targetIds.has(p.id));
     const analyzed = parcelsToAnalyze.map(parcel => {
       const judgment: AIJudgmentResult = Math.random() > 0.5 ? "매수 가능성 높음" : "매수 가능성 낮음";
-      const newAiResult: AIAnalysisResult = { ...parcel.aiResult, provisionalJudgment: judgment, landTypePath: parcel.aiResult?.landTypePath || "농지", criteriaChecks: parcel.aiResult?.criteriaChecks || [], originalShapeIndex: parcel.aiResult?.originalShapeIndex || 0, remainingShapeIndex: parcel.aiResult?.remainingShapeIndex || 0, shapeIndexChange: 0, isBlindLand: false, accessRoadLost: parcel.aiResult?.accessRoadLost || false, waterChannelLost: parcel.aiResult?.waterChannelLost || false, farmMachineDifficulty: parcel.aiResult?.farmMachineDifficulty || false, judgmentRationale: parcel.aiResult?.judgmentRationale || { summary: "", legalBasis: "", appliedCriteria: [], detailedExplanation: "" } };
-      const newHistory: AnalysisHistory = { id: `analysis_${Date.now()}_${Math.random()}`, parcelId: parcel.id, stage: parcel.analysisHistory?.length ? "2차분석" : "1차분석", analyzedAt: new Date().toISOString(), analyzedBy: "AI 자동 분석", newResult: judgment, previousResult: parcel.aiResult?.provisionalJudgment || undefined, changedOptions: {}, aiResult: newAiResult };
+      const newAiResult: AIAnalysisResult = { ...parcel.aiResult, provisionalJudgment: judgment, landTypePath: parcel.aiResult?.landTypePath || "농지", criteriaChecks: parcel.aiResult?.criteriaChecks || [], originalShapeIndex: parcel.aiResult?.originalShapeIndex || 0, remainingShapeIndex: parcel.aiResult?.remainingShapeIndex || 0, shapeIndexChange: 0, isBlindLand: false, accessRoadLost: parcel.aiResult?.accessRoadLost || false, waterChannelLost: parcel.aiResult?.waterChannelLost || false, farmMachineDifficulty: parcel.aiResult?.farmMachineDifficulty || false, judgmentRationale: parcel.aiResult?.judgmentRationale || { summary: "", legalBasis: "", appliedCriteria: [], detailedExplanation: "" }, analysisSource: source };
+      const newHistory: AnalysisHistory = { id: `analysis_${Date.now()}_${Math.random()}`, parcelId: parcel.id, stage: parcel.analysisHistory?.length ? "2차분석" : "1차분석", analyzedAt: new Date().toISOString(), analyzedBy: source === "auto" ? "AI 자동 분석" : "수동 판독", newResult: judgment, previousResult: parcel.aiResult?.provisionalJudgment || undefined, changedOptions: {}, aiResult: newAiResult };
       return { ...parcel, aiResult: newAiResult, analysisHistory: [...(parcel.analysisHistory || []), newHistory], lastAnalyzedAt: new Date().toISOString(), isVisible: true } as ProcessedParcel;
     });
     setParcels(prev => {
@@ -531,7 +531,7 @@ export function BatchAnalysis({
       if (autoIds.size > 0) {
         setIsPurchaseAnalyzing(true);
         try {
-          const count = await performAiAnalysis(autoIds, updatedParcels);
+          const count = await performAiAnalysis(autoIds, updatedParcels, "auto");
           toast({
             title: "AI 매수 가능성 자동 분석 완료",
             description: `잔여지 인정 ${count}건에 대한 AI 분석이 자동으로 완료되었습니다.`,
@@ -588,17 +588,16 @@ export function BatchAnalysis({
         if (visibilityFilter === "hidden" && isVisible) return false;
       }
       
-      // 편입 유형 필터 (기존 잔여지 판정)
-      if (inclusionTypeFilter !== "all") {
-        if (inclusionTypeFilter === "pending") {
-          if (parcel.residualStatus) return false;
-        } else if (inclusionTypeFilter === "full") {
-          // 전체 편입 = 기준 미달 (잔여지 미발생)
-          if (parcel.residualStatus !== "기준 미달") return false;
-        } else if (inclusionTypeFilter === "partial") {
-          // 부분 편입 = 잔여지 인정 (잔여지 발생)
-          if (parcel.residualStatus !== "잔여지 인정") return false;
-        }
+      // 편입 유형 필터 — "all"도 분석 완료(기준 미달 or 잔여지 인정)만 포함
+      if (inclusionTypeFilter === "full") {
+        if (parcel.residualStatus !== "기준 미달") return false;
+      } else if (inclusionTypeFilter === "partial") {
+        if (parcel.residualStatus !== "잔여지 인정") return false;
+      } else if (inclusionTypeFilter === "pending") {
+        if (parcel.residualStatus) return false;
+      } else {
+        // "all" — 기준 미달 + 잔여지 인정만 포함 (미분석 + 판정대기 제외)
+        if (parcel.residualStatus !== "잔여지 인정" && parcel.residualStatus !== "기준 미달") return false;
       }
 
       // 검토여부 필터
@@ -639,24 +638,37 @@ export function BatchAnalysis({
     setCurrentPage(1);
   }, [searchQuery, aiJudgmentFilter, businessUnitFilter, visibilityFilter, inclusionTypeFilter, periodFilter, selectedYear]);
 
-  // 통계 (검색값에 영향 받지 않음 - 조회기간과 사업단 필터만 적용)
+  // 통계 — 목록과 동일한 기준 필터 적용 (검색어·공개여부·검토여부 포함, 편입유형·AI판정 제외)
   const stats = useMemo(() => {
-    // businessUnit 필터와 조회기간 필터만 적용, 검색어/AI판정/관리 필터는 제외
     const relevantParcels = parcels.filter(parcel => {
       if (businessUnit && parcel.businessUnit !== businessUnit) return false;
       if (businessUnitFilter && parcel.businessUnit !== businessUnitFilter) return false;
       if (!filterByPeriod(parcel)) return false;
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        if (
+          !parcel.landInfo.address.toLowerCase().includes(q) &&
+          !parcel.landInfo.ownerName.toLowerCase().includes(q) &&
+          !parcel.businessUnit.toLowerCase().includes(q)
+        ) return false;
+      }
+      if (visibilityFilter !== "all") {
+        const isVisible = parcel.isVisible !== false;
+        if (visibilityFilter === "visible" && !isVisible) return false;
+        if (visibilityFilter === "hidden" && isVisible) return false;
+      }
+      if (reviewStatusFilter !== "all") {
+        const isDone = (parcel.reviewStatus ?? (parcel.aiResult ? "완료" : "미완료")) === "완료";
+        if (reviewStatusFilter === "done" && !isDone) return false;
+        if (reviewStatusFilter === "undone" && isDone) return false;
+      }
       return true;
     });
-    
+
     const total = relevantParcels.length;
-    // 판독 대기 = 편입 유형 분석을 아직 실행하지 않은 필지
     const pendingInclusion = relevantParcels.filter(p => !p.residualStatus).length;
-    // 전체 편입 = 기준 미달 (잔여지 미발생)
     const fullInclusion = relevantParcels.filter(p => p.residualStatus === "기준 미달").length;
-    // 부분 편입 = 잔여지 인정 (잔여지 발생)
     const partialInclusion = relevantParcels.filter(p => p.residualStatus === "잔여지 인정").length;
-    // 검토필요 = 잔여지 인정이지만 AI 분석을 아직 실행하지 않은 필지
     const pendingReview = relevantParcels.filter(p => p.residualStatus === "잔여지 인정" && !p.aiResult).length;
     const highPossibility = relevantParcels.filter(p =>
       p.residualStatus === "잔여지 인정" && p.aiResult && isHighPossibility(p.aiResult.provisionalJudgment)
@@ -664,9 +676,9 @@ export function BatchAnalysis({
     const lowPossibility = relevantParcels.filter(p =>
       p.residualStatus === "잔여지 인정" && p.aiResult && !isHighPossibility(p.aiResult.provisionalJudgment)
     ).length;
-    
+
     return { total, pendingInclusion, fullInclusion, partialInclusion, pendingReview, highPossibility, lowPossibility };
-  }, [parcels, businessUnit, businessUnitFilter, periodFilter, selectedYear, customDateRange]);
+  }, [parcels, businessUnit, businessUnitFilter, periodFilter, selectedYear, customDateRange, searchQuery, visibilityFilter, reviewStatusFilter]);
 
   // 히스토리 보기
   const handleViewHistory = (parcel: ProcessedParcel) => {
@@ -741,7 +753,7 @@ export function BatchAnalysis({
           <CardContent className="space-y-2" style={{ paddingTop: '0' }}>
             {/* 진행률 바 */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center justify-between text-[15px]">
                 <span className="text-muted-foreground">편입 유형 판독 완료율</span>
                 <span style={{ fontSize: '30px', fontWeight: '800', color: 'rgb(20, 113, 97)' }}>
                   {(stats.fullInclusion + stats.partialInclusion) > 0 ? Math.round(((stats.fullInclusion + stats.partialInclusion) / (stats.fullInclusion + stats.partialInclusion + stats.pendingInclusion)) * 100) : 0}%
@@ -762,7 +774,7 @@ export function BatchAnalysis({
                 onClick={() => handleInclusionTypeClick("all")}
                 className="flex cursor-pointer flex-col items-center rounded-lg bg-slate-50 p-4 transition-all hover:bg-slate-100"
               >
-                <span className="text-sm font-medium text-black" style={{ order: 1 }}>전체</span>
+                <span className="text-[15px] font-medium text-black" style={{ order: 1 }}>전체</span>
                 <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
                   <span className="font-bold text-black" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.fullInclusion + stats.partialInclusion}</span>
                   <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
@@ -775,7 +787,7 @@ export function BatchAnalysis({
               >
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="inline-flex items-center gap-1 text-sm font-medium text-gray-500 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}><Info className="h-3.5 w-3.5 flex-shrink-0" />전체 편입</span>
+                    <span className="inline-flex items-center gap-1 text-[15px] font-medium text-gray-500 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}><Info className="h-3.5 w-3.5 flex-shrink-0" />전체 편입</span>
                   </TooltipTrigger>
                   <TooltipContent side="top">전체 편입으로 잔여지가 발생하지 않은 필지입니다.</TooltipContent>
                 </Tooltip>
@@ -791,7 +803,7 @@ export function BatchAnalysis({
               >
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="inline-flex items-center gap-1 text-sm font-medium text-emerald-600 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}><Info className="h-3.5 w-3.5 flex-shrink-0" />잔여지 발생</span>
+                    <span className="inline-flex items-center gap-1 text-[15px] font-medium text-emerald-600 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}><Info className="h-3.5 w-3.5 flex-shrink-0" />잔여지 발생</span>
                   </TooltipTrigger>
                   <TooltipContent side="top">편입 후 잔여지가 발생하여 AI 매수 가능성 분석 대상인 필지입니다.</TooltipContent>
                 </Tooltip>
@@ -816,7 +828,7 @@ export function BatchAnalysis({
           <CardContent className="space-y-2" style={{ paddingTop: '0' }}>
             {/* 진행률 바 - 좌측과 동일한 포맷 */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center justify-between text-[15px]">
                 <span className="text-muted-foreground">AI 매수 가능성 높음 비율</span>
                 <span style={{ fontSize: '30px', fontWeight: '800', color: 'rgb(20, 113, 97)' }}>
                   {stats.partialInclusion > 0 ? Math.min(100, Math.round(((stats.highPossibility + stats.lowPossibility) / stats.partialInclusion) * 100)) : 0}%
@@ -837,7 +849,7 @@ export function BatchAnalysis({
                 onClick={() => handleAiJudgmentClick("all")}
                 className="flex cursor-pointer flex-col items-center rounded-lg bg-slate-50 p-4 transition-all hover:bg-slate-100"
               >
-                <span className="text-sm font-medium text-black" style={{ order: 1 }}>전체</span>
+                <span className="text-[15px] font-medium text-black" style={{ order: 1 }}>전체</span>
                 <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
                   <span className="font-bold text-black" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.partialInclusion}</span>
                   <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
@@ -850,9 +862,9 @@ export function BatchAnalysis({
               >
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="inline-flex items-center gap-1 text-sm font-medium text-amber-600 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}><Info className="h-3.5 w-3.5 flex-shrink-0" />검토대기</span>
+                    <span className="inline-flex items-center gap-1 text-[15px] font-medium text-amber-600 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}><Info className="h-3.5 w-3.5 flex-shrink-0" />검토 필요</span>
                   </TooltipTrigger>
-                  <TooltipContent side="top">잔여지 발생 필지 중 AI 매수 가능성 분석이 아직 실행되지 않은 필지입니다.</TooltipContent>
+                  <TooltipContent side="top">분석결과 담당자의 검토가 필요한 건</TooltipContent>
                 </Tooltip>
                 <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
                   <span className="font-bold text-amber-700" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.pendingReview}</span>
@@ -866,7 +878,7 @@ export function BatchAnalysis({
               >
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="inline-flex items-center gap-1 text-sm font-medium text-emerald-600 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}><Info className="h-3.5 w-3.5 flex-shrink-0" />높음</span>
+                    <span className="inline-flex items-center gap-1 text-[15px] font-medium text-emerald-600 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}><Info className="h-3.5 w-3.5 flex-shrink-0" />높음</span>
                   </TooltipTrigger>
                   <TooltipContent side="top">AI가 매수 가능성이 높다고 판단한 필지입니다.</TooltipContent>
                 </Tooltip>
@@ -882,7 +894,7 @@ export function BatchAnalysis({
               >
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="inline-flex items-center gap-1 text-sm font-medium text-rose-500 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}><Info className="h-3.5 w-3.5 flex-shrink-0" />낮음</span>
+                    <span className="inline-flex items-center gap-1 text-[15px] font-medium text-rose-500 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}><Info className="h-3.5 w-3.5 flex-shrink-0" />낮음</span>
                   </TooltipTrigger>
                   <TooltipContent side="top">AI가 매수 가능성이 낮다고 판단한 필지입니다.</TooltipContent>
                 </Tooltip>
@@ -939,7 +951,7 @@ export function BatchAnalysis({
                 onChange={(v) => setAiJudgmentFilter(v as "all" | "high" | "low" | "pending")}
                 options={[
                   { value: "all", label: "전체" },
-                  { value: "pending", label: "검토대기" },
+                  { value: "pending", label: "검토 필요" },
                   { value: "high", label: "높음" },
                   { value: "low", label: "낮음" }
                 ]}
@@ -1065,9 +1077,10 @@ export function BatchAnalysis({
               </TableHeader>
               <TableBody>
                 {paginatedParcels.map((parcel, index) => (
-                  <TableRow 
-                    key={parcel.id} 
-                    className={`hover:bg-muted/50 ${selectedParcelIds.has(parcel.id) ? 'bg-blue-50' : ''}`}
+                  <TableRow
+                    key={parcel.id}
+                    className={`cursor-pointer hover:bg-muted/50 ${selectedParcelIds.has(parcel.id) ? 'bg-blue-50' : ''}`}
+                    onClick={() => handleParcelClick(parcel)}
                   >
                     <TableCell className="text-center">
                       <input
@@ -1082,16 +1095,12 @@ export function BatchAnalysis({
                       {filteredParcels.length - ((currentPage - 1) * itemsPerPage + index)}
                     </TableCell>
                     <TableCell
-                      className="min-w-[400px] text-center font-medium underline cursor-pointer hover:text-primary"
+                      className="min-w-[400px] text-center font-medium underline hover:text-primary"
                       title={parcel.landInfo.address}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleParcelClick(parcel);
-                      }}
                     >
                       {parcel.landInfo.address}
                     </TableCell>
-                    <TableCell className="text-center text-sm">
+                    <TableCell className="text-center text-[15px]">
                       {parcel.landInfo.ownerName}
                     </TableCell>
                     <TableCell className="text-center">
@@ -1115,18 +1124,18 @@ export function BatchAnalysis({
                           잔여지 발생
                         </Badge>
                       ) : parcel.residualStatus === "기준 미달" ? (
-                        <span className="text-sm text-muted-foreground">-</span>
-                      ) : (
-                        <Badge className="bg-indigo-50 text-indigo-500 hover:bg-indigo-100 border-0">
-                          검토대기
+                        <Badge className="bg-gray-100 text-gray-500 hover:bg-gray-200 border-0">
+                          전체 편입
                         </Badge>
+                      ) : (
+                        <span className="text-[15px] text-muted-foreground">-</span>
                       )}
                     </TableCell>
                     {/* 매수 가능성 컬럼 */}
                     <TableCell className="text-center">
                       {/* 잔여지 인정 아닌 경우 AI 분석 미해당 */}
                       {parcel.residualStatus !== "잔여지 인정" ? (
-                        <span className="text-sm text-muted-foreground">-</span>
+                        <span className="text-[15px] text-muted-foreground">-</span>
                       ) : isPurchaseAnalyzing && selectedParcelIds.has(parcel.id) ? (
                         <div className="flex items-center justify-center gap-1">
                           <Loader2 className="h-4 w-4 animate-spin text-[#2E8B57]" />
@@ -1136,7 +1145,7 @@ export function BatchAnalysis({
                         <AIJudgmentBadge judgment={parcel.aiResult.provisionalJudgment} />
                       ) : (
                         <Badge className="bg-amber-50 text-amber-600 hover:bg-amber-100 border-0">
-                          검토대기
+                          검토 필요
                         </Badge>
                       )}
                     </TableCell>
@@ -1218,7 +1227,7 @@ export function BatchAnalysis({
               마지막
             </PaginationNavButton>
             
-            <span className="text-sm text-muted-foreground ml-2">
+            <span className="text-[15px] text-muted-foreground ml-2">
               {filteredParcels.length === 0 
                 ? "(0건)" 
                 : `(${filteredParcels.length}건 중 ${(currentPage - 1) * itemsPerPage + 1}-${Math.min(currentPage * itemsPerPage, filteredParcels.length)}건)`
@@ -1251,13 +1260,13 @@ export function BatchAnalysis({
                         </Badge>
                         {index === 0 && <Badge variant="outline">최신</Badge>}
                       </div>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-[15px] text-muted-foreground">
                         {formatDateTime(history.analyzedAt)} | {history.analyzedBy}
                       </p>
                     </div>
                     <div className="text-right">
                       {history.previousResult && (
-                        <div className="flex items-center gap-2 text-sm">
+                        <div className="flex items-center gap-2 text-[15px]">
                           <span className={history.previousResult.includes("높음") || history.previousResult === "수용가능" ? "text-emerald-600" : "text-rose-600"}>
                             {history.previousResult}
                           </span>
@@ -1276,12 +1285,12 @@ export function BatchAnalysis({
                   </div>
                   
                   {history.changeReason && (
-                    <div className="mt-3 p-2 bg-muted rounded text-sm">
+                    <div className="mt-3 p-2 bg-muted rounded text-[15px]">
                       <strong>변경 사유:</strong> {history.changeReason}
                     </div>
                   )}
                   {history.memo && (
-                    <div className="mt-2 text-sm text-muted-foreground">
+                    <div className="mt-2 text-[15px] text-muted-foreground">
                       <strong>메모:</strong> {history.memo}
                     </div>
                   )}

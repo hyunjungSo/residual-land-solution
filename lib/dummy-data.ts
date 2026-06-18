@@ -3714,27 +3714,27 @@ export const landShapes = {
 
 // ===== 분석 히스토리 샘플 데이터 =====
 export const dummyAnalysisHistory: AnalysisHistory[] = [
-  // 필지 1: 1차 분석만 완료
+  // 필지 1: 1차 분석만 완료 (정기 자동)
   {
     id: "history-001",
     parcelId: "processed-001",
     stage: "1차분석",
     analyzedAt: TWO_WEEKS_AGO,
-    analyzedBy: "시스템",
+    analyzedBy: "AI 자동 분석",
     newResult: "매수 가능성 높음",
     newShapeIndex: 0.35,
-    aiResult: generateAIResult(dummyLandInfoList[0]),
+    aiResult: { ...generateAIResult(dummyLandInfoList[0]), analysisSource: "auto" as const },
   },
-  // 필지 2: 1차 분석 후 2차 재분석 (결과 변경됨)
+  // 필지 2: 1차 정기 자동 → 2차 수동 (결과 변경됨)
   {
     id: "history-002-1",
     parcelId: "processed-002",
     stage: "1차분석",
     analyzedAt: TWO_WEEKS_AGO,
-    analyzedBy: "시스템",
+    analyzedBy: "AI 자동 분석",
     newResult: "매수 가능성 낮음",
     newShapeIndex: 0.72,
-    aiResult: generateAIResult(dummyLandInfoList[1]),
+    aiResult: { ...generateAIResult(dummyLandInfoList[1]), analysisSource: "auto" as const },
   },
   {
     id: "history-002-2",
@@ -3753,18 +3753,18 @@ export const dummyAnalysisHistory: AnalysisHistory[] = [
     },
     changeReason: "현장 확인 결과 농기계 진입 불가 확인",
     memo: "도로 확장으로 인해 형상이 변경됨",
-    aiResult: generateAIResult(dummyLandInfoList[1]),
+    aiResult: { ...generateAIResult(dummyLandInfoList[1]), analysisSource: "manual" as const },
   },
-  // 필지 3: 여러 번 재분석 (히스토리 3건)
+  // 필지 3: 1차 정기 자동 → 2차 수동 → 3차 변동감지 자동 재판독
   {
     id: "history-003-1",
     parcelId: "processed-003",
     stage: "1차분석",
     analyzedAt: THREE_WEEKS_AGO,
-    analyzedBy: "시스템",
+    analyzedBy: "AI 자동 분석",
     newResult: "매수 가능성 낮음",
     newShapeIndex: 0.68,
-    aiResult: generateAIResult(dummyLandInfoList[2]),
+    aiResult: { ...generateAIResult(dummyLandInfoList[2]), analysisSource: "auto" as const, remainingShapeIndex: 7.1, accessRoadLost: false },
   },
   {
     id: "history-003-2",
@@ -3780,14 +3780,14 @@ export const dummyAnalysisHistory: AnalysisHistory[] = [
       landShape: "사다리형",
     },
     changeReason: "형상 재측정",
-    aiResult: generateAIResult(dummyLandInfoList[2]),
+    aiResult: { ...generateAIResult(dummyLandInfoList[2]), analysisSource: "manual" as const, remainingShapeIndex: 7.1, accessRoadLost: false },
   },
   {
     id: "history-003-3",
     parcelId: "processed-003",
-    stage: "2차분석",
+    stage: "3차분석",
     analyzedAt: FIVE_DAYS_AGO,
-    analyzedBy: "이검토",
+    analyzedBy: "AI 자동 분석",
     previousResult: "매수 가능성 낮음",
     newResult: "매수 가능성 높음",
     previousShapeIndex: 0.65,
@@ -3797,14 +3797,89 @@ export const dummyAnalysisHistory: AnalysisHistory[] = [
       landShape: "역삼각형",
       accessRoadLost: true,
     },
-    changeReason: "공사 진행으로 접면도로 상실 확인",
-    memo: "2차 현장조사 결과 반영",
-    aiResult: generateAIResult(dummyLandInfoList[2]),
+    changeReason: "지적선 경계 변동 및 접면도로 상실 감지",
+    memo: "지적도 경계 업데이트에 따른 자동 재판독",
+    aiResult: { ...generateAIResult(dummyLandInfoList[2]), analysisSource: "auto-change" as const, remainingShapeIndex: 8.4, accessRoadLost: true },
+  },
+  // [데모] 3케이스 확인용: 자동판독 → 수동판독 → 변동감지 자동판독
+  {
+    id: "history-demo-1",
+    parcelId: "processed-demo",
+    stage: "1차분석",
+    analyzedAt: THREE_WEEKS_AGO,
+    analyzedBy: "AI 자동 분석",
+    newResult: "매수 가능성 낮음",
+    newShapeIndex: 0.71,
+    aiResult: { ...generateAIResult(dummyLandInfoList[0]), analysisSource: "auto" as const, remainingShapeIndex: 6.2, accessRoadLost: false },
+  },
+  {
+    id: "history-demo-2",
+    parcelId: "processed-demo",
+    stage: "2차분석",
+    analyzedAt: TWO_WEEKS_AGO,
+    analyzedBy: "박담당",
+    previousResult: "매수 가능성 낮음",
+    newResult: "매수 가능성 높음",
+    previousShapeIndex: 0.71,
+    newShapeIndex: 0.42,
+    changedOptions: {
+      currentUsage: "답",
+      landShape: "사다리형",
+      farmMachineDifficulty: true,
+    },
+    changeReason: "현장 방문 확인 결과 농기계 진입 불가 판정",
+    memo: "소유자 진술 및 현장 사진 근거로 수동 재판독",
+    aiResult: { ...generateAIResult(dummyLandInfoList[0]), analysisSource: "manual" as const, remainingShapeIndex: 6.2, accessRoadLost: false },
+  },
+  {
+    id: "history-demo-3",
+    parcelId: "processed-demo",
+    stage: "3차분석",
+    analyzedAt: FIVE_DAYS_AGO,
+    analyzedBy: "AI 자동 분석",
+    previousResult: "매수 가능성 높음",
+    newResult: "매수 가능성 높음",
+    previousShapeIndex: 0.42,
+    newShapeIndex: 0.38,
+    changedOptions: {
+      accessRoadLost: true,
+    },
+    changeReason: "지적선 경계 변동 감지에 따른 자동 재판독",
+    memo: "도로 정비 사업 지적도 업데이트로 접면도로 상실 재확인",
+    aiResult: { ...generateAIResult(dummyLandInfoList[0]), analysisSource: "auto-change" as const, remainingShapeIndex: 5.8, accessRoadLost: true },
   },
 ];
 
 // ===== 프로세스 적용된 필지 데이터 (ProcessedParcel) =====
 const rawProcessedParcels: ProcessedParcel[] = [
+  // [데모] 3케이스 확인용: 자동판독(1차) → 수동판독(2차) → 변동감지 자동판독(3차)
+  {
+    id: "processed-demo",
+    businessUnit: "수도권건설사업단",
+    projectName: "평택-오송 고속도로 2공구",
+    landInfo: dummyLandInfoList[0],
+    adminCheckItems: {
+      farmMachineDifficulty: true,
+      accessRoadLost: true,
+      waterChannelLost: false,
+    },
+    currentUsage: "답",
+    landShape: "사다리형",
+    aiResult: { ...generateAIResult(dummyLandInfoList[0]), analysisSource: "auto-change" as const, remainingShapeIndex: 5.8, accessRoadLost: true },
+    preRegistrationStatus: "등록완료",
+    registeredAt: ONE_MONTH_AGO,
+    registeredBy: "관리자",
+    publishStatus: "담당자확인완료",
+    residualStatus: "잔여지 인정",
+    isVisible: true,
+    analysisHistory: dummyAnalysisHistory.filter(h => h.parcelId === "processed-demo"),
+    firstAnalyzedAt: THREE_WEEKS_AGO,
+    lastAnalyzedAt: FIVE_DAYS_AGO,
+    confirmedAt: THREE_DAYS_AGO,
+    confirmedBy: "박담당",
+    ownerIdentifier: "0000",
+    reportCompleted: true,
+  },
   // 1. 1차 분석만 완료된 필지 (담당자 확인 대기) - 민원인이 장바구니에 담음
   {
     id: "processed-001",
@@ -4075,21 +4150,82 @@ const rawProcessedParcels: ProcessedParcel[] = [
     currentUsage: "답",
     landShape: "삼각형",
     aiResult: {
-      provisionalJudgment: "매수 가능성 높음",
-      shapeIndex: 5.2,
-      utilityIndex: 0.65,
-      accessibilityIndex: 0.72,
-      analysisDate: TWO_WEEKS_AGO,
+      ...generateAIResult({ id: "land-007", address: "전라남도 강진군 강진읍 남성리 45-2", originalArea: 1250, includedArea: 420, remainingArea: 830, remainingRatio: 66.4, landType: "농지", landCategory: "답", originalShape: "가로장방형", remainingShape: "삼각형", originalShapeIndex: 2.9, remainingShapeIndex: 5.2, ownerName: "김농부", ownerContact: "010-1111-2222", hasIncludedLand: true, businessUnit: "강진광주건설사업단", projectName: "광주-강진 고속도로", coordinates: [] }),
+      analysisSource: "auto-change" as const,
+      remainingShapeIndex: 5.8,
+      accessRoadLost: true,
     },
     preRegistrationStatus: "등록완료",
     registeredAt: ONE_MONTH_AGO,
     registeredBy: "관리자",
-    publishStatus: "1차분석완료",
+    publishStatus: "담당자확인완료",
     residualStatus: "잔여지 인정",
-    isVisible: true, // 부분 편입 + 매수 가능성 높음 = 공개
-    analysisHistory: [],
-    firstAnalyzedAt: TWO_WEEKS_AGO,
-    lastAnalyzedAt: TWO_WEEKS_AGO,
+    isVisible: true,
+    analysisHistory: [
+      {
+        id: "history-007-1",
+        parcelId: "processed-007",
+        stage: "1차분석" as const,
+        analyzedAt: THREE_WEEKS_AGO,
+        analyzedBy: "AI 자동 분석",
+        newResult: "매수 가능성 낮음" as const,
+        newShapeIndex: 5.2,
+        aiResult: {
+          ...generateAIResult({ id: "land-007", address: "전라남도 강진군 강진읍 남성리 45-2", originalArea: 1250, includedArea: 420, remainingArea: 830, remainingRatio: 66.4, landType: "농지", landCategory: "답", originalShape: "가로장방형", remainingShape: "삼각형", originalShapeIndex: 2.9, remainingShapeIndex: 5.2, ownerName: "김농부", ownerContact: "010-1111-2222", hasIncludedLand: true, businessUnit: "강진광주건설사업단", projectName: "광주-강진 고속도로", coordinates: [] }),
+          analysisSource: "auto" as const,
+          remainingShapeIndex: 5.2,
+          accessRoadLost: false,
+        },
+      },
+      {
+        id: "history-007-2",
+        parcelId: "processed-007",
+        stage: "2차분석" as const,
+        analyzedAt: TWO_WEEKS_AGO,
+        analyzedBy: "박담당",
+        previousResult: "매수 가능성 낮음" as const,
+        newResult: "매수 가능성 높음" as const,
+        previousShapeIndex: 5.2,
+        newShapeIndex: 4.8,
+        changedOptions: {
+          currentUsage: "답",
+          landShape: "삼각형" as import("./types").LandShape,
+          farmMachineDifficulty: true,
+        },
+        changeReason: "현장 방문 결과 농기계 진입 불가 확인",
+        memo: "소유자 진술 및 현장 사진 근거로 수동 재판독",
+        aiResult: {
+          ...generateAIResult({ id: "land-007", address: "전라남도 강진군 강진읍 남성리 45-2", originalArea: 1250, includedArea: 420, remainingArea: 830, remainingRatio: 66.4, landType: "농지", landCategory: "답", originalShape: "가로장방형", remainingShape: "삼각형", originalShapeIndex: 2.9, remainingShapeIndex: 5.2, ownerName: "김농부", ownerContact: "010-1111-2222", hasIncludedLand: true, businessUnit: "강진광주건설사업단", projectName: "광주-강진 고속도로", coordinates: [] }),
+          analysisSource: "manual" as const,
+          remainingShapeIndex: 4.8,
+          accessRoadLost: false,
+        },
+      },
+      {
+        id: "history-007-3",
+        parcelId: "processed-007",
+        stage: "3차분석" as const,
+        analyzedAt: FIVE_DAYS_AGO,
+        analyzedBy: "AI 자동 분석",
+        previousResult: "매수 가능성 높음" as const,
+        newResult: "매수 가능성 높음" as const,
+        previousShapeIndex: 4.8,
+        newShapeIndex: 5.8,
+        changedOptions: {
+          accessRoadLost: true,
+        },
+        changeReason: "지적선 경계 변동 감지에 따른 자동 재판독",
+        memo: "도로 정비 사업 지적도 업데이트로 접면도로 상실 재확인",
+        aiResult: {
+          ...generateAIResult({ id: "land-007", address: "전라남도 강진군 강진읍 남성리 45-2", originalArea: 1250, includedArea: 420, remainingArea: 830, remainingRatio: 66.4, landType: "농지", landCategory: "답", originalShape: "가로장방형", remainingShape: "삼각형", originalShapeIndex: 2.9, remainingShapeIndex: 5.2, ownerName: "김농부", ownerContact: "010-1111-2222", hasIncludedLand: true, businessUnit: "강진광주건설사업단", projectName: "광주-강진 고속도로", coordinates: [] }),
+          analysisSource: "auto-change" as const,
+          remainingShapeIndex: 5.8,
+          accessRoadLost: true,
+        },
+      },
+    ],
+    firstAnalyzedAt: THREE_WEEKS_AGO,
+    lastAnalyzedAt: FIVE_DAYS_AGO,
     ownerIdentifier: "2222",
     citizenActivity: {
       applicationSubmitted: true,
@@ -4672,35 +4808,106 @@ const rawProcessedParcels: ProcessedParcel[] = [
         // - 활동이 없으면 토글 수정 가능
         const hasCitizenActivity = i % 3 === 0; // 약 1/3은 수정 불가, 나머지는 수정 가능
 
+        const landInfo: LandInfo = {
+          id: `land-gen-${String(n).padStart(3, "0")}`,
+          address: `${baseAddress} ${lotNumber}`,
+          originalArea,
+          includedArea,
+          remainingArea,
+          remainingRatio,
+          landType: (landCategory === "대" ? "택지" : landCategory === "임" ? "산지" : "농지") as import("./types").LandType,
+          landCategory: landCategory as import("./types").LandCategory,
+          originalShape: landShapes[(i + 2) % 7] as import("./types").LandShape,
+          remainingShape: landShape as import("./types").LandShape,
+          originalShapeIndex: 1.5 + (i % 5) * 0.8,
+          remainingShapeIndex: 2.0 + (i % 6) * 1.0,
+          ownerName: ownerNames[i % 10],
+          ownerContact: `010-${String(3000 + n).slice(0, 4)}-${String(5000 + n).slice(0, 4)}`,
+          hasIncludedLand: true,
+          businessUnit: cfg.businessUnit as import("./types").BusinessUnit,
+          projectName: cfg.projectName,
+          coordinates: [
+            { lat: cfg.baseLat + (i % 10) * 0.02, lng: cfg.baseLng + (i % 10) * 0.02 },
+            { lat: cfg.baseLat + (i % 10) * 0.02 + 0.008, lng: cfg.baseLng + (i % 10) * 0.02 + 0.015 },
+            { lat: cfg.baseLat + (i % 10) * 0.02 - 0.002, lng: cfg.baseLng + (i % 10) * 0.02 + 0.022 },
+            { lat: cfg.baseLat + (i % 10) * 0.02 - 0.01, lng: cfg.baseLng + (i % 10) * 0.02 + 0.007 },
+          ],
+        };
+
+        const fullAiResult = hasAiResult
+          ? { ...generateAIResult(landInfo), analysisSource: "auto" as const }
+          : null;
+
+        const autoChangeAiResult = hasAiResult
+          ? {
+              ...generateAIResult(landInfo),
+              analysisSource: "auto-change" as const,
+              remainingShapeIndex: (2.0 + (i % 6) * 1.0) * (i % 3 === 0 ? 1.3 : 0.8),
+              accessRoadLost: i % 4 === 0,
+            }
+          : null;
+
+        const autoHistory: AnalysisHistory[] = fullAiResult
+          ? [
+              {
+                id: `history-gen-${String(n).padStart(3, "0")}-1`,
+                parcelId: `processed-gen-${String(n).padStart(3, "0")}`,
+                stage: "1차분석" as const,
+                analyzedAt: dateAt(7).toISOString(),
+                analyzedBy: "AI 자동 분석",
+                newResult: fullAiResult.provisionalJudgment,
+                newShapeIndex: fullAiResult.remainingShapeIndex,
+                aiResult: fullAiResult,
+              },
+              ...(autoChangeAiResult
+                ? [{
+                    id: `history-gen-${String(n).padStart(3, "0")}-2`,
+                    parcelId: `processed-gen-${String(n).padStart(3, "0")}`,
+                    stage: "2차분석" as const,
+                    analyzedAt: dateAt(3).toISOString(),
+                    analyzedBy: "AI 자동 분석",
+                    previousResult: fullAiResult.provisionalJudgment,
+                    newResult: autoChangeAiResult.provisionalJudgment,
+                    previousShapeIndex: fullAiResult.remainingShapeIndex,
+                    newShapeIndex: autoChangeAiResult.remainingShapeIndex,
+                    changedOptions: {
+                      accessRoadLost: i % 4 === 0,
+                      landShape: landShapes[(i + 3) % 7] as import("./types").LandShape,
+                    },
+                    changeReason: "지적선 경계 변동 감지에 따른 자동 재판독",
+                    memo: "지적도 업데이트에 따른 형상 재측정",
+                    aiResult: autoChangeAiResult,
+                  }]
+                : []),
+              // 44번 필지(n=272): 수동판독 3차분석 추가 → 3케이스 전체 확인용
+              ...(n === 272 && autoChangeAiResult
+                ? [{
+                    id: "history-gen-272-3",
+                    parcelId: "processed-gen-272",
+                    stage: "3차분석" as const,
+                    analyzedAt: dateAt(1).toISOString(),
+                    analyzedBy: "박담당",
+                    previousResult: autoChangeAiResult.provisionalJudgment,
+                    newResult: (autoChangeAiResult.provisionalJudgment === "수용가능" ? "수용불가" : "수용가능") as "수용가능" | "수용불가",
+                    previousShapeIndex: autoChangeAiResult.remainingShapeIndex,
+                    newShapeIndex: autoChangeAiResult.remainingShapeIndex * 0.82,
+                    changedOptions: {
+                      farmMachineDifficulty: true,
+                      landShape: "사다리형" as import("./types").LandShape,
+                    },
+                    changeReason: "현장 방문 결과 농기계 진입 불가 확인 및 형상 재측정",
+                    memo: "소유자 진술 및 현장 사진 근거로 수동 재판독 실시",
+                    aiResult: { ...generateAIResult(landInfo), analysisSource: "manual" as const },
+                  }]
+                : []),
+            ]
+          : [];
+
         return {
           id: `processed-gen-${String(n).padStart(3, "0")}`,
           businessUnit: cfg.businessUnit,
           projectName: cfg.projectName,
-          landInfo: {
-            id: `land-gen-${String(n).padStart(3, "0")}`,
-            address: `${baseAddress} ${lotNumber}`,
-            originalArea,
-            includedArea,
-            remainingArea,
-            remainingRatio,
-            landType: landCategory === "대" ? "대지" : "농지",
-            landCategory,
-            originalShape: landShapes[(i + 2) % 7],
-            remainingShape: landShape,
-            originalShapeIndex: 1.5 + (i % 5) * 0.8,
-            remainingShapeIndex: 2.0 + (i % 6) * 1.0,
-            ownerName: ownerNames[i % 10],
-            ownerContact: `010-${String(3000 + n).slice(0, 4)}-${String(5000 + n).slice(0, 4)}`,
-            hasIncludedLand: true,
-            businessUnit: cfg.businessUnit,
-            projectName: cfg.projectName,
-            coordinates: [
-              { lat: cfg.baseLat + (i % 10) * 0.02, lng: cfg.baseLng + (i % 10) * 0.02 },
-              { lat: cfg.baseLat + (i % 10) * 0.02 + 0.008, lng: cfg.baseLng + (i % 10) * 0.02 + 0.015 },
-              { lat: cfg.baseLat + (i % 10) * 0.02 - 0.002, lng: cfg.baseLng + (i % 10) * 0.02 + 0.022 },
-              { lat: cfg.baseLat + (i % 10) * 0.02 - 0.01, lng: cfg.baseLng + (i % 10) * 0.02 + 0.007 },
-            ],
-          },
+          landInfo,
           adminCheckItems: {
             farmMachineDifficulty: i % 3 === 0,
             accessRoadLost: i % 4 === 0,
@@ -4708,24 +4915,16 @@ const rawProcessedParcels: ProcessedParcel[] = [
           },
           currentUsage: landCategory,
           landShape,
-          ...(hasAiResult && {
-            aiResult: {
-              provisionalJudgment: i % 2 === 0 ? "매수 가능성 높음" : "매수 가능성 낮음",
-              shapeIndex: 2.0 + (i % 6) * 1.0,
-              utilityIndex: 0.3 + (i % 5) * 0.15,
-              accessibilityIndex: 0.4 + (i % 4) * 0.15,
-              analysisDate: dateAt(7),
-            },
-          }),
+          ...(fullAiResult && { aiResult: autoChangeAiResult || fullAiResult }),
           preRegistrationStatus: "등록완료" as const,
           registeredAt: dateAt(0),
           registeredBy: "관리자",
           publishStatus,
           ...(hasAiResult && { residualStatus }),
           isVisible,
-          analysisHistory: [],
-          ...(hasAiResult && { firstAnalyzedAt: dateAt(5) }),
-          ...(hasAiResult && { lastAnalyzedAt: dateAt(10) }),
+          analysisHistory: autoHistory,
+          ...(hasAiResult && { firstAnalyzedAt: dateAt(7) }),
+          ...(hasAiResult && { lastAnalyzedAt: autoChangeAiResult ? dateAt(3) : dateAt(7) }),
           ...((publishStatus === "담당자확인완료" || publishStatus === "공개") && {
             confirmedAt: dateAt(15),
             confirmedBy: ownerNames[(i + 3) % 10],
@@ -4748,9 +4947,30 @@ const rawProcessedParcels: ProcessedParcel[] = [
   })(),
 ];
 
-// 공개여부 정규화: 편입 유형과 매수 가능성이 모두 "판독대기"인 필지는 공개여부를 비공개로 강제
-// (판독대기 조건 = residualStatus가 "잔여지 인정"도 "기준 미달"도 아닌 경우 → 두 컬럼 모두 판독대기)
+// 공개여부 정규화 + AI 분석 이력 자동 생성
+// - residualStatus가 잔여지인정/기준미달이 아닌 경우 → 비공개 강제
+// - aiResult는 있지만 analysisHistory가 없는 경우 → 자동 1차 분석 이력 생성
 export const dummyProcessedParcels: ProcessedParcel[] = rawProcessedParcels.map((parcel) => {
   const isPending = parcel.residualStatus !== "잔여지 인정" && parcel.residualStatus !== "기준 미달";
-  return isPending ? { ...parcel, isVisible: false } : parcel;
+
+  let { aiResult, analysisHistory } = parcel;
+  if (parcel.aiResult && (!parcel.analysisHistory || parcel.analysisHistory.length === 0)) {
+    const fullAiResult: AIAnalysisResult = { ...generateAIResult(parcel.landInfo), analysisSource: "auto" as const };
+    const autoEntry: AnalysisHistory = {
+      id: `history-${parcel.id}-auto`,
+      parcelId: parcel.id,
+      stage: "1차분석",
+      analyzedAt: parcel.firstAnalyzedAt || parcel.registeredAt,
+      analyzedBy: "AI 자동 분석",
+      newResult: fullAiResult.provisionalJudgment,
+      newShapeIndex: fullAiResult.remainingShapeIndex,
+      aiResult: fullAiResult,
+    };
+    aiResult = fullAiResult;
+    analysisHistory = [autoEntry];
+  }
+
+  return isPending
+    ? { ...parcel, aiResult, analysisHistory, isVisible: false }
+    : { ...parcel, aiResult, analysisHistory };
 });
