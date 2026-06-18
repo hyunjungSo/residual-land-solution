@@ -444,11 +444,11 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                             {history.stage}
                           </Badge>
                           {history.aiResult?.analysisSource === "manual" ? (
-                            <Badge variant="outline" className="text-xs border-blue-300 text-blue-600 bg-blue-50">
+                            <Badge variant="outline" className="text-[15px] border-blue-300 text-blue-600 bg-blue-50">
                               수동판독
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="text-xs border-slate-300 text-slate-500 bg-slate-50">
+                            <Badge variant="outline" className="text-[15px] border-slate-300 text-slate-500 bg-slate-50">
                               자동판독
                             </Badge>
                           )}
@@ -465,9 +465,9 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                              history.newResult}
                           </Badge>
                           {history.aiResult?.analysisSource === "auto-change" && (
-                            <span className="text-xs text-amber-600 font-medium">※ 토지정보 변동 감지</span>
+                            <span className="text-[15px] text-amber-600 font-medium">※ 토지정보 변동 감지</span>
                           )}
-                          <span className="text-xs text-muted-foreground ml-auto mr-2">
+                          <span className="text-[15px] text-muted-foreground ml-auto mr-2">
                             {formatDateTime(history.analyzedAt)}
                           </span>
                         </div>
@@ -479,7 +479,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                             {isChangeDriven && (
                               <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-3 flex items-start gap-2">
                                 <AlertTriangle className="h-3.5 w-3.5 text-amber-600 mt-0.5 shrink-0" />
-                                <p className="text-xs text-amber-700 leading-relaxed">
+                                <p className="text-[15px] text-amber-700 leading-relaxed">
                                   본 분석은 <strong>토지 정보 변동 감지</strong>에 따라 자동으로 재판독되었습니다. 변동된 데이터 항목은 강조 표시됩니다.
                                 </p>
                               </div>
@@ -494,20 +494,20 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                 <div className="rounded-lg p-3 space-y-3" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
                                   <div className="grid grid-cols-3 gap-4">
                                     <div className="space-y-0.5">
-                                      <p className="text-xs text-muted-foreground">현재 활용지목</p>
-                                      <p className="text-xs font-medium">
+                                      <p className="text-[15px] text-muted-foreground">현재 활용지목</p>
+                                      <p className="text-[15px] font-medium">
                                         {landCategories.find(c => c.value === history.changedOptions?.currentUsage)?.label ?? history.changedOptions?.currentUsage ?? "-"}
                                       </p>
                                     </div>
                                     <div className="space-y-0.5">
-                                      <p className="text-xs text-muted-foreground">토지 형상</p>
-                                      <p className="text-xs font-medium">
+                                      <p className="text-[15px] text-muted-foreground">토지 형상</p>
+                                      <p className="text-[15px] font-medium">
                                         {[...landShapes.regular, ...landShapes.irregular].find(s => s.value === history.changedOptions?.landShape)?.label ?? history.changedOptions?.landShape ?? "-"}
                                       </p>
                                     </div>
                                     <div className="space-y-0.5">
-                                      <p className="text-xs text-muted-foreground">담당자 확인항목</p>
-                                      <p className="text-xs font-medium">
+                                      <p className="text-[15px] text-muted-foreground">담당자 확인항목</p>
+                                      <p className="text-[15px] font-medium">
                                         {[
                                           history.changedOptions.farmMachineDifficulty && "농기계 진입 불가",
                                           history.changedOptions.accessRoadLost && "접면도로 상실",
@@ -517,8 +517,8 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                     </div>
                                   </div>
                                   <div className="space-y-0.5 border-t border-slate-200 pt-3">
-                                    <p className="text-xs text-muted-foreground">메모</p>
-                                    <p className="text-xs font-medium whitespace-pre-wrap break-words">{history.memo || "-"}</p>
+                                    <p className="text-[15px] text-muted-foreground">메모</p>
+                                    <p className="text-[15px] font-medium whitespace-pre-wrap break-words">{history.memo || "-"}</p>
                                   </div>
                                 </div>
                               </div>
@@ -532,26 +532,26 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                               </h5>
                               <div className="rounded-lg p-3 grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-3" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
                                 <div className="space-y-0.5">
-                                  <p className="text-xs text-muted-foreground">편입 전 면적</p>
+                                  <p className="text-[15px] text-muted-foreground">편입 전 면적</p>
                                   <p className="text-[15px] font-semibold">{parcel.landInfo.originalArea.toLocaleString()}m²</p>
                                 </div>
                                 <div className="space-y-0.5">
-                                  <p className="text-xs text-muted-foreground">편입 면적</p>
+                                  <p className="text-[15px] text-muted-foreground">편입 면적</p>
                                   <p className="text-[15px] font-semibold">{(parcel.landInfo.includedArea ?? (parcel.landInfo.originalArea - parcel.landInfo.remainingArea)).toLocaleString()}m²</p>
                                 </div>
                                 <div className="space-y-0.5">
-                                  <p className="text-xs text-muted-foreground">잔여 면적</p>
+                                  <p className="text-[15px] text-muted-foreground">잔여 면적</p>
                                   <p className="text-[15px] font-semibold">{parcel.landInfo.remainingArea.toLocaleString()}m²</p>
                                 </div>
                                 {parcel.landInfo.remainingRatio != null && (
                                   <div className="space-y-0.5">
-                                    <p className="text-xs text-muted-foreground">잔여 비율</p>
+                                    <p className="text-[15px] text-muted-foreground">잔여 비율</p>
                                     <p className="text-[15px] font-semibold">{parcel.landInfo.remainingRatio}%</p>
                                   </div>
                                 )}
                                 {parcel.landInfo.originalShapeIndex != null && parcel.landInfo.remainingShapeIndex != null && (
                                   <div className={cn("space-y-0.5 rounded-md transition-colors", shapeIndexChanged && "bg-amber-50 px-2 py-1 -mx-2")}>
-                                    <p className="text-xs text-muted-foreground">형상지수 변화</p>
+                                    <p className="text-[15px] text-muted-foreground">형상지수 변화</p>
                                     <p className={cn("text-[15px] font-semibold", shapeIndexChanged && "text-amber-700")}>
                                       {(aiResult.originalShapeIndex ?? parcel.landInfo.originalShapeIndex).toFixed(3)} → <strong className={cn(shapeIndexChanged ? "font-bold" : "")}>{(aiResult.remainingShapeIndex ?? parcel.landInfo.remainingShapeIndex).toFixed(3)}</strong>
                                     </p>
@@ -570,26 +570,26 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                 <table className="w-full text-[15px]">
                                   <thead>
                                     <tr className="bg-muted/50">
-                                      <th className="px-3 py-2 text-left font-medium text-muted-foreground text-xs">항목</th>
-                                      <th className="px-3 py-2 text-center font-medium text-muted-foreground text-xs">편입 전</th>
-                                      <th className="px-3 py-2 text-center font-medium text-muted-foreground text-xs">편입 후</th>
+                                      <th className="px-3 py-2 text-left font-medium text-muted-foreground text-[15px]">항목</th>
+                                      <th className="px-3 py-2 text-center font-medium text-muted-foreground text-[15px]">편입 전</th>
+                                      <th className="px-3 py-2 text-center font-medium text-muted-foreground text-[15px]">편입 후</th>
                                     </tr>
                                   </thead>
                                   <tbody className="divide-y divide-border">
                                     <tr>
-                                      <td className="px-3 py-1.5 text-xs text-muted-foreground">형상</td>
-                                      <td className="px-3 py-1.5 text-center text-xs">{parcel.landInfo.originalShape || "-"}</td>
-                                      <td className="px-3 py-1.5 text-center text-xs font-semibold">{parcel.landInfo.remainingShape || "-"}</td>
+                                      <td className="px-3 py-1.5 text-[15px] text-muted-foreground">형상</td>
+                                      <td className="px-3 py-1.5 text-center text-[15px]">{parcel.landInfo.originalShape || "-"}</td>
+                                      <td className="px-3 py-1.5 text-center text-[15px] font-semibold">{parcel.landInfo.remainingShape || "-"}</td>
                                     </tr>
                                     <tr className={shapeIndexChanged ? "bg-amber-50" : ""}>
-                                      <td className="px-3 py-1.5 text-xs text-muted-foreground">형상지수 (SI)</td>
-                                      <td className="px-3 py-1.5 text-center text-xs">{(aiResult.originalShapeIndex ?? parcel.landInfo.originalShapeIndex)?.toFixed(3) ?? "-"}</td>
-                                      <td className={cn("px-3 py-1.5 text-center text-xs font-semibold", shapeIndexChanged && "text-amber-700 font-bold")}>{(aiResult.remainingShapeIndex ?? parcel.landInfo.remainingShapeIndex)?.toFixed(3) ?? "-"}</td>
+                                      <td className="px-3 py-1.5 text-[15px] text-muted-foreground">형상지수 (SI)</td>
+                                      <td className="px-3 py-1.5 text-center text-[15px]">{(aiResult.originalShapeIndex ?? parcel.landInfo.originalShapeIndex)?.toFixed(3) ?? "-"}</td>
+                                      <td className={cn("px-3 py-1.5 text-center text-[15px] font-semibold", shapeIndexChanged && "text-amber-700 font-bold")}>{(aiResult.remainingShapeIndex ?? parcel.landInfo.remainingShapeIndex)?.toFixed(3) ?? "-"}</td>
                                     </tr>
                                     <tr>
-                                      <td className="px-3 py-1.5 text-xs text-muted-foreground">면적</td>
-                                      <td className="px-3 py-1.5 text-center text-xs">{parcel.landInfo.originalArea.toLocaleString()}</td>
-                                      <td className="px-3 py-1.5 text-center text-xs font-semibold">{parcel.landInfo.remainingArea.toLocaleString()}</td>
+                                      <td className="px-3 py-1.5 text-[15px] text-muted-foreground">면적</td>
+                                      <td className="px-3 py-1.5 text-center text-[15px]">{parcel.landInfo.originalArea.toLocaleString()}</td>
+                                      <td className="px-3 py-1.5 text-center text-[15px] font-semibold">{parcel.landInfo.remainingArea.toLocaleString()}</td>
                                     </tr>
                                   </tbody>
                                 </table>
@@ -649,20 +649,20 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                 <div className="rounded-lg p-3 space-y-2" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
                                   <div className="flex flex-wrap gap-x-6 gap-y-1.5">
                                     <div className="space-y-0.5">
-                                      <p className="text-xs text-muted-foreground">합산 면적</p>
+                                      <p className="text-[15px] text-muted-foreground">합산 면적</p>
                                       <p className="text-[15px] font-semibold">{aiResult.unifiedParcelAnalysis.combinedArea?.toLocaleString() ?? "-"}m²</p>
                                     </div>
                                     <div className="space-y-0.5">
-                                      <p className="text-xs text-muted-foreground">합산 잔여 면적</p>
+                                      <p className="text-[15px] text-muted-foreground">합산 잔여 면적</p>
                                       <p className="text-[15px] font-semibold">{parcel.landInfo.remainingArea.toLocaleString()}m²</p>
                                     </div>
                                     <div className="space-y-0.5">
-                                      <p className="text-xs text-muted-foreground">합산 편입 면적</p>
+                                      <p className="text-[15px] text-muted-foreground">합산 편입 면적</p>
                                       <p className="text-[15px] font-semibold">{(parcel.landInfo.originalArea - parcel.landInfo.remainingArea).toLocaleString()}m²</p>
                                     </div>
                                   </div>
                                   {aiResult.unifiedParcelAnalysis.explanation && (
-                                    <p className="text-xs text-muted-foreground pt-2 border-t border-slate-200">{aiResult.unifiedParcelAnalysis.explanation}</p>
+                                    <p className="text-[15px] text-muted-foreground pt-2 border-t border-slate-200">{aiResult.unifiedParcelAnalysis.explanation}</p>
                                   )}
                                 </div>
                               </div>
@@ -684,21 +684,21 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                     <div className="rounded-lg border overflow-hidden">
                                       <div className="flex items-center justify-between px-3 py-2 bg-muted/40">
                                         <div className="flex items-center gap-2">
-                                          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-foreground/10 text-foreground text-xs font-bold leading-none">1</span>
-                                          <span className="text-xs font-semibold">잔여지 발생여부</span>
+                                          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-foreground/10 text-foreground text-[15px] font-bold leading-none">1</span>
+                                          <span className="text-[15px] font-semibold">잔여지 발생여부</span>
                                         </div>
-                                        <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", isMet1 ? `${JUDGMENT_COLORS.충족.bgLight} ${JUDGMENT_COLORS.충족.textDark}` : `${JUDGMENT_COLORS.미충족.bgLight} ${JUDGMENT_COLORS.미충족.textDark}`)}>
+                                        <span className={cn("text-[15px] font-semibold px-2 py-0.5 rounded-full", isMet1 ? `${JUDGMENT_COLORS.충족.bgLight} ${JUDGMENT_COLORS.충족.textDark}` : `${JUDGMENT_COLORS.미충족.bgLight} ${JUDGMENT_COLORS.미충족.textDark}`)}>
                                           {isMet1 ? "충족" : "미충족"}
                                         </span>
                                       </div>
                                       <div className="px-3 py-2 space-y-1.5 divide-y divide-border/50">
                                         <div className="flex items-center gap-3 pb-1.5">
-                                          <span className="text-xs text-[#666666] shrink-0 w-6">기준</span>
-                                          <p className="text-xs text-[#666666]">토지편입으로 인해 잔여토지가 발생 (면적 0㎡ 이상)</p>
+                                          <span className="text-[15px] text-[#666666] shrink-0 w-8">기준</span>
+                                          <p className="text-[15px] text-[#666666]">토지편입으로 인해 잔여토지가 발생 (면적 0㎡ 이상)</p>
                                         </div>
                                         <div className="flex items-center gap-3 pt-1.5">
-                                          <span className="text-xs text-[#1a1a1a] shrink-0 w-6">결과</span>
-                                          <div className="flex items-center gap-2 flex-wrap text-xs text-[#1a1a1a]">
+                                          <span className="text-[15px] text-[#1a1a1a] shrink-0 w-8">결과</span>
+                                          <div className="flex items-center gap-2 flex-wrap text-[15px] text-[#1a1a1a]">
                                             <span className={"font-semibold text-[#1a1a1a]"}>
                                               {isMet1 ? "잔여지 발생" : "잔여지 미발생"}
                                             </span>
@@ -725,21 +725,21 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                     <div className="rounded-lg border overflow-hidden">
                                       <div className="flex items-center justify-between px-3 py-2 bg-muted/40">
                                         <div className="flex items-center gap-2">
-                                          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-foreground/10 text-foreground text-xs font-bold leading-none">2</span>
-                                          <span className="text-xs font-semibold">단독필지 여부 (일단의 토지 여부)</span>
+                                          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-foreground/10 text-foreground text-[15px] font-bold leading-none">2</span>
+                                          <span className="text-[15px] font-semibold">단독필지 여부 (일단의 토지 여부)</span>
                                         </div>
-                                        <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", isMet2 ? `${JUDGMENT_COLORS.충족.bgLight} ${JUDGMENT_COLORS.충족.textDark}` : `${JUDGMENT_COLORS.미충족.bgLight} ${JUDGMENT_COLORS.미충족.textDark}`)}>
+                                        <span className={cn("text-[15px] font-semibold px-2 py-0.5 rounded-full", isMet2 ? `${JUDGMENT_COLORS.충족.bgLight} ${JUDGMENT_COLORS.충족.textDark}` : `${JUDGMENT_COLORS.미충족.bgLight} ${JUDGMENT_COLORS.미충족.textDark}`)}>
                                           {isMet2 ? "충족" : "미충족"}
                                         </span>
                                       </div>
                                       <div className="px-3 py-2 space-y-1.5 divide-y divide-border/50">
                                         <div className="flex items-center gap-3 pb-1.5">
-                                          <span className="text-xs text-[#666666] shrink-0 w-6">기준</span>
-                                          <p className="text-xs text-[#666666]">편입토지와 동일소유자이며, 인접한 동일용도 필지 없음</p>
+                                          <span className="text-[15px] text-[#666666] shrink-0 w-8">기준</span>
+                                          <p className="text-[15px] text-[#666666]">편입토지와 동일소유자이며, 인접한 동일용도 필지 없음</p>
                                         </div>
                                         <div className="flex items-start gap-3 pt-1.5">
-                                          <span className="text-xs text-[#1a1a1a] shrink-0 w-6">결과</span>
-                                          <div className="text-xs text-[#1a1a1a] space-y-1">
+                                          <span className="text-[15px] text-[#1a1a1a] shrink-0 w-8">결과</span>
+                                          <div className="text-[15px] text-[#1a1a1a] space-y-1">
                                             <span className={"font-semibold text-[#1a1a1a]"}>
                                               {isUnified ? "일단의 토지" : "단독필지"}
                                             </span>
@@ -760,21 +760,21 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                     <div className="rounded-lg border overflow-hidden">
                                       <div className="flex items-center justify-between px-3 py-2 bg-muted/40">
                                         <div className="flex items-center gap-2">
-                                          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-foreground/10 text-foreground text-xs font-bold leading-none">3</span>
-                                          <span className="text-xs font-semibold">소규모 토지 여부</span>
+                                          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-foreground/10 text-foreground text-[15px] font-bold leading-none">3</span>
+                                          <span className="text-[15px] font-semibold">소규모 토지 여부</span>
                                         </div>
-                                        <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", isMet3 ? `${JUDGMENT_COLORS.충족.bgLight} ${JUDGMENT_COLORS.충족.textDark}` : `${JUDGMENT_COLORS.미충족.bgLight} ${JUDGMENT_COLORS.미충족.textDark}`)}>
+                                        <span className={cn("text-[15px] font-semibold px-2 py-0.5 rounded-full", isMet3 ? `${JUDGMENT_COLORS.충족.bgLight} ${JUDGMENT_COLORS.충족.textDark}` : `${JUDGMENT_COLORS.미충족.bgLight} ${JUDGMENT_COLORS.미충족.textDark}`)}>
                                           {isMet3 ? "충족" : "미충족"}
                                         </span>
                                       </div>
                                       <div className="px-3 py-2 space-y-1.5 divide-y divide-border/50">
                                         <div className="flex items-center gap-3 pb-1.5">
-                                          <span className="text-xs text-[#666666] shrink-0 w-6">기준</span>
-                                          <p className="text-xs text-[#666666]">원면적이 기준면적(<strong className="font-bold">{threshold3.toLocaleString()}m²</strong>) 이하</p>
+                                          <span className="text-[15px] text-[#666666] shrink-0 w-8">기준</span>
+                                          <p className="text-[15px] text-[#666666]">원면적이 기준면적(<strong className="font-bold">{threshold3.toLocaleString()}m²</strong>) 이하</p>
                                         </div>
                                         <div className="flex items-start gap-3 pt-1.5">
-                                          <span className="text-xs text-[#1a1a1a] shrink-0 w-6">결과</span>
-                                          <div className="text-xs text-[#1a1a1a] space-y-1">
+                                          <span className="text-[15px] text-[#1a1a1a] shrink-0 w-8">결과</span>
+                                          <div className="text-[15px] text-[#1a1a1a] space-y-1">
                                             <span className={"font-semibold text-[#1a1a1a]"}>
                                               {isMet3 ? "부합" : "부합하지 않음"}
                                             </span>
@@ -795,21 +795,21 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                     <div className="rounded-lg border overflow-hidden">
                                       <div className="flex items-center justify-between px-3 py-2 bg-muted/40">
                                         <div className="flex items-center gap-2">
-                                          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-foreground/10 text-foreground text-xs font-bold leading-none">5</span>
-                                          <span className="text-xs font-semibold">면적미달 여부</span>
+                                          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-foreground/10 text-foreground text-[15px] font-bold leading-none">5</span>
+                                          <span className="text-[15px] font-semibold">면적미달 여부</span>
                                         </div>
-                                        <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", isMet5 ? `${JUDGMENT_COLORS.충족.bgLight} ${JUDGMENT_COLORS.충족.textDark}` : `${JUDGMENT_COLORS.미충족.bgLight} ${JUDGMENT_COLORS.미충족.textDark}`)}>
+                                        <span className={cn("text-[15px] font-semibold px-2 py-0.5 rounded-full", isMet5 ? `${JUDGMENT_COLORS.충족.bgLight} ${JUDGMENT_COLORS.충족.textDark}` : `${JUDGMENT_COLORS.미충족.bgLight} ${JUDGMENT_COLORS.미충족.textDark}`)}>
                                           {isMet5 ? "충족" : "미충족"}
                                         </span>
                                       </div>
                                       <div className="px-3 py-2 space-y-1.5 divide-y divide-border/50">
                                         <div className="flex items-center gap-3 pb-1.5">
-                                          <span className="text-xs text-[#666666] shrink-0 w-6">기준</span>
-                                          <p className="text-xs text-[#666666]"><strong className="font-bold">{threshold5.toLocaleString()}m²</strong></p>
+                                          <span className="text-[15px] text-[#666666] shrink-0 w-8">기준</span>
+                                          <p className="text-[15px] text-[#666666]"><strong className="font-bold">{threshold5.toLocaleString()}m²</strong></p>
                                         </div>
                                         <div className="flex items-center gap-3 pt-1.5">
-                                          <span className="text-xs text-[#1a1a1a] shrink-0 w-6">결과</span>
-                                          <p className="text-xs text-[#1a1a1a]"><strong className="font-bold">{parcel.landInfo.remainingArea.toLocaleString()}m²</strong></p>
+                                          <span className="text-[15px] text-[#1a1a1a] shrink-0 w-8">결과</span>
+                                          <p className="text-[15px] text-[#1a1a1a]"><strong className="font-bold">{parcel.landInfo.remainingArea.toLocaleString()}m²</strong></p>
                                         </div>
                                       </div>
                                     </div>
@@ -824,21 +824,21 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                     <div className="rounded-lg border overflow-hidden">
                                       <div className="flex items-center justify-between px-3 py-2 bg-muted/40">
                                         <div className="flex items-center gap-2">
-                                          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-foreground/10 text-foreground text-xs font-bold leading-none">6</span>
-                                          <span className="text-xs font-semibold">접근도로 상실 여부</span>
+                                          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-foreground/10 text-foreground text-[15px] font-bold leading-none">6</span>
+                                          <span className="text-[15px] font-semibold">접근도로 상실 여부</span>
                                         </div>
-                                        <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", isMet6 ? `${JUDGMENT_COLORS.충족.bgLight} ${JUDGMENT_COLORS.충족.textDark}` : `${JUDGMENT_COLORS.미충족.bgLight} ${JUDGMENT_COLORS.미충족.textDark}`)}>
+                                        <span className={cn("text-[15px] font-semibold px-2 py-0.5 rounded-full", isMet6 ? `${JUDGMENT_COLORS.충족.bgLight} ${JUDGMENT_COLORS.충족.textDark}` : `${JUDGMENT_COLORS.미충족.bgLight} ${JUDGMENT_COLORS.미충족.textDark}`)}>
                                           {isMet6 ? "충족" : "미충족"}
                                         </span>
                                       </div>
                                       <div className="px-3 py-2 space-y-1.5 divide-y divide-border/50">
                                         <div className="flex items-center gap-3 pb-1.5">
-                                          <span className="text-xs text-[#666666] shrink-0 w-6">기준</span>
-                                          <p className="text-xs text-[#666666]">{roadDesc ?? ""}</p>
+                                          <span className="text-[15px] text-[#666666] shrink-0 w-8">기준</span>
+                                          <p className="text-[15px] text-[#666666]">{roadDesc ?? ""}</p>
                                         </div>
                                         <div className="flex items-start gap-3 pt-1.5">
-                                          <span className="text-xs text-[#1a1a1a] shrink-0 w-6">결과</span>
-                                          <div className={cn("text-xs text-[#1a1a1a] space-y-1 rounded-md transition-colors", accessRoadChanged && "bg-amber-50 px-2 py-1 -mx-2")}>
+                                          <span className="text-[15px] text-[#1a1a1a] shrink-0 w-8">결과</span>
+                                          <div className={cn("text-[15px] text-[#1a1a1a] space-y-1 rounded-md transition-colors", accessRoadChanged && "bg-amber-50 px-2 py-1 -mx-2")}>
                                             <span className={cn("font-semibold text-[#1a1a1a]", accessRoadChanged && "text-amber-700")}>
                                               {isMet6 ? "접근도로 상실" : "접근도로 유지"}
                                             </span>
@@ -862,22 +862,22 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                     <div className="rounded-lg border overflow-hidden">
                                       <div className="flex items-center justify-between px-3 py-2 bg-muted/40">
                                         <div className="flex items-center gap-2">
-                                          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-foreground/10 text-foreground text-xs font-bold leading-none">7</span>
-                                          <span className="text-xs font-semibold">잔여지 형상에 따른 폭</span>
+                                          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-foreground/10 text-foreground text-[15px] font-bold leading-none">7</span>
+                                          <span className="text-[15px] font-semibold">잔여지 형상에 따른 폭</span>
                                         </div>
-                                        <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", isMet7 ? `${JUDGMENT_COLORS.충족.bgLight} ${JUDGMENT_COLORS.충족.textDark}` : `${JUDGMENT_COLORS.미충족.bgLight} ${JUDGMENT_COLORS.미충족.textDark}`)}>
+                                        <span className={cn("text-[15px] font-semibold px-2 py-0.5 rounded-full", isMet7 ? `${JUDGMENT_COLORS.충족.bgLight} ${JUDGMENT_COLORS.충족.textDark}` : `${JUDGMENT_COLORS.미충족.bgLight} ${JUDGMENT_COLORS.미충족.textDark}`)}>
                                           {isMet7 ? "충족" : "미충족"}
                                         </span>
                                       </div>
                                       <div className="px-3 py-2 space-y-1.5 divide-y divide-border/50">
                                         <div className="flex items-center gap-3 pb-1.5">
-                                          <span className="text-xs text-[#666666] shrink-0 w-6">기준</span>
-                                          <p className="text-xs text-[#666666]">내접사각형 폭 5m 이하 또는 삼각형 한 변 11m 이하</p>
+                                          <span className="text-[15px] text-[#666666] shrink-0 w-8">기준</span>
+                                          <p className="text-[15px] text-[#666666]">내접사각형 폭 5m 이하 또는 삼각형 한 변 11m 이하</p>
                                         </div>
                                         <div className="flex items-center gap-3 pt-1.5">
-                                          <span className="text-xs text-[#1a1a1a] shrink-0 w-6">결과</span>
+                                          <span className="text-[15px] text-[#1a1a1a] shrink-0 w-8">결과</span>
                                           {shapeCheck?.criteriaDescription && (
-                                            <p className="text-xs text-[#1a1a1a]">
+                                            <p className="text-[15px] text-[#1a1a1a]">
                                               {shapeCheck.criteriaDescription.split(/(비정형)/).map((part, i) =>
                                                 part === "비정형"
                                                   ? <strong key={i} className="font-bold">{part}</strong>
