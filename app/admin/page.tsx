@@ -348,7 +348,7 @@ function AdminPageContent() {
             <button
               onClick={() => goToBase("applications")}
               className={cn(
-                "flex w-full items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors",
+                "flex w-full items-center gap-3 px-4 py-2.5 text-[16px] font-medium transition-colors",
                 !activeDetailTab && baseTab === "applications"
                   ? "bg-[#00875a] text-white"
                   : "text-gray-700 hover:bg-gray-100"
@@ -362,7 +362,7 @@ function AdminPageContent() {
             <button
               onClick={() => goToBase("parcel-management")}
               className={cn(
-                "flex w-full items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors",
+                "flex w-full items-center gap-3 px-4 py-2.5 text-[16px] font-medium transition-colors",
                 !activeDetailTab && baseTab === "parcel-management"
                   ? "bg-[#00875a] text-white"
                   : "text-gray-700 hover:bg-gray-100"
@@ -384,13 +384,13 @@ function AdminPageContent() {
               className="w-9 h-9 rounded-full shrink-0 object-cover border border-gray-200"
             />
             <div className="flex flex-col">
-              <span className="text-sm font-medium text-gray-900">{user?.name || "담당자"}</span>
+              <span className="text-[15px] font-medium text-gray-900">{user?.name || "담당자"}</span>
               <span className="text-xs text-gray-500">관리자</span>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+            className="flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-[15px] font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
           >
             <LogOut className="h-4 w-4" />
             <span>로그아웃</span>
@@ -539,7 +539,7 @@ function AdminPageContent() {
             <AlertDialogTitle className="text-base font-semibold text-gray-900">
               변경사항 저장 안 됨
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-sm text-gray-500 leading-relaxed whitespace-pre-line">
+            <AlertDialogDescription className="text-[15px] text-gray-500 leading-relaxed whitespace-pre-line">
               {`작성 중인 변경사항이 저장되지 않았습니다.\n이대로 다른 페이지로 이동하시겠습니까?`}
             </AlertDialogDescription>
           </AlertDialogHeader>

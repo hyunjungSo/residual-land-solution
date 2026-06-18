@@ -19,7 +19,7 @@ export function PublishRadioCell({
         checked={isPublished}
         onCheckedChange={onPublishChange}
       />
-      <span className={`text-sm font-medium ${isPublished ? "text-emerald-600" : "text-muted-foreground"}`}>
+      <span className={`text-[15px] font-medium ${isPublished ? "text-emerald-600" : "text-muted-foreground"}`}>
         {isPublished ? "노출" : "미노출"}
       </span>
     </div>

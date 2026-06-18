@@ -49,10 +49,10 @@ export function CriteriaChecksList({
   if (variant === "simple") {
     return (
       <div className={className}>
-        <h5 className="text-sm font-semibold mb-2">{title}</h5>
+        <h5 className="text-[15px] font-semibold mb-2">{title}</h5>
         <div className="space-y-1 rounded-lg p-2" style={{ backgroundColor: "rgb(251, 251, 251)" }}>
           {checks.map((check, idx) => (
-            <div key={idx} className="flex items-center gap-2 text-sm py-1">
+            <div key={idx} className="flex items-center gap-2 text-[15px] py-1">
               {check.isMet ? (
                 <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
               ) : (
@@ -88,7 +88,7 @@ export function CriteriaChecksList({
                 <div>
                   <p className="font-medium">{getName(check)}</p>
                   {check.criteriaDescription && (
-                    <p className="text-sm text-muted-foreground">{check.criteriaDescription}</p>
+                    <p className="text-[15px] text-muted-foreground">{check.criteriaDescription}</p>
                   )}
                 </div>
               </div>
@@ -108,7 +108,7 @@ export function CriteriaChecksList({
       <p className="text-xs font-medium text-muted-foreground mb-2">{title}</p>
       <div className="space-y-2">
         {checks.map((check, cIdx) => (
-          <div key={cIdx} className="flex items-center justify-between text-sm">
+          <div key={cIdx} className="flex items-center justify-between text-[15px]">
             <span className="text-muted-foreground">{getName(check)}</span>
             <Badge 
               variant="default" 

@@ -28,13 +28,13 @@ export function RadioFilterGroup({
 }: RadioFilterGroupProps) {
   return (
     <div className="flex items-center gap-3">
-      <Label className="text-sm font-medium whitespace-nowrap">{label}:</Label>
+      <Label className="text-[15px] font-medium whitespace-nowrap">{label}:</Label>
       <div className="flex items-center gap-2">
         {options.map((option) => (
           <button
             key={option.value}
             onClick={() => onChange(option.value)}
-            className={`flex items-center justify-center gap-1.5 rounded-md px-3 h-[40px] text-sm font-medium transition-all ${
+            className={`flex items-center justify-center gap-1.5 rounded-md px-3 h-[40px] text-[15px] font-medium transition-all ${
               value === option.value
                 ? "bg-black text-white hover:bg-black/90"
                 : "border border-black text-black hover:bg-black/5"

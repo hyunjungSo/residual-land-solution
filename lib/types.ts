@@ -187,6 +187,7 @@ export interface LandJudgmentForReview {
 
 // AI 분석 결과
 export interface AIAnalysisResult {
+  analysisSource?: "auto" | "auto-change" | "manual"; // 분석 실행 구분 (정기자동/변동감지자동/수동)
   landTypePath: LandType; // 판단 경로 (토지 유형)
   criteriaChecks: CriteriaCheck[]; // 기준 충족 여부
   provisionalJudgment: AIJudgmentResult; // AI 1차 판독 결과 (수용가능/수용불가)

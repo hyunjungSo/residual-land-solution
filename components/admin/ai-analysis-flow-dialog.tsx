@@ -150,7 +150,7 @@ export function AIAnalysisFlowDialog({
           >
             {/* 타이틀 */}
             <div className="mb-4">
-              <h3 className="text-sm font-bold text-gray-700">
+              <h3 className="text-[15px] font-bold text-gray-700">
                 토지 분류
               </h3>
             </div>
@@ -344,20 +344,20 @@ export function AIAnalysisFlowDialog({
           >
             <div className="flex flex-col">
               <div className="mb-3">
-                <h4 className="text-sm font-bold text-gray-700">담당자 검토</h4>
+                <h4 className="text-[15px] font-bold text-gray-700">담당자 검토</h4>
               </div>
               <div className="grid grid-cols-3 gap-5">
                 <div className={cn(
                   "border rounded p-3 text-center transition-all",
                   finalJudgment === "수용가능" ? `${JUDGMENT_COLORS.수용가능.border} ${JUDGMENT_COLORS.수용가능.bgLight}` : "border-gray-200 bg-gray-50"
                 )}>
-                  <p className={cn("text-sm font-medium", finalJudgment === "수용가능" ? JUDGMENT_COLORS.수용가능.text : "text-gray-500")}>수용가능 판단</p>
+                  <p className={cn("text-[15px] font-medium", finalJudgment === "수용가능" ? JUDGMENT_COLORS.수용가능.text : "text-gray-500")}>수용가능 판단</p>
                 </div>
                 <div className={cn(
                   "border rounded p-3 text-center transition-all",
                   finalJudgment === "수용불가" ? `${JUDGMENT_COLORS.수용불가.border} ${JUDGMENT_COLORS.수용불가.bgLight}` : "border-gray-200 bg-gray-50"
                 )}>
-                  <p className={cn("text-sm font-medium", finalJudgment === "수용불가" ? JUDGMENT_COLORS.수용불가.text : "text-gray-500")}>수용불가 판단</p>
+                  <p className={cn("text-[15px] font-medium", finalJudgment === "수용불가" ? JUDGMENT_COLORS.수용불가.text : "text-gray-500")}>수용불가 판단</p>
                 </div>
               </div>
             </div>
@@ -371,13 +371,13 @@ export function AIAnalysisFlowDialog({
           >
             <div className="flex flex-col">
               <div className="mb-3">
-                <h4 className="text-sm font-bold text-gray-700">최종 결정</h4>
+                <h4 className="text-[15px] font-bold text-gray-700">최종 결정</h4>
               </div>
               <div className="grid grid-cols-2 gap-5">
                 <motion.div 
                   animate={{ scale: finalJudgment === "수용가능" && animationStep >= 7 ? 1.02 : 1 }}
                   className={cn(
-                    "rounded p-3 text-center text-sm font-semibold border transition-all",
+                    "rounded p-3 text-center text-[15px] font-semibold border transition-all",
                     finalJudgment === "수용가능" 
                       ? `${JUDGMENT_COLORS.수용가능.border} ${JUDGMENT_COLORS.수용가능.bg} text-white` 
                       : "border-gray-200 bg-gray-50 text-gray-400"
@@ -388,7 +388,7 @@ export function AIAnalysisFlowDialog({
                 <motion.div 
                   animate={{ scale: finalJudgment === "수용불가" && animationStep >= 7 ? 1.02 : 1 }}
                   className={cn(
-                    "rounded p-3 text-center text-sm font-semibold border transition-all",
+                    "rounded p-3 text-center text-[15px] font-semibold border transition-all",
                     finalJudgment === "수용불가"
                       ? `${JUDGMENT_COLORS.수용불가.border} ${JUDGMENT_COLORS.수용불가.bg} text-white` 
                       : "border-gray-200 bg-gray-50 text-gray-400"
@@ -412,7 +412,7 @@ export function AIAnalysisFlowDialog({
               <div className="flex items-center gap-2">
                 <span className="text-base text-gray-500">잔여 면적</span>
                 <span className="text-base font-semibold text-gray-800">{remainingArea.toLocaleString()}㎡</span>
-                <span className="text-sm text-gray-400">/ 기준 {effectiveThreshold}㎡ {isRatioRelaxed && "(완화)"}</span>
+                <span className="text-[15px] text-gray-400">/ 기준 {effectiveThreshold}㎡ {isRatioRelaxed && "(완화)"}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-base text-gray-500">잔여 비율</span>
@@ -528,7 +528,7 @@ function PathColumn({
         headerBorderColor
       )}>
         <Icon className={cn("h-5 w-5", iconColor)} />
-        <span className={cn("text-sm font-bold", titleColor)}>
+        <span className={cn("text-[15px] font-bold", titleColor)}>
           {type} 경로
         </span>
       </div>
@@ -548,7 +548,7 @@ function PathColumn({
                 ? (isMet ? "border-success/50 bg-success/10" : isUnmet ? "border-destructive/50 bg-destructive/10" : "border-warning/50 bg-warning/10")
                 : "border-gray-200 bg-gray-50"
             )}>
-              <p className="text-sm text-gray-400 italic text-center">해당 없음</p>
+              <p className="text-[15px] text-gray-400 italic text-center">해당 없음</p>
             </div>
           ) : (
             <div className={cn(
@@ -575,7 +575,7 @@ function PathColumn({
                     )}
                   </div>
                   <p className={cn(
-                    "text-sm font-semibold",
+                    "text-[15px] font-semibold",
                     isActive ? "text-gray-700" : "text-gray-400"
                   )}>
                     {c.title}
@@ -589,7 +589,7 @@ function PathColumn({
                   <div 
                     key={itemIdx}
                     className={cn(
-                      "flex items-start gap-2 text-sm py-1 px-2 rounded",
+                      "flex items-start gap-2 text-[15px] py-1 px-2 rounded",
                       isActive && item.isSelected 
                         ? (item.isMet ? `${JUDGMENT_COLORS.충족.bgLight} border ${JUDGMENT_COLORS.충족.border}` : `${JUDGMENT_COLORS.미충족.bgLight} border ${JUDGMENT_COLORS.미충족.border}`)
                         : "bg-transparent"
@@ -619,7 +619,7 @@ function PathColumn({
                         </span>
                         {item.value && (
                           <span className={cn(
-                            "text-sm",
+                            "text-[15px]",
                             isActive && item.isSelected 
                               ? (item.isMet ? JUDGMENT_COLORS.충족.text : JUDGMENT_COLORS.미충족.text)
                               : "text-gray-400"
@@ -630,16 +630,16 @@ function PathColumn({
 
                       </div>
                       {item.subLabel && (
-                        <p className="text-sm text-gray-400 mt-0.5">{item.subLabel}</p>
+                        <p className="text-[15px] text-gray-400 mt-0.5">{item.subLabel}</p>
                       )}
                       {/* 충족/미충족 상세 설명 — 민원인 값은 굵게, 기준값은 흐리게 */}
                       {isActive && item.isSelected && item.isMet && item.explanationMet && (
-                        <p className={`text-sm ${JUDGMENT_COLORS.충족.text} mt-1`}>
+                        <p className={`text-[15px] ${JUDGMENT_COLORS.충족.text} mt-1`}>
                           → <ExplanationText text={item.explanationMet} colorClass={JUDGMENT_COLORS.충족.text} />
                         </p>
                       )}
                       {isActive && item.isSelected && !item.isMet && item.explanationUnmet && (
-                        <p className={`text-sm ${JUDGMENT_COLORS.미충족.text} mt-1`}>
+                        <p className={`text-[15px] ${JUDGMENT_COLORS.미충족.text} mt-1`}>
                           → <ExplanationText text={item.explanationUnmet} colorClass={JUDGMENT_COLORS.미충족.text} />
                         </p>
                       )}
@@ -650,7 +650,7 @@ function PathColumn({
 
               {/* 참고 사항 */}
               {c.note && (
-                <p className="text-sm text-gray-400 mt-1.5">{c.note}</p>
+                <p className="text-[15px] text-gray-400 mt-1.5">{c.note}</p>
               )}
             </div>
           )}
@@ -662,7 +662,7 @@ function PathColumn({
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: animationStep >= 5 ? 1 : 0.4 }}
-          className="text-sm space-y-0.5 mb-3 py-2 border-t border-gray-100"
+          className="text-[15px] space-y-0.5 mb-3 py-2 border-t border-gray-100"
         >
           <p className={cn(
             conditionStatus === "충족" ? `${JUDGMENT_COLORS.충족.text} font-medium` : "text-gray-400"
@@ -690,7 +690,7 @@ function PathColumn({
           className="flex justify-center"
         >
           <span className={cn(
-            "px-4 py-1.5 rounded-full text-sm font-bold text-white",
+            "px-4 py-1.5 rounded-full text-[15px] font-bold text-white",
             conditionStatus === "충족" ? JUDGMENT_COLORS.충족.bg :
             conditionStatus === "미충족" ? JUDGMENT_COLORS.미충족.bg :
             "bg-amber-500"

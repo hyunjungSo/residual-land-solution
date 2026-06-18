@@ -46,7 +46,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             </h1>
             <div className="h-1 w-24 rounded-full bg-[#2E8B57]" />
           </div>
-          <p className="text-sm text-white/50">&copy; 2026 Korea Expressway Corporation. All rights reserved.</p>
+          <p className="text-[15px] text-white/50">&copy; 2026 Korea Expressway Corporation. All rights reserved.</p>
         </div>
       </div>
 
@@ -58,7 +58,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             {/* 아이디 */}
             <div className="space-y-1.5">
-              <label htmlFor="login-id" className="text-sm font-medium text-gray-700">아이디</label>
+              <label htmlFor="login-id" className="text-[15px] font-medium text-gray-700">아이디</label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
@@ -75,7 +75,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 
             {/* 비밀번호 */}
             <div className="space-y-1.5">
-              <label htmlFor="login-pw" className="text-sm font-medium text-gray-700">비밀번호</label>
+              <label htmlFor="login-pw" className="text-[15px] font-medium text-gray-700">비밀번호</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
@@ -99,7 +99,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
             </div>
 
             {/* 에러 메시지 */}
-            {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+            {error && <p className="text-[15px] text-red-500 text-center">{error}</p>}
 
             {/* 로그인 버튼 */}
             <button
@@ -117,7 +117,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
           </form>
         </div>
 
-        <p className="mt-8 text-center text-sm text-gray-400 lg:hidden">&copy; 2026 한국도로공사</p>
+        <p className="mt-8 text-center text-[15px] text-gray-400 lg:hidden">&copy; 2026 한국도로공사</p>
       </div>
     </div>
   );

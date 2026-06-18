@@ -1,21 +1,15 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Textarea } from "@/components/ui/textarea";
 import { dummyApplications } from "@/lib/dummy-data";
 import type { Application } from "@/lib/types";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Download, Printer, CheckCircle2, Edit3, Upload, X } from "lucide-react";
+import { Download, Printer, CheckCircle2, Edit3, Upload, X, Plus } from "lucide-react";
 import { LandMap } from "@/components/land-map";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 interface LandParcel {
   originalLotNumber: string;
@@ -29,9 +23,8 @@ interface LandParcel {
   purchaseDecision: "O" | "X" | "";
 }
 
-interface CommitteeDecision {
+interface CommitteeMember {
   role: string;
-  decision: "O" | "X" | "";
   signature: string;
 }
 
@@ -45,46 +38,31 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
   const [isGenerated, setIsGenerated] = useState(false);
   const [isEditing, setIsEditing] = useState(true);
 
-  const snapshot = useRef<{ landParcels: LandParcel[]; fieldConditionReview: string } | null>(null);
-
-  const enterEditMode = () => {
-    snapshot.current = { landParcels: [...landParcels], fieldConditionReview };
-    setIsEditing(true);
-  };
-
-  const cancelEdit = () => {
-    if (snapshot.current) {
-      setLandParcels(snapshot.current.landParcels);
-      setFieldConditionReview(snapshot.current.fieldConditionReview);
-      snapshot.current = null;
-    }
-    setIsEditing(false);
-  };
-
   const [documentMeta, setDocumentMeta] = useState({
     projectName: "대산당진 고속도로 건설공사",
-    sectionNumber: "1공구",
-    reviewNumber: "제4차",
+    sectionNumber: "",
+    reviewNumber: "",
     author: "차장 지광호",
   });
 
   const [landParcels, setLandParcels] = useState<LandParcel[]>([]);
   const [ownerInfo, setOwnerInfo] = useState({ address: "", ownerName: "" });
   const [aerialPhotoImage, setAerialPhotoImage] = useState<string | null>(null);
-  const [fieldConditionReview, setFieldConditionReview] = useState("");
-  const [ownerOpinion, setOwnerOpinion] = useState(
-    "토지 활용도가 현저히 저하되어, 경제적 가치가 현저히 하락하게 되었으니 매수 요청"
+  const [ownerOpinion, setOwnerOpinion] = useState("토지 활용도가 현저히 저하되어, 경제적 가치가 현저히 하락하게 되었으니 매수 요청");
+
+  const [fieldConditionReview, setFieldConditionReview] = useState(
+    "o 진출입 여건(교통) : \no 토지 모양 : \no 실제 이용상황 :\no 농기계 진입, 회전 : \no 검토 의견\n - \n\n\n * 잔여지 보상액 : "
   );
-  const [committeeDecisions, setCommitteeDecisions] = useState<CommitteeDecision[]>([
-    { role: "사업단장", decision: "", signature: "" },
-    { role: "보상부장", decision: "", signature: "" },
-    { role: "공사부장", decision: "", signature: "" },
-    { role: "품질부장", decision: "", signature: "" },
-    { role: "외부위원", decision: "", signature: "" },
-    { role: "최종결정", decision: "", signature: "" },
+
+  const [committeeMembers, setCommitteeMembers] = useState<CommitteeMember[]>([
+    { role: "사업단장", signature: "" },
+    { role: "보상부장", signature: "" },
+    { role: "공사부장", signature: "" },
+    { role: "품질부장", signature: "" },
+    { role: "외부위원", signature: "" },
   ]);
 
-  const saveReviewDocumentData = (parcels: LandParcel[]) => {
+  const saveDocumentData = (parcels: LandParcel[]) => {
     try {
       const saved = JSON.parse(localStorage.getItem("reviewDocuments") || "{}");
       saved[applicationId] = {
@@ -92,7 +70,7 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
         ownerInfo,
         ownerOpinion,
         fieldConditionReview,
-        committeeDecisions,
+        committeeMembers,
         documentMeta,
         savedAt: new Date().toISOString(),
       };
@@ -107,9 +85,7 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
     try {
       const savedApplications = JSON.parse(localStorage.getItem("updatedApplications") || "{}");
       if (savedApplications[applicationId]) found = savedApplications[applicationId];
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) { console.error(e); }
     if (!found) found = dummyApplications.find((app) => app.id === applicationId);
     if (found && !found.landInfo) {
       const original = dummyApplications.find((app) => app.id === applicationId);
@@ -118,85 +94,99 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
     if (!found) return;
 
     setApplication(found);
-    setOwnerInfo({
-      address: found.landInfo?.address || found.applicantAddress || "",
-      ownerName: found.landInfo?.ownerName || found.applicantName || "",
-    });
+    setOwnerInfo({ address: found.landInfo?.address || found.applicantAddress || "", ownerName: found.landInfo?.ownerName || found.applicantName || "" });
     setDocumentMeta((prev) => ({ ...prev, projectName: found!.landInfo?.projectName || prev.projectName }));
-
-    // fieldConditionReview: Application 데이터 우선 (신청상세 저장값 항상 반영)
-    const DEFAULT_TEMPLATE =
-      "■ 현황: \n■ 토지모양: \n■ 실제 이용 상황: \n■ 농기계 진입 및 회전: \n■ 검토의견: ";
-    const reviewOpinion = found.finalReviewOpinion || found.reviewerComment || "";
-    setFieldConditionReview(reviewOpinion || DEFAULT_TEMPLATE);
 
     let savedReviewData = null;
     try {
       const savedDocs = JSON.parse(localStorage.getItem("reviewDocuments") || "{}");
       if (savedDocs[applicationId]) savedReviewData = savedDocs[applicationId];
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) { console.error(e); }
 
     if (savedReviewData?.landParcels?.length > 0) {
       setLandParcels(savedReviewData.landParcels);
       if (savedReviewData.ownerOpinion) setOwnerOpinion(savedReviewData.ownerOpinion);
-      if (savedReviewData.committeeDecisions) setCommitteeDecisions(savedReviewData.committeeDecisions);
+      if (savedReviewData.committeeMembers) setCommitteeMembers(savedReviewData.committeeMembers);
       if (savedReviewData.documentMeta) setDocumentMeta(savedReviewData.documentMeta);
-      return;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const savedJudgments = (found as any).landJudgmentsForReview;
-    if (savedJudgments?.length > 0) {
-      setLandParcels(
-        savedJudgments.map((lj: { address: string; landCategory: string; originalArea: number; remainingArea: number; remainingRatio: number; purchaseDecision: "O" | "X" | "-" }) => {
-          const parts = lj.address.split(" ");
-          const lot = parts[parts.length - 1] || lj.address;
-          return {
-            originalLotNumber: lot,
-            landCategory: lj.landCategory === "택지" ? "대" : lj.landCategory === "전" ? "전" : lj.landCategory === "답" ? "답" : lj.landCategory === "임야" ? "임" : lj.landCategory,
-            originalArea: lj.originalArea,
-            includedLotNumber: lot + "-편입",
-            includedArea: lj.originalArea - lj.remainingArea,
-            remainingLotNumber: lot,
-            remainingArea: lj.remainingArea,
-            remainingRatio: lj.remainingRatio,
-            purchaseDecision: lj.purchaseDecision === "O" || lj.purchaseDecision === "X" ? lj.purchaseDecision : "",
-          };
-        })
-      );
     } else {
-      const allLands = found.additionalLands ? [found.landInfo, ...found.additionalLands] : [found.landInfo];
-      setLandParcels(
-        allLands.filter(Boolean).map((land) => {
-          const parts = (land.address ?? "").split(" ");
-          const lot = parts[parts.length - 1] || land.address || "";
-          return {
-            originalLotNumber: lot,
-            landCategory: land.landType === "택지" ? "대" : land.landCategory === "전" ? "전" : land.landCategory === "답" ? "답" : land.landType === "산지" ? "임" : land.landCategory,
-            originalArea: land.originalArea,
-            includedLotNumber: lot + "-편입",
-            includedArea: land.originalArea - land.remainingArea,
-            remainingLotNumber: lot,
-            remainingArea: land.remainingArea,
-            remainingRatio: land.remainingRatio,
-            purchaseDecision: "" as const,
-          };
-        })
-      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const savedJudgments = (found as any).landJudgmentsForReview;
+      if (savedJudgments?.length > 0) {
+        setLandParcels(
+          savedJudgments.map((lj: { address: string; landCategory: string; originalArea: number; remainingArea: number; remainingRatio: number; purchaseDecision: "O" | "X" | "-" }) => {
+            const parts = lj.address.split(" ");
+            const lot = parts[parts.length - 1] || lj.address;
+            return {
+              originalLotNumber: lot, landCategory: lj.landCategory,
+              originalArea: lj.originalArea,
+              includedLotNumber: lot + "-편입", includedArea: lj.originalArea - lj.remainingArea,
+              remainingLotNumber: lot, remainingArea: lj.remainingArea,
+              remainingRatio: lj.remainingRatio,
+              purchaseDecision: lj.purchaseDecision === "O" || lj.purchaseDecision === "X" ? lj.purchaseDecision : "",
+            };
+          })
+        );
+      } else {
+        const allLands = found.additionalLands ? [found.landInfo, ...found.additionalLands] : [found.landInfo];
+        setLandParcels(
+          allLands.filter(Boolean).map((land) => {
+            const parts = (land.address ?? "").split(" ");
+            const lot = parts[parts.length - 1] || land.address || "";
+            return {
+              originalLotNumber: lot,
+              landCategory: land.landType === "택지" ? "대" : land.landCategory === "전" ? "전" : land.landCategory === "답" ? "답" : land.landType === "산지" ? "임" : land.landCategory,
+              originalArea: land.originalArea,
+              includedLotNumber: lot, includedArea: land.originalArea - land.remainingArea,
+              remainingLotNumber: lot, remainingArea: land.remainingArea,
+              remainingRatio: land.remainingRatio,
+              purchaseDecision: "" as const,
+            };
+          })
+        );
+      }
+      if (found.reason) setOwnerOpinion(found.reason);
     }
 
-    if (found.reason) setOwnerOpinion(found.reason);
+    // 항상 필지관리 최종 검토의견과 연동
+    const reviewOpinion = found.finalReviewOpinion || found.reviewerComment || "";
+    if (reviewOpinion) setFieldConditionReview(reviewOpinion);
   }, [applicationId]);
 
-  const handlePurchaseDecisionChange = (index: number, decision: "O" | "X" | "") => {
+  const handlePurchaseDecision = (index: number, val: "O" | "X") => {
     setLandParcels((prev) => {
-      const updated = prev.map((p, i) => (i === index ? { ...p, purchaseDecision: decision } : p));
-      saveReviewDocumentData(updated);
+      const updated = prev.map((p, i) => i === index ? { ...p, purchaseDecision: p.purchaseDecision === val ? "" : val } : p);
+      saveDocumentData(updated);
       return updated;
     });
   };
+
+  const handleMemberRole = (idx: number, role: string) => {
+    setCommitteeMembers((prev) => prev.map((m, i) => i === idx ? { ...m, role } : m));
+  };
+
+  const addMember = () => {
+    setCommitteeMembers((prev) => [...prev, { role: "위원", signature: "" }]);
+  };
+
+  const removeMember = (idx: number) => {
+    setCommitteeMembers((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const OXButton = ({ active, value, onClick, disabled }: { active: boolean; value: "O" | "X"; onClick: () => void; disabled?: boolean }) => (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        "w-8 h-8 rounded-sm border-2 text-[15px] font-bold transition-colors select-none",
+        active
+          ? value === "O" ? "bg-blue-500 border-blue-500 text-white" : "bg-red-500 border-red-500 text-white"
+          : "border-gray-300 text-gray-300 bg-white hover:border-gray-400",
+        disabled && "pointer-events-none"
+      )}
+    >
+      {value}
+    </button>
+  );
 
   if (!application) {
     return <div className="flex items-center justify-center h-full text-muted-foreground">민원을 찾을 수 없습니다.</div>;
@@ -204,22 +194,20 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
 
   return (
     <div className="flex flex-col h-full">
-      {/* 탭 내부 툴바 */}
+      {/* 툴바 */}
       <div className="flex items-center justify-between py-3 print:hidden">
         <div>
           <span className="text-lg font-bold text-gray-900">심의서 작성</span>
-          <span className="ml-3 text-sm text-muted-foreground">접수번호: {application.applicationNumber ?? "-"}</span>
+          <span className="ml-3 text-[15px] text-muted-foreground">접수번호: {application.applicationNumber ?? "-"}</span>
         </div>
         <div className="flex gap-2">
           {isEditing && (
             <>
               {isGenerated && (
-                <Button variant="outline" size="sm" onClick={cancelEdit}>
-                  취소
-                </Button>
+                <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>취소</Button>
               )}
               <Button size="sm" onClick={() => {
-                saveReviewDocumentData(landParcels);
+                saveDocumentData(landParcels);
                 setIsGenerated(true);
                 setIsEditing(false);
                 toast({ description: isGenerated ? "저장이 완료되었습니다." : "작성이 완료되었습니다." });
@@ -230,7 +218,7 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
           )}
           {isGenerated && !isEditing && (
             <>
-              <Button variant="outline" size="sm" onClick={enterEditMode}>
+              <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
                 <Edit3 className="mr-1.5 h-4 w-4" />수정
               </Button>
               <Button variant="outline" size="sm" onClick={() => window.print()}>
@@ -248,155 +236,280 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
       <Card className="overflow-hidden print:border-none print:shadow-none flex-1">
         <CardContent className="p-0">
           <div className="bg-card p-6 print:p-0">
-            <div className="mb-6 text-center">
-              <h2 className="text-xl font-bold text-foreground sm:text-2xl">
-                잔여지 매수여부 심의서({documentMeta.sectionNumber})[{documentMeta.reviewNumber}]
+
+            {/* 제목 */}
+            <div className="mb-5 text-center">
+              <h2 className="text-xl font-bold text-foreground sm:text-2xl inline-flex items-center gap-1">
+                잔여지 매수여부 심의서(
+                {isEditing ? (
+                  <input
+                    value={documentMeta.sectionNumber}
+                    onChange={(e) => setDocumentMeta((p) => ({ ...p, sectionNumber: e.target.value }))}
+                    placeholder="공구"
+                    className="w-28 rounded border border-gray-300 bg-white px-1.5 py-0.5 text-center text-xl font-bold focus:border-gray-500 focus:outline-none"
+                  />
+                ) : (
+                  <span className="inline-block min-w-[5rem] border-b border-foreground text-center">{documentMeta.sectionNumber || "     "}</span>
+                )}
+                )[
+                {isEditing ? (
+                  <input
+                    value={documentMeta.reviewNumber}
+                    onChange={(e) => setDocumentMeta((p) => ({ ...p, reviewNumber: e.target.value }))}
+                    placeholder="제n차"
+                    className="w-24 rounded border border-gray-300 bg-white px-1.5 py-0.5 text-center text-xl font-bold focus:border-gray-500 focus:outline-none"
+                  />
+                ) : (
+                  <span className="inline-block min-w-[4rem] border-b border-foreground text-center">{documentMeta.reviewNumber || "    "}</span>
+                )}
+                ]
               </h2>
             </div>
-            <div className="mb-4 flex items-center justify-between text-base">
+
+            {/* 사업명 / 작성자 */}
+            <div className="mb-3 flex items-center justify-between text-[15px]">
               <div>
-                <span className="text-primary">○ 사업명 : </span>
-                <span className="text-foreground">{documentMeta.projectName}</span>
+                <span className="font-medium">○ 사업명 : </span>
+                {isEditing ? (
+                  <input
+                    value={documentMeta.projectName}
+                    onChange={(e) => setDocumentMeta((p) => ({ ...p, projectName: e.target.value }))}
+                    className="w-72 rounded border border-gray-300 bg-white px-1.5 py-0.5 text-[15px] focus:border-gray-500 focus:outline-none"
+                  />
+                ) : (
+                  <span>{documentMeta.projectName}</span>
+                )}
               </div>
               <div className="flex items-center gap-1">
                 <span className="text-muted-foreground">작성자 : </span>
                 {isEditing ? (
                   <input
                     value={documentMeta.author}
-                    onChange={(e) => setDocumentMeta((prev) => ({ ...prev, author: e.target.value }))}
-                    className="w-32 border-b border-foreground bg-transparent text-center text-base focus:outline-none"
+                    onChange={(e) => setDocumentMeta((p) => ({ ...p, author: e.target.value }))}
+                    className="w-28 rounded border border-gray-300 bg-white px-1.5 py-0.5 text-center text-[15px] focus:border-gray-500 focus:outline-none"
                   />
                 ) : (
-                  <span className="font-medium">{documentMeta.author || <span className="inline-block w-24 border-b border-foreground" />}</span>
+                  <span className="font-medium">{documentMeta.author}</span>
                 )}
-                <span className="text-muted-foreground">(인)</span>
               </div>
             </div>
 
+            {/* 메인 테이블 */}
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-foreground text-base">
+              <table className="w-full border-collapse border border-gray-800 text-[15px]" style={{ tableLayout: "fixed" }}>
+                <colgroup>
+                  <col style={{ width: "80px" }} />
+                  <col style={{ width: "104px" }} />
+                  <col style={{ width: "70px" }} />
+                  <col style={{ width: "72px" }} />
+                  <col style={{ width: "60px" }} />
+                  <col style={{ width: "72px" }} />
+                  <col style={{ width: "60px" }} />
+                  <col style={{ width: "72px" }} />
+                  <col style={{ width: "76px" }} />
+                  <col style={{ width: "72px" }} />
+                  <col style={{ width: "200px" }} />
+                </colgroup>
                 <thead>
                   <tr>
-                    <th colSpan={10} className="border border-foreground bg-muted px-2 py-2 text-center font-medium text-foreground">대상 토지</th>
-                    <th className="border border-foreground bg-primary/10 px-2 py-2 text-center font-semibold text-primary" style={{ minWidth: "220px" }}>현지상황 및 검토의견</th>
+                    <th colSpan={10} className="border border-gray-800 bg-gray-100 px-2 py-1.5 text-center font-semibold">대 상 토 지</th>
+                    <th rowSpan={3} className="border border-gray-800 border-b-0 bg-gray-100 px-2 py-1.5 text-center font-semibold text-[15px]">
+                      현지상황 및 검토의견
+                    </th>
+                  </tr>
+                  <tr>
+                    <th rowSpan={2} className="border border-gray-800 bg-gray-100 px-1 py-1 text-center font-medium text-[14px]">소재지<br />(소유자)</th>
+                    <th rowSpan={2} className="border border-gray-800 bg-gray-100 px-1 py-1 text-center font-medium text-[14px]">원지번</th>
+                    <th rowSpan={2} className="border border-gray-800 bg-gray-100 px-1 py-1 text-center font-medium text-[14px]">지목</th>
+                    <th rowSpan={2} className="border border-gray-800 bg-gray-100 px-1 py-1 text-center font-medium text-[14px]">면적(m²)</th>
+                    <th colSpan={2} className="border border-gray-800 bg-gray-100 px-1 py-1 text-center font-medium text-[14px]">편입토지</th>
+                    <th colSpan={4} className="border border-gray-800 bg-gray-100 px-1 py-1 text-center font-medium text-[14px]">잔여토지</th>
+                  </tr>
+                  <tr>
+                    <th className="border border-gray-800 bg-gray-100 px-1 py-1 text-center font-medium text-[14px]">지번</th>
+                    <th className="border border-gray-800 bg-gray-100 px-1 py-1 text-center font-medium text-[14px]">면적(m²)</th>
+                    <th className="border border-gray-800 bg-gray-100 px-1 py-1 text-center font-medium text-[14px]">지번</th>
+                    <th className="border border-gray-800 bg-gray-100 px-1 py-1 text-center font-medium text-[14px]">면적(m²)</th>
+                    <th className="border border-gray-800 bg-gray-100 px-1 py-1 text-center font-medium text-[14px]">잔여비율</th>
+                    <th className="border border-gray-800 bg-blue-50 px-1 py-2 text-center font-semibold text-[14px] text-blue-700">매수여부</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td rowSpan={2} className="border border-foreground bg-muted px-2 py-2 text-center font-medium text-foreground" style={{ minWidth: "200px" }}>소재지<br />(소유자)</td>
-                    <td rowSpan={2} className="border border-foreground bg-muted px-1 py-1 text-center text-base font-medium text-foreground" style={{ width: "80px" }}>원지번</td>
-                    <td rowSpan={2} className="border border-foreground bg-muted px-2 py-1 text-center text-base font-medium text-foreground" style={{ width: "44px" }}>지목</td>
-                    <td rowSpan={2} className="border border-foreground bg-muted px-2 py-1 text-center text-base font-medium text-foreground">면적(m²)</td>
-                    <td colSpan={2} className="border border-foreground bg-muted px-2 py-2 text-center font-medium text-foreground">편입토지</td>
-                    <td colSpan={4} className="border border-foreground bg-muted px-2 py-2 text-center font-medium text-foreground">잔여토지</td>
-                    <td rowSpan={9} className="border border-foreground p-0 align-top" style={{ minWidth: "220px", height: "1px" }}>
-                      {isEditing ? (
-                        <Textarea value={fieldConditionReview} onChange={(e) => setFieldConditionReview(e.target.value)} className="h-full min-h-[300px] cursor-text resize-none rounded-none border-0 text-sm leading-relaxed focus-visible:ring-0 focus-visible:ring-offset-0" />
-                      ) : (
-                        <div className="p-2 text-sm leading-relaxed text-foreground">
-                          {fieldConditionReview.split("\n").map((line, i) => (
-                            <p key={i} className={line.startsWith("■") ? "font-semibold" : undefined} style={{ minHeight: "1.5em" }}>
-                              {line || " "}
-                            </p>
-                          ))}
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="border border-foreground bg-muted px-1 py-1 text-center text-base font-medium text-foreground" style={{ width: "50px" }}>지번</td>
-                    <td className="border border-foreground bg-muted px-2 py-1 text-center text-base font-medium text-foreground">면적(m²)</td>
-                    <td className="border border-foreground bg-muted px-1 py-1 text-center text-base font-medium text-foreground" style={{ width: "50px" }}>지번</td>
-                    <td className="border border-foreground bg-muted px-2 py-1 text-center text-base font-medium text-foreground">면적(m²)</td>
-                    <td className="border border-foreground bg-muted px-2 py-1 text-center text-base font-medium text-foreground">잔여비율</td>
-                    <td className="border border-foreground bg-primary/10 px-2 py-1 text-center text-base font-semibold text-primary">매수여부</td>
-                  </tr>
-                  {landParcels.map((parcel, index) => (
-                    <tr key={index}>
-                      {index === 0 && (
-                        <td rowSpan={landParcels.length} className="border border-foreground px-2 py-2 text-center text-foreground">
-                          {ownerInfo.address}<br /><span className="text-muted-foreground">({ownerInfo.ownerName})</span>
+                  {/* 필지 데이터 rows */}
+                  {landParcels.map((parcel, idx) => (
+                    <tr key={idx}>
+                      {idx === 0 && (
+                        <td rowSpan={landParcels.length} className="border border-gray-800 px-2 py-2 text-center text-[14px] align-middle">
+                          <div>{ownerInfo.address}</div>
+                          <div className="text-gray-500 text-[13px] mt-0.5">({ownerInfo.ownerName})</div>
                         </td>
                       )}
-                      <td className="border border-foreground px-2 py-1 text-center text-foreground">{parcel.originalLotNumber}</td>
-                      <td className="border border-foreground px-2 py-1 text-center text-foreground">{parcel.landCategory}</td>
-                      <td className="border border-foreground px-2 py-1 text-center text-foreground">{parcel.originalArea.toLocaleString()}</td>
-                      <td className="border border-foreground px-2 py-1 text-center text-foreground">{parcel.includedLotNumber}</td>
-                      <td className="border border-foreground px-2 py-1 text-center text-foreground">{parcel.includedArea.toLocaleString()}</td>
-                      <td className="border border-foreground px-2 py-1 text-center text-foreground">{parcel.remainingLotNumber}</td>
-                      <td className="border border-foreground px-2 py-1 text-center text-foreground">{parcel.remainingArea.toLocaleString()}</td>
-                      <td className="border border-foreground px-2 py-1 text-center text-foreground">{parcel.remainingRatio.toFixed(1)}%</td>
-                      <td className="border border-foreground px-1 py-1 text-center font-bold" style={{ minWidth: "96px" }}>
+                      <td className="border border-gray-800 px-1 py-1.5 text-center">{parcel.originalLotNumber}</td>
+                      <td className="border border-gray-800 px-1 py-1.5 text-center">{parcel.landCategory}</td>
+                      <td className="border border-gray-800 px-1 py-1.5 text-center">{parcel.originalArea.toLocaleString()}</td>
+                      <td className="border border-gray-800 px-1 py-1.5 text-center">{parcel.includedLotNumber}</td>
+                      <td className="border border-gray-800 px-1 py-1.5 text-center">{parcel.includedArea.toLocaleString()}</td>
+                      <td className="border border-gray-800 px-1 py-1.5 text-center">{parcel.remainingLotNumber}</td>
+                      <td className="border border-gray-800 px-1 py-1.5 text-center">{parcel.remainingArea.toLocaleString()}</td>
+                      <td className="border border-gray-800 px-1 py-1.5 text-center">{parcel.remainingRatio.toFixed(2)}%</td>
+                      <td className="border border-gray-800 px-1 py-1.5 text-center">
                         {isEditing ? (
-                          <Select value={parcel.purchaseDecision} onValueChange={(v) => handlePurchaseDecisionChange(index, v as "O" | "X" | "")}>
-                            <SelectTrigger className="h-10 min-h-0 w-full border-primary/50 text-center font-bold"><SelectValue placeholder="선택" /></SelectTrigger>
-                            <SelectContent style={{ minWidth: "96px" }}>
-                              <SelectItem value="O" className="whitespace-nowrap font-bold text-primary">O (매수)</SelectItem>
-                              <SelectItem value="X" className="whitespace-nowrap font-bold text-destructive">X (기각)</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <div className="flex gap-1 justify-center">
+                            <OXButton active={parcel.purchaseDecision === "O"} value="O" onClick={() => handlePurchaseDecision(idx, "O")} />
+                            <OXButton active={parcel.purchaseDecision === "X"} value="X" onClick={() => handlePurchaseDecision(idx, "X")} />
+                          </div>
                         ) : (
-                          <span className={parcel.purchaseDecision === "O" ? "text-primary" : parcel.purchaseDecision === "X" ? "text-destructive" : "text-muted-foreground"}>{parcel.purchaseDecision}</span>
+                          <span className={cn("text-[15px] font-bold", parcel.purchaseDecision === "O" ? "text-blue-600" : parcel.purchaseDecision === "X" ? "text-red-600" : "text-gray-400")}>
+                            {parcel.purchaseDecision || "-"}
+                          </span>
                         )}
                       </td>
+                      {idx === 0 && (
+                        <td rowSpan={99} className="border border-gray-800 border-t-0 p-0 align-top">
+                          {isEditing ? (
+                            <Textarea
+                              value={fieldConditionReview}
+                              onChange={(e) => setFieldConditionReview(e.target.value)}
+                              className="h-full min-h-[200px] cursor-text resize-none rounded-none border-0 text-[15px] leading-relaxed focus-visible:ring-0 focus-visible:ring-offset-0"
+                            />
+                          ) : (
+                            <div className="p-2 text-[15px] leading-relaxed text-foreground">
+                              {fieldConditionReview.split("\n").map((line, i) => (
+                                <p key={i} style={{ minHeight: "1.5em" }}>{line || "\u00a0"}</p>
+                              ))}
+                            </div>
+                          )}
+                        </td>
+                      )}
                     </tr>
                   ))}
+
+                  {/* 소유자의견 + 심의위원회결정 header */}
                   <tr>
-                    <td rowSpan={4} className="border border-foreground bg-muted px-1 py-2 text-center text-base font-medium text-foreground" style={{ width: "56px" }}>소유자의견</td>
-                    <td rowSpan={4} colSpan={2} className="border border-foreground p-0 align-top" style={{ minWidth: "220px", height: "1px" }}>
-                      <div className="whitespace-pre-wrap p-2 text-base leading-relaxed text-foreground">{ownerOpinion}</div>
+                    <td rowSpan={2} colSpan={3} className="border border-gray-800 p-0" style={{ height: "1px" }}>
+                      <table className="w-full border-collapse" style={{ tableLayout: "fixed", height: "100%" }}>
+                        <colgroup>
+                          <col style={{ width: "72px" }} />
+                          <col />
+                        </colgroup>
+                        <tbody style={{ height: "100%" }}>
+                          <tr style={{ height: "100%" }}>
+                            <td className="border-r border-gray-800 bg-gray-100 px-1 py-2 text-center font-medium text-[14px] align-middle">
+                              <div style={{ writingMode: "vertical-lr", letterSpacing: "0.3em", margin: "0 auto" }}>소유자의견</div>
+                            </td>
+                            <td className="p-2 align-top text-[14px]" style={{ height: "100%" }}>
+                              {isEditing ? (
+                                <textarea
+                                  value={ownerOpinion}
+                                  onChange={(e) => setOwnerOpinion(e.target.value)}
+                                  className="w-full h-full resize-none rounded border border-gray-300 bg-white p-1 text-[14px] leading-relaxed focus:border-gray-500 focus:outline-none"
+                                />
+                              ) : (
+                                <div className="whitespace-pre-wrap leading-relaxed text-[14px]">{ownerOpinion}</div>
+                              )}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </td>
-                    <td colSpan={7} className="border border-foreground bg-muted px-2 py-1 text-center text-base font-medium text-foreground">심의위원회결정 <span className="text-muted-foreground">(매수시 O, 기각시 X표시)</span></td>
+                    <td colSpan={7} className="border border-gray-800 bg-gray-100 px-2 py-1 text-center text-[14px]">
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="font-semibold">심의위원회결정</span>
+                        <span className="text-gray-500 text-[13px]">(매수시 O, 매수불가시 X표시)</span>
+                        {isEditing && (
+                          <Button variant="outline" size="sm" onClick={addMember} className="h-6 gap-1 px-2 text-[12px] print:hidden">
+                            <Plus className="h-3 w-3" />항목 추가
+                          </Button>
+                        )}
+                      </div>
+                    </td>
                   </tr>
+
+                  {/* 구분 + O,X + 서명 — 중첩 테이블로 고정 너비 유지 */}
                   <tr>
-                    <td className="border border-foreground bg-muted px-2 py-1 text-center text-base font-medium text-foreground">구분</td>
-                    {committeeDecisions.map((item, idx) => (
-                      <td key={idx} className="border border-foreground bg-muted px-2 py-1 text-center text-base font-medium text-foreground">{item.role}</td>
-                    ))}
-                  </tr>
-                  <tr>
-                    <td className="border border-foreground bg-muted px-2 py-1 text-center text-base font-medium text-foreground">O, X</td>
-                    {committeeDecisions.map((_, idx) => (
-                      <td key={idx} className="border border-foreground px-2 py-3 text-center" />
-                    ))}
-                  </tr>
-                  <tr>
-                    <td className="border border-foreground bg-muted px-2 py-1 text-center text-base font-medium text-foreground">서명</td>
-                    {committeeDecisions.map((_, idx) => (
-                      <td key={idx} className="border border-foreground px-2 py-3 text-center" />
-                    ))}
+                    <td colSpan={7} className="border border-gray-800 p-0">
+                      <table className="w-full border-collapse" style={{ tableLayout: "fixed" }}>
+                        <tbody>
+                          {/* 구분 row */}
+                          <tr>
+                            <td className="border-b border-r border-gray-800 bg-gray-100 px-2 py-1 text-center font-medium text-[14px]" style={{ width: "48px" }}>구분</td>
+                            {committeeMembers.map((member, idx) => (
+                              <td key={idx} className="border-b border-r border-gray-800 bg-gray-100 px-1 py-1 text-center text-[14px]">
+                                {isEditing ? (
+                                  <div className="flex items-center justify-center gap-0.5">
+                                    <input
+                                      value={member.role}
+                                      onChange={(e) => handleMemberRole(idx, e.target.value)}
+                                      className="w-full min-w-0 rounded border border-gray-300 bg-white px-1 py-0.5 text-center text-[13px] focus:border-gray-500 focus:outline-none"
+                                    />
+                                    <button onClick={() => removeMember(idx)} className="flex-shrink-0 text-gray-400 hover:text-red-500 print:hidden">
+                                      <X className="h-3 w-3" />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  member.role
+                                )}
+                              </td>
+                            ))}
+                            <td className="border-b border-gray-800 bg-gray-100 px-1 py-1 text-center font-semibold text-[14px]">최종결정</td>
+                          </tr>
+                          {/* O, X row */}
+                          <tr>
+                            <td className="border-b border-r border-gray-800 bg-gray-100 px-2 py-4 text-center font-medium text-[14px]" style={{ width: "48px" }}>O, X</td>
+                            {committeeMembers.map((_, idx) => (
+                              <td key={idx} className="border-b border-r border-gray-800 px-1 py-4 text-center" />
+                            ))}
+                            <td className="border-b border-gray-800 px-1 py-4 text-center" />
+                          </tr>
+                          {/* 서명 row */}
+                          <tr>
+                            <td className="border-r border-gray-800 bg-gray-100 px-2 py-3 text-center font-medium text-[14px]" style={{ width: "48px" }}>서명</td>
+                            {committeeMembers.map((_, idx) => (
+                              <td key={idx} className="border-r border-gray-800 px-1 py-3 text-center" />
+                            ))}
+                            <td className="border-gray-800 px-1 py-3 text-center" />
+                          </tr>
+                        </tbody>
+                      </table>
+                    </td>
                   </tr>
                 </tbody>
               </table>
             </div>
 
             {/* 지적도 / 항공사진 */}
-            <div className="mt-4 grid grid-cols-2 gap-0">
-              {/* 지적도 — 이미지 */}
-              <div className="border border-foreground">
-                <div className="border-b border-foreground bg-muted px-2 py-1 text-center text-base font-medium text-foreground">지적도</div>
-                <div className="h-[300px] overflow-hidden pointer-events-none select-none">
+            <div className="mt-4 grid grid-cols-2 gap-4">
+              {/* 지적도 */}
+              <div className="relative border border-gray-800">
+                <div className="border-b border-gray-800 bg-gray-100 px-2 py-1 text-center text-[15px] font-medium">지적도</div>
+                <div className="h-[280px] overflow-hidden pointer-events-none select-none">
                   <LandMap landInfo={application.landInfo} showOverlay={true} interactive={false} />
                 </div>
               </div>
-              {/* 항공사진 — 파일 업로드 */}
-              <div className="border border-l-0 border-foreground">
-                <div className="border-b border-foreground bg-muted px-2 py-1 text-center text-base font-medium text-foreground">항공사진</div>
-                <div className="relative h-[300px] overflow-hidden">
+
+              {/* 항공사진 */}
+              <div className="relative border border-gray-800">
+                <div className="border-b border-gray-800 bg-gray-100 px-2 py-1 text-center text-[15px] font-medium">항공사진</div>
+                <div className="relative h-[280px] overflow-hidden">
                   {aerialPhotoImage ? (
                     <>
                       <img src={aerialPhotoImage} alt="항공사진" className="h-full w-full object-contain" />
                       {isEditing && (
-                        <button onClick={() => setAerialPhotoImage(null)} className="absolute right-2 top-2 rounded-full bg-destructive p-1 text-white hover:bg-destructive/80 print:hidden">
+                        <button
+                          onClick={() => setAerialPhotoImage(null)}
+                          className="absolute right-2 top-2 rounded-full bg-gray-800 p-1 text-white hover:bg-gray-600 print:hidden"
+                        >
                           <X className="h-4 w-4" />
                         </button>
                       )}
                     </>
                   ) : (
-                    <div className="flex h-full w-full flex-col items-center justify-center bg-muted/30">
-                      <p className="mb-4 text-base text-muted-foreground">{isEditing ? "첨부할 파일을 여기에 끌어다 놓거나, 파일 선택 버튼을 직접 선택해주세요." : "항공사진 미등록"}</p>
+                    <div className="flex h-full w-full flex-col items-center justify-center bg-gray-50">
+                      <p className="mb-4 text-[15px] text-gray-400">
+                        {isEditing ? "파일을 끌어다 놓거나 파일 선택 버튼을 클릭하세요." : "항공사진 미등록"}
+                      </p>
                       {isEditing && (
-                        <label className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-[#222222] px-6 py-2.5 text-base font-medium text-white transition-colors hover:bg-[#333333]">
+                        <label className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-gray-800 px-5 py-2 text-[15px] font-medium text-white hover:bg-gray-700">
                           <Upload className="h-4 w-4" />파일선택
                           <input type="file" accept="image/*" className="hidden" onChange={(e) => {
                             const file = e.target.files?.[0];

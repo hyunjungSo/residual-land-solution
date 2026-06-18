@@ -334,7 +334,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
           <div className="flex items-center gap-4">
             {/* 조회 기준 선택 */}
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-muted-foreground">조회 기준:</span>
+              <span className="text-[15px] font-medium text-muted-foreground">조회 기준:</span>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setDateCriteriaType("appliedAt")}
@@ -363,7 +363,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
 
             {/* 조회 기간 */}
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-muted-foreground">조회 기간:</span>
+              <span className="text-[15px] font-medium text-muted-foreground">조회 기간:</span>
               <div className="flex items-center gap-1">
                 {/* 연도 피커 */}
                 <Popover>
@@ -389,7 +389,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
                           handlePeriodChange("year", year);
                         }}
                         className={cn(
-                          "w-full rounded-md px-3 py-1.5 text-left text-sm transition-colors",
+                          "w-full rounded-md px-3 py-1.5 text-left text-[15px] transition-colors",
                           selectedYear === year && periodFilter === "year"
                             ? "bg-primary text-primary-foreground"
                             : "hover:bg-muted"
@@ -460,7 +460,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
       {/* 현재 조회 기준 표시 */}
       <div className="flex items-center gap-2 rounded-lg bg-primary/5 px-4 py-2">
         <CalendarIcon className="h-4 w-4 text-primary" />
-        <span className="text-sm font-medium text-primary">현재 조회 기준: {dateRangeText}</span>
+        <span className="text-[15px] font-medium text-primary">현재 조회 기준: {dateRangeText}</span>
       </div>
 
       {/* 로딩 오버레이 */}
@@ -468,7 +468,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/50 backdrop-blur-sm">
           <div className="flex items-center gap-2 rounded-lg bg-white px-4 py-3 shadow-lg">
             <Loader2 className="h-5 w-5 animate-spin text-primary" />
-            <span className="text-sm font-medium">데이터를 불러오는 중...</span>
+            <span className="text-[15px] font-medium">데이터를 불러오는 중...</span>
           </div>
         </div>
       )}
@@ -483,7 +483,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
           <CardContent className="space-y-4" style={{ paddingTop: '0' }}>
             {/* 진행률 바 - Teal 계열로 심사완료와 동기화 */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center justify-between text-[15px]">
                 <span className="text-muted-foreground">전체 처리 완료율</span>
                 <span style={{ fontSize: '30px', fontWeight: '800', color: 'rgb(20, 113, 97)' }}>{stats.completionRate}%</span>
               </div>
@@ -502,7 +502,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
                 onClick={() => setStatusFilter("all")}
                 className="flex cursor-pointer flex-col items-center rounded-lg bg-slate-50 p-4 transition-all hover:bg-slate-100"
               >
-                <span className="text-sm font-medium text-slate-600" style={{ order: 1 }}>전체</span>
+                <span className="text-[15px] font-medium text-slate-600" style={{ order: 1 }}>전체</span>
                 <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
                   <span className="font-bold text-slate-900" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.total}</span>
                   <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
@@ -513,7 +513,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
                 onClick={() => setStatusFilter("접수완료")}
                 className="flex cursor-pointer flex-col items-center rounded-lg bg-indigo-50 p-4 transition-all hover:bg-indigo-100"
               >
-                <span className="text-sm font-medium text-indigo-500" style={{ order: 1 }}>접수완료</span>
+                <span className="text-[15px] font-medium text-indigo-500" style={{ order: 1 }}>접수완료</span>
                 <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
                   <span className="font-bold text-indigo-500" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.접수완료}</span>
                   <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
@@ -527,7 +527,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#cce8ff'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#e6f4ff'}
               >
-                <span className="text-sm font-medium" style={{ order: 1, color: '#0091fd' }}>진행중</span>
+                <span className="text-[15px] font-medium" style={{ order: 1, color: '#0091fd' }}>진행중</span>
                 <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
                   <span className="font-bold" style={{ fontSize: '42px', lineHeight: '1em', color: '#0091fd' }}>{stats.진행중}</span>
                   <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
@@ -541,7 +541,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(20, 113, 97, 0.15)'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#e8f2f0'}
               >
-                <span className="text-sm font-medium" style={{ order: 1, color: 'rgb(20, 113, 97)' }}>심사완료</span>
+                <span className="text-[15px] font-medium" style={{ order: 1, color: 'rgb(20, 113, 97)' }}>심사완료</span>
                 <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
                   <span className="font-bold" style={{ fontSize: '42px', lineHeight: '1em', color: 'rgb(20, 113, 97)' }}>{stats.심사완료}</span>
                   <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
@@ -560,7 +560,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
           <CardHeader style={{ paddingBottom: '6px' }}>
             <CardTitle className="text-base font-medium flex items-center justify-between">
               <span style={{ fontSize: '18px', fontWeight: '600' }}>최근 작업내역</span>
-              <span className="text-sm text-muted-foreground">최근 7일</span>
+              <span className="text-[15px] text-muted-foreground">최근 7일</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-1" style={{ paddingTop: '0' }}>
@@ -602,7 +602,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate">{activity.action}</p>
+                          <p className="text-[15px] font-medium text-foreground truncate">{activity.action}</p>
                           <p className="text-xs text-muted-foreground truncate">{activity.target}</p>
                         </div>
                         <div className="flex-shrink-0 flex items-center gap-1 text-xs text-muted-foreground">
@@ -722,7 +722,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
                         {(app.additionalLands?.length || 0) >= 1 && (
                           <span className={`inline-flex items-center gap-1 whitespace-nowrap ${PARCEL_COUNT_COLORS.text}`}>
                             <Layers className="h-4 w-4" />
-                            <span className="text-sm font-medium">{(app.additionalLands?.length || 0) + 1}</span>
+                            <span className="text-[15px] font-medium">{(app.additionalLands?.length || 0) + 1}</span>
                           </span>
                         )}
                       </div>
@@ -772,9 +772,9 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
                       const isMultiple = app.additionalLands && app.additionalLands.length > 0;
                       
                       if (isMultiple) {
-                        return <span className="text-sm text-foreground">복수필지 ({app.additionalLands!.length + 1})</span>;
+                        return <span className="text-[15px] text-foreground">복수필지 ({app.additionalLands!.length + 1})</span>;
                       } else {
-                        return <span className="text-sm text-foreground">단일필지</span>;
+                        return <span className="text-[15px] text-foreground">단일필지</span>;
                       }
                     })()}
                     <ProcessStatusBadge status={app.status} />
@@ -856,7 +856,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
                 마지막
               </PaginationNavButton>
               
-              <span className="text-sm text-muted-foreground ml-2">
+              <span className="text-[15px] text-muted-foreground ml-2">
                 ({filteredApplications.length}건 중 {(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, filteredApplications.length)}건)
               </span>
             </div>
