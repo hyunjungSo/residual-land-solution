@@ -2,15 +2,7 @@
 
 import { useState, useMemo, useEffect, useTransition } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -32,16 +24,20 @@ import {
 } from "@/components/ui/tooltip";
 import { Calendar } from "@/components/ui/calendar";
 import type { Application, AdminStatus } from "@/lib/types";
-import { Search, ChevronRight, Users, Clock, PlayCircle, CheckCircle2, AlertCircle, FileCheck, Layers, RefreshCw, CalendarIcon, Loader2, XCircle, ArrowUpDown } from "lucide-react";
-import { AdminStatusBadge, ProcessStatusBadge, adminStatusConfig } from "@/components/ui/status-badge";
+import { Search, ChevronRight, Clock, CheckCircle2, FileCheck, Layers, RefreshCw, CalendarIcon, Loader2, ArrowUpDown } from "lucide-react";
+import { AdminStatusBadge, ProcessStatusBadge } from "@/components/ui/status-badge";
 import { Progress } from "@/components/ui/progress";
 import { JudgmentSummaryBadge, PARCEL_COUNT_COLORS } from "@/components/ui/judgment-badge";
-import { PeriodFilter as PeriodFilterComponent, type PeriodFilterType } from "@/components/ui/period-filter";
-import { StatCard, StatCardGroup } from "@/components/ui/stat-card";
 import { PaginationButton, PaginationNavButton } from "@/components/ui/pagination-button";
-import { formatDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { AIIcon } from "@/components/ui/ai-icon";
+import { RadioFilterGroup, SearchInput } from "@/components/admin/shared";
+
+function toListStatus(status: AdminStatus): AdminStatus {
+  if (status === "접수완료") return "접수완료";
+  if (status === "담당자검토중" || status === "심의위원회회부" || status === "심의위원회검토중") return "담당자검토중";
+  return "담당자검토완료";
+}
 
 interface ApplicationListProps {
   applications: Application[];
@@ -61,15 +57,16 @@ const availableYears = Array.from({ length: 10 }, (_, i) => currentYear - i);
 export function ApplicationList({ applications, onSelect }: ApplicationListProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<AdminStatus | "all">("all");
-  const [projectUnitFilter, setProjectUnitFilter] = useState<"all" | "gangjin-gwangju">("all");
+  const [projectUnitFilter] = useState<"all" | "gangjin-gwangju">("all");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>("year");
   const [dateCriteriaType, setDateCriteriaType] = useState<"appliedAt" | "statusUpdatedAt">("appliedAt");
   const [selectedYear, setSelectedYear] = useState<number | null>(currentYear);
-  const [aiMismatchFilter, setAiMismatchFilter] = useState(false);
+  const [aiMismatchFilter] = useState(false);
+  const [appealFilter, setAppealFilter] = useState<"all" | "중토위" | "한국도로공사">("all");
   const [customDateRange, setCustomDateRange] = useState<DateRange>({ from: undefined, to: undefined });
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
   const [isLoading, setIsLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   
@@ -211,18 +208,23 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
           app.applicationNumber.includes(searchQuery) ||
           app.applicantName.includes(searchQuery) ||
           app.landInfo.address.includes(searchQuery);
-      const matchesStatus = statusFilter === "all" || app.adminStatus === statusFilter;
+      const matchesStatus = statusFilter === "all" || toListStatus(app.adminStatus) === statusFilter;
       const matchesProjectUnit = projectUnitFilter === "all" || app.businessUnit === "강진광주";
       // AI 불일치 필터 (시뮬레이션: 접수번호가 특정 패턴일 때 불일치로 간주)
       const matchesAiMismatch = !aiMismatchFilter || (app.adminStatus === "심사완료" && app.applicationNumber.endsWith("2"));
-      return matchesSearch && matchesStatus && matchesProjectUnit && matchesAiMismatch;
+      const appAppealChoice =
+        app.landJudgmentsForReview?.find(j => j.citizenAppealChoice)?.citizenAppealChoice
+        ?? app.citizenAppealChoice
+        ?? null;
+      const matchesAppeal = appealFilter === "all" || appAppealChoice === appealFilter;
+      return matchesSearch && matchesStatus && matchesProjectUnit && matchesAiMismatch && matchesAppeal;
       })
       .sort((a, b) => {
         const dateA = new Date(a.appliedAt).getTime();
         const dateB = new Date(b.appliedAt).getTime();
         return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
       });
-    }, [periodFilteredApplications, searchQuery, statusFilter, projectUnitFilter, sortOrder, aiMismatchFilter]);
+    }, [periodFilteredApplications, searchQuery, statusFilter, projectUnitFilter, sortOrder, aiMismatchFilter, appealFilter]);
 
   // 페이지네이션 계산
   const totalPages = Math.ceil(filteredApplications.length / itemsPerPage);
@@ -234,13 +236,19 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
   // 필터 변경 시 페이지 리셋
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, statusFilter, projectUnitFilter, aiMismatchFilter, periodFilter, selectedYear, dateCriteriaType]);
+  }, [searchQuery, statusFilter, projectUnitFilter, aiMismatchFilter, appealFilter, periodFilter, selectedYear, dateCriteriaType]);
 
   // 상태별 통계 (기간 필터 적용)
   const stats = useMemo(() => {
     const total = periodFilteredApplications.length;
     const 접수완료 = periodFilteredApplications.filter((a) => a.adminStatus === "접수완료").length;
-    const 진행중 = periodFilteredApplications.filter((a) => a.adminStatus === "진행중").length;
+    const 진행중 = periodFilteredApplications.filter((a) =>
+      a.adminStatus === "담당자검토중" ||
+      a.adminStatus === "담당자검토완료" ||
+      a.adminStatus === "심의위원회회부" ||
+      a.adminStatus === "심의위원회검토중" ||
+      a.adminStatus === "심의위원회검토완료"
+    ).length;
     const 심사완료 = periodFilteredApplications.filter((a) => a.adminStatus === "심사완료").length;
     
     // 심사완료된 건만 기준으로 비교
@@ -273,10 +281,10 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
     const finalTransfer = mismatchDeferred;
     // 매수 건수 = AI 매수가능 - 반대결정(기각으로 변경) - 일부 이관
     const deferredFromPurchasable = Math.floor(mismatchDeferred * 0.6); // 매수가능에서 이관된 건
-    const deferredFromNotPurchasable = mismatchDeferred - deferredFromPurchasable; // 매수불가에서 이관된 건
+    // const deferredFromNotPurchasable = mismatchDeferred - deferredFromPurchasable;
     const finalPurchase = aiPurchasable - mismatchOpposite - deferredFromPurchasable;
     // 기각 건수 = AI 매수불가 - 이관 + 반대결정(매수가능->기각)
-    const finalRejectBase = aiNotPurchasable - deferredFromNotPurchasable + mismatchOpposite;
+    // const finalRejectBase = aiNotPurchasable - deferredFromNotPurchasable + mismatchOpposite;
     // 검증: finalPurchase + finalReject + finalTransfer = aiAnalyzed
     // 합이 맞지 않으면 기각 건수를 조정하여 총합이 aiAnalyzed가 되도록 함
     const finalReject = aiAnalyzed - finalPurchase - finalTransfer;
@@ -334,7 +342,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
           <div className="flex items-center gap-4">
             {/* 조회 기준 선택 */}
             <div className="flex items-center gap-2">
-              <span className="text-[15px] font-medium text-muted-foreground">조회 기준:</span>
+              <span className="text-[16px] font-medium text-muted-foreground">조회 기준:</span>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => setDateCriteriaType("appliedAt")}
@@ -363,7 +371,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
 
             {/* 조회 기간 */}
             <div className="flex items-center gap-2">
-              <span className="text-[15px] font-medium text-muted-foreground">조회 기간:</span>
+              <span className="text-[16px] font-medium text-muted-foreground">조회 기간:</span>
               <div className="flex items-center gap-1">
                 {/* 연도 피커 */}
                 <Popover>
@@ -389,7 +397,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
                           handlePeriodChange("year", year);
                         }}
                         className={cn(
-                          "w-full rounded-md px-3 py-1.5 text-left text-[15px] transition-colors",
+                          "w-full rounded-md px-3 py-1.5 text-left text-[16px] transition-colors",
                           selectedYear === year && periodFilter === "year"
                             ? "bg-primary text-primary-foreground"
                             : "hover:bg-muted"
@@ -460,7 +468,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
       {/* 현재 조회 기준 표시 */}
       <div className="flex items-center gap-2 rounded-lg bg-primary/5 px-4 py-2">
         <CalendarIcon className="h-4 w-4 text-primary" />
-        <span className="text-[15px] font-medium text-primary">현재 조회 기준: {dateRangeText}</span>
+        <span className="text-[16px] font-medium text-primary">현재 조회 기준: {dateRangeText}</span>
       </div>
 
       {/* 로딩 오버레이 */}
@@ -468,7 +476,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/50 backdrop-blur-sm">
           <div className="flex items-center gap-2 rounded-lg bg-white px-4 py-3 shadow-lg">
             <Loader2 className="h-5 w-5 animate-spin text-primary" />
-            <span className="text-[15px] font-medium">데이터를 불러오는 중...</span>
+            <span className="text-[16px] font-medium">데이터를 불러오는 중...</span>
           </div>
         </div>
       )}
@@ -483,7 +491,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
           <CardContent className="space-y-4" style={{ paddingTop: '0' }}>
             {/* 진행률 바 - Teal 계열로 심사완료와 동기화 */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-[15px]">
+              <div className="flex items-center justify-between text-[16px]">
                 <span className="text-muted-foreground">전체 처리 완료율</span>
                 <span style={{ fontSize: '30px', fontWeight: '800', color: 'rgb(20, 113, 97)' }}>{stats.completionRate}%</span>
               </div>
@@ -502,7 +510,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
                 onClick={() => setStatusFilter("all")}
                 className="flex cursor-pointer flex-col items-center rounded-lg bg-slate-50 p-4 transition-all hover:bg-slate-100"
               >
-                <span className="text-[15px] font-medium text-slate-600" style={{ order: 1 }}>전체</span>
+                <span className="text-[16px] font-medium text-slate-600" style={{ order: 1 }}>전체</span>
                 <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
                   <span className="font-bold text-slate-900" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.total}</span>
                   <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
@@ -513,21 +521,21 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
                 onClick={() => setStatusFilter("접수완료")}
                 className="flex cursor-pointer flex-col items-center rounded-lg bg-indigo-50 p-4 transition-all hover:bg-indigo-100"
               >
-                <span className="text-[15px] font-medium text-indigo-500" style={{ order: 1 }}>접수완료</span>
+                <span className="text-[16px] font-medium text-indigo-500" style={{ order: 1 }}>접수완료</span>
                 <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
                   <span className="font-bold text-indigo-500" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.접수완료}</span>
                   <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
                 </div>
               </div>
               {/* 진행중: #0091fd (활동 상태 강조) */}
-              <div 
-                onClick={() => setStatusFilter("진행중")}
+              <div
+                onClick={() => setStatusFilter("담당자검토중")}
                 className="flex cursor-pointer flex-col items-center rounded-lg p-4 transition-all"
                 style={{ backgroundColor: '#e6f4ff' }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#cce8ff'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#e6f4ff'}
               >
-                <span className="text-[15px] font-medium" style={{ order: 1, color: '#0091fd' }}>진행중</span>
+                <span className="text-[16px] font-medium" style={{ order: 1, color: '#0091fd' }}>진행중</span>
                 <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
                   <span className="font-bold" style={{ fontSize: '42px', lineHeight: '1em', color: '#0091fd' }}>{stats.진행중}</span>
                   <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
@@ -541,7 +549,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(20, 113, 97, 0.15)'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#e8f2f0'}
               >
-                <span className="text-[15px] font-medium" style={{ order: 1, color: 'rgb(20, 113, 97)' }}>심사완료</span>
+                <span className="text-[16px] font-medium" style={{ order: 1, color: 'rgb(20, 113, 97)' }}>심사완료</span>
                 <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
                   <span className="font-bold" style={{ fontSize: '42px', lineHeight: '1em', color: 'rgb(20, 113, 97)' }}>{stats.심사완료}</span>
                   <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
@@ -560,7 +568,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
           <CardHeader style={{ paddingBottom: '6px' }}>
             <CardTitle className="text-base font-medium flex items-center justify-between">
               <span style={{ fontSize: '18px', fontWeight: '600' }}>최근 작업내역</span>
-              <span className="text-[15px] text-muted-foreground">최근 7일</span>
+              <span className="text-[16px] text-muted-foreground">최근 7일</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-1" style={{ paddingTop: '0' }}>
@@ -602,7 +610,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[15px] font-medium text-foreground truncate">{activity.action}</p>
+                          <p className="text-[16px] font-medium text-foreground truncate">{activity.action}</p>
                           <p className="text-xs text-muted-foreground truncate">{activity.target}</p>
                         </div>
                         <div className="flex-shrink-0 flex items-center gap-1 text-xs text-muted-foreground">
@@ -637,40 +645,35 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
         </CardHeader>
         <CardContent>
           {/* 필터 및 검색 */}
-          <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center">
-            {/* 검색 입력 */}
-            <div className="relative flex-1 h-[40px] w-full max-w-[600px]">
-              <Input
-                placeholder="접수번호, 신청인명 또는 지번을 입력하세요"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pr-10 h-[40px]"
-              />
-              <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            </div>
-            
-            {/* 처리상태 필터 */}
-            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as AdminStatus | "all")}>
-              <SelectTrigger className="w-[150px] h-[40px]">
-                <SelectValue placeholder="처리상태" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">전체 상황</SelectItem>
-                <SelectItem value="접수완료">접수완료</SelectItem>
-                <SelectItem value="진행중">진행중</SelectItem>
-                <SelectItem value="심사완료">심사완료</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            {/* 정렬 버튼 */}
-            <Button
-              variant="outline"
-              className="border-foreground bg-foreground px-4 text-background hover:bg-foreground/90 hover:text-background h-[40px] gap-2"
-              onClick={() => setSortOrder(sortOrder === "desc" ? "asc" : "desc")}
-            >
-              <ArrowUpDown className="h-4 w-4" />
-              {sortOrder === "desc" ? "최신순" : "오래된순"}
-            </Button>
+          <div className="mb-6 flex flex-wrap items-center gap-6">
+            <SearchInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="접수번호, 신청인명, 지번"
+            />
+            <RadioFilterGroup
+              label="진행상황"
+              name="status-filter"
+              value={statusFilter}
+              onChange={(v) => setStatusFilter(v as AdminStatus | "all")}
+              options={[
+                { value: "all", label: "전체" },
+                { value: "접수완료", label: "접수 완료" },
+                { value: "담당자검토중", label: "담당자 검토 중" },
+                { value: "담당자검토완료", label: "담당자 검토 완료" },
+              ]}
+            />
+            <RadioFilterGroup
+              label="수용신청 방법"
+              name="appeal-filter"
+              value={appealFilter}
+              onChange={(v) => setAppealFilter(v as "all" | "중토위" | "한국도로공사")}
+              options={[
+                { value: "all", label: "전체" },
+                { value: "중토위", label: "중토위 신청" },
+                { value: "한국도로공사", label: "도로공사 신청" },
+              ]}
+            />
           </div>
 
           {/* 테이블 (데스크톱) */}
@@ -678,13 +681,22 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
             <Table className="table-fixed">
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-center w-[100px]">접수번호</TableHead>
-                  <TableHead className="w-[100px]">신청인</TableHead>
-                  <TableHead className="w-[140px]">신청일시</TableHead>
-                  <TableHead className="w-[280px]">대상 지번</TableHead>
-                  <TableHead className="w-[120px]">진행상황</TableHead>
-                  <TableHead className="w-[120px]">심사결과</TableHead>
-                  <TableHead className="w-[50px]"></TableHead>
+                  <TableHead className="w-[120px] text-center">접수번호</TableHead>
+                  <TableHead className="w-[100px] text-center">신청인</TableHead>
+                  <TableHead className="w-[150px] text-center">
+                    <button
+                      onClick={() => setSortOrder(sortOrder === "desc" ? "asc" : "desc")}
+                      className="flex items-center justify-center gap-1 w-full font-medium hover:text-foreground transition-colors"
+                    >
+                      신청일시
+                      <ArrowUpDown className="h-3.5 w-3.5" />
+                    </button>
+                  </TableHead>
+                  <TableHead className="w-[240px] text-center">대상 지번</TableHead>
+                  <TableHead className="w-[130px] text-center">진행상황</TableHead>
+                  <TableHead className="w-[120px] text-center">심사결과</TableHead>
+                  <TableHead className="w-[140px] text-center">수용신청 방법</TableHead>
+                  <TableHead className="w-[48px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -694,21 +706,20 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
                     className="cursor-pointer hover:bg-muted/50"
                     onClick={() => onSelect(app)}
                   >
-                    <TableCell className="font-medium text-center">
+                    <TableCell className="w-[120px] text-center font-medium">
                       <div className="flex items-center justify-center gap-2">
                         {app.applicationNumber}
                         {aiMismatchFilter && app.adminStatus === "심사완료" && (
-                          // 시뮬레이션: 접수번호 끝자리로 불일치 유형 구분
                           app.applicationNumber.endsWith("2") ? (
-                            <span className="rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-medium text-rose-700">반대 결정</span>
+                            <span className="rounded bg-rose-100 px-2 py-1 text-[14px] font-medium text-rose-700">반대 결정</span>
                           ) : app.applicationNumber.endsWith("5") ? (
-                            <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">판단 보류</span>
+                            <span className="rounded bg-amber-100 px-2 py-1 text-[14px] font-medium text-amber-700">판단 보류</span>
                           ) : null
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>{app.applicantName}</TableCell>
-                    <TableCell>
+                    <TableCell className="w-[100px] text-center">{app.applicantName}</TableCell>
+                    <TableCell className="w-[150px] text-center">
                       {(() => {
                         const date = new Date(app.appliedAt);
                         const dateStr = date.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\. /g, '-').replace('.', '');
@@ -716,31 +727,55 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
                         return `${dateStr} ${timeStr}`;
                       })()}
                     </TableCell>
-                    <TableCell style={{ width: "220px" }}>
-                      <div className="flex items-center gap-2">
+                    <TableCell className="w-[240px] text-center">
+                      <div className="flex items-center justify-center gap-2">
                         <span>{app.landInfo.address}</span>
                         {(app.additionalLands?.length || 0) >= 1 && (
                           <span className={`inline-flex items-center gap-1 whitespace-nowrap ${PARCEL_COUNT_COLORS.text}`}>
                             <Layers className="h-4 w-4" />
-                            <span className="text-[15px] font-medium">{(app.additionalLands?.length || 0) + 1}</span>
+                            <span className="text-[16px] font-medium">{(app.additionalLands?.length || 0) + 1}</span>
                           </span>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <AdminStatusBadge status={app.adminStatus} />
+                    <TableCell className="w-[130px] text-center">
+                      <div className="flex justify-center">
+                        <AdminStatusBadge status={toListStatus(app.adminStatus)} />
+                      </div>
                     </TableCell>
-                    <TableCell>
-                      {app.adminStatus !== "접수완료" ? (
-                        <JudgmentSummaryBadge 
-                          lands={[app.landInfo, ...(app.additionalLands || [])]} 
-                        />
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
+                    <TableCell className="w-[120px] text-center">
+                      <div className="flex justify-center">
+                        {app.adminStatus !== "접수완료" ? (
+                          <JudgmentSummaryBadge
+                            lands={[app.landInfo, ...(app.additionalLands || [])]}
+                          />
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </div>
                     </TableCell>
-                    <TableCell>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    <TableCell className="w-[140px] text-center">
+                      <div className="flex justify-center">
+                        {(() => {
+                          const choices = app.landJudgmentsForReview
+                            ?.map(j => j.citizenAppealChoice)
+                            .filter(Boolean) as ("중토위" | "한국도로공사")[] | undefined;
+                          const primary = choices?.length ? choices[0] : (app.citizenAppealChoice ?? null);
+                          if (!primary) return <span className="text-muted-foreground text-[15px]">-</span>;
+                          return (
+                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[13px] font-medium ${
+                              primary === "중토위"
+                                ? "bg-blue-50 text-blue-700"
+                                : "bg-emerald-50 text-emerald-700"
+                            }`}>
+                              {primary === "중토위" ? "중토위 신청" : "도로공사 신청"}
+                            </span>
+                          );
+                        })()}
+                      </div>
+                    </TableCell>
+                    <TableCell className="w-[48px] text-center">
+                      <ChevronRight className="h-4 w-4 text-muted-foreground mx-auto" />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -763,18 +798,18 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
                     </span>
                     {aiMismatchFilter && app.adminStatus === "심사완료" && (
                       app.applicationNumber.endsWith("2") ? (
-                        <span className="rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-medium text-rose-700">반대 결정</span>
+                        <span className="rounded bg-rose-100 px-2 py-1 text-[14px] font-medium text-rose-700">반대 결정</span>
                       ) : app.applicationNumber.endsWith("5") ? (
-                        <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">판단 보류</span>
+                        <span className="rounded bg-amber-100 px-2 py-1 text-[14px] font-medium text-amber-700">판단 보류</span>
                       ) : null
                     )}
                     {(() => {
                       const isMultiple = app.additionalLands && app.additionalLands.length > 0;
                       
                       if (isMultiple) {
-                        return <span className="text-[15px] text-foreground">복수필지 ({app.additionalLands!.length + 1})</span>;
+                        return <span className="text-[16px] text-foreground">복수필지 ({app.additionalLands!.length + 1})</span>;
                       } else {
-                        return <span className="text-[15px] text-foreground">단일필지</span>;
+                        return <span className="text-[16px] text-foreground">단일필지</span>;
                       }
                     })()}
                     <ProcessStatusBadge status={app.status} />
@@ -856,7 +891,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
                 마지막
               </PaginationNavButton>
               
-              <span className="text-[15px] text-muted-foreground ml-2">
+              <span className="text-[16px] text-muted-foreground ml-2">
                 ({filteredApplications.length}건 중 {(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, filteredApplications.length)}건)
               </span>
             </div>

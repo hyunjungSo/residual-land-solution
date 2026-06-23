@@ -1032,12 +1032,48 @@ export function BatchAnalysis({
         </Card>
       </div>
 
-      {/* 검색 및 필터 */}
+      {/* 필지 목록 테이블 */}
       <Card className="border-0 shadow-none">
-        <CardHeader className="pb-0">
-          <CardTitle className="text-lg">검색 및 필터</CardTitle>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-lg">필지 관리 목록</CardTitle>
+            </div>
+            {/* 엑셀 다운로드 + AI 통합 판독 버튼 */}
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={handleDownloadExcel}
+                variant="outline"
+                className="whitespace-nowrap"
+                title="Excel 다운로드"
+              >
+                <Download className="h-4 w-4 mr-1.5" />
+                엑셀 다운로드
+              </Button>
+              <Button
+                onClick={handleIntegratedAnalysis}
+                disabled={selectedParcelIds.size === 0 || integratedStep !== "idle"}
+                variant="cta"
+                className={`whitespace-nowrap min-w-[260px] ${integratedStep !== "idle" ? "pointer-events-none opacity-80" : ""}`}
+              >
+                {integratedStep === "idle" && (
+                  <>AI 통합 판독 실행 ({selectedParcelIds.size}건)</>
+                )}
+                {integratedStep === "step1" && (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" />1단계: 편입 유형 분석 중...</>
+                )}
+                {integratedStep === "step2" && (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" />2단계: AI 매수 가능성 검토 중...</>
+                )}
+                {integratedStep === "success" && (
+                  <>통합 판독 완료</>
+                )}
+              </Button>
+            </div>
+          </div>
         </CardHeader>
-        <CardContent className="pt-0">
+        <CardContent className="space-y-6">
+          {/* 검색 및 필터 */}
           <div className="space-y-4">
             {/* 1행: 검색바 + 편입유형 + AI판독결과 */}
             <div className="flex flex-row items-center gap-[2.4rem]">
@@ -1088,9 +1124,8 @@ export function BatchAnalysis({
                   { value: "low", label: "매수가능성 낮음" }
                 ]}
               />
-
               <div className="flex items-center gap-2">
-              <label
+                <label
                   htmlFor="re-review-switch"
                   className="text-[16px] font-medium whitespace-nowrap cursor-pointer select-none"
                 >
@@ -1104,50 +1139,7 @@ export function BatchAnalysis({
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* 필지 목록 테이블 */}
-      <Card className="border-0 shadow-none">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg">필지 관리 목록</CardTitle>
-            </div>
-            {/* 엑셀 다운로드 + AI 통합 판독 버튼 */}
-            <div className="flex items-center gap-2">
-              <Button
-                onClick={handleDownloadExcel}
-                variant="outline"
-                className="whitespace-nowrap"
-                title="Excel 다운로드"
-              >
-                <Download className="h-4 w-4 mr-1.5" />
-                엑셀 다운로드
-              </Button>
-              <Button
-                onClick={handleIntegratedAnalysis}
-                disabled={selectedParcelIds.size === 0 || integratedStep !== "idle"}
-                variant="cta"
-                className={`whitespace-nowrap min-w-[260px] ${integratedStep !== "idle" ? "pointer-events-none opacity-80" : ""}`}
-              >
-                {integratedStep === "idle" && (
-                  <>AI 통합 판독 실행 ({selectedParcelIds.size}건)</>
-                )}
-                {integratedStep === "step1" && (
-                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" />1단계: 편입 유형 분석 중...</>
-                )}
-                {integratedStep === "step2" && (
-                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" />2단계: AI 매수 가능성 검토 중...</>
-                )}
-                {integratedStep === "success" && (
-                  <>통합 판독 완료</>
-                )}
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
           <div className="overflow-x-auto border rounded-lg">
             <Table>
               <TableHeader className="bg-muted/50">

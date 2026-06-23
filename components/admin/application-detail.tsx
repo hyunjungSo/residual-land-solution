@@ -115,8 +115,10 @@ interface LandReviewData {
   farmMachineDifficulty: "미입력" | "해당" | "해당없음";
   accessRoadLost: boolean;
   waterChannelLost: boolean;
-  landJudgment: JudgmentResult | null;
-  landComment: string; // 필지별 검토의견
+  landJudgment: JudgmentResult | null;       // 1차: 매수/기각/심의위원회 이관
+  committeeStatus: "검토중" | "검토완료" | null; // 2차: 심의위원회 진행 상태
+  committeeResult: "매수" | "기각" | null;       // 3차: 심의위원회 검토 결과
+  landComment: string;
 }
 
 export function ApplicationDetail({ application, onBack, onSave, onNavigateToList, onDirtyChange, onOpenReview }: ApplicationDetailProps) {
@@ -175,40 +177,40 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
 
   // 필지별 검토 데이터 초기화
   const initializeLandReviewData = (): LandReviewData[] => {
+    const isCommitteeStatus = (s: string) =>
+      ["심의위원회회부", "심의위원회검토중", "심의위원회검토완료"].includes(s);
+
     return allLands.map((land, index) => {
       const landData = application.landDataList?.[index];
-      
-      // 심사완료된 케이스의 경우 저장된 판정/의견 데이터 로드
+
       let savedJudgment: JudgmentResult | null = null;
+      let savedCommitteeStatus: "검토중" | "검토완료" | null = null;
+      let savedCommitteeResult: "매수" | "기각" | null = null;
       let savedComment = "";
-      
-      if (application.adminStatus === "심사완료") {
-        // 1. landJudgmentsForReview에서 필지별 판정 가져오기
-        const landJudgmentForReview = application.landJudgmentsForReview?.find(
-          lj => lj.landId === land.id
-        );
-        if (landJudgmentForReview) {
-          // purchaseDecision을 JudgmentResult로 변환
-          if (landJudgmentForReview.purchaseDecision === "O") {
-            savedJudgment = "매수";
-          } else if (landJudgmentForReview.purchaseDecision === "X") {
-            savedJudgment = "기각";
-          } else if (landJudgmentForReview.purchaseDecision === "-") {
-            savedJudgment = "심의위원회 이관";
-          }
-        }
-        
-        // 2. landJudgmentsForReview가 없으면 application.finalJudgment 사용 (모든 필지에 동일 적용)
-        if (!savedJudgment && application.finalJudgment) {
-          savedJudgment = application.finalJudgment;
-        }
-        
-        // 3. 검토 의견은 application.reviewerComment 사용 (첫 번째 필지에만 또는 모든 필지에)
-        if (application.reviewerComment) {
-          savedComment = application.reviewerComment;
+
+      const st = application.adminStatus;
+      const lj = application.landJudgmentsForReview?.find(j => j.landId === land.id);
+
+      if (lj) {
+        if (lj.purchaseDecision === "O") savedJudgment = "매수";
+        else if (lj.purchaseDecision === "X") savedJudgment = "기각";
+        else if (lj.purchaseDecision === "-") savedJudgment = "심의위원회 이관";
+      } else if (application.finalJudgment) {
+        savedJudgment = application.finalJudgment;
+      }
+
+      if (application.isCommitteeCase && savedJudgment === "심의위원회 이관") {
+        if (st === "심의위원회검토중") savedCommitteeStatus = "검토중";
+        else if (st === "심의위원회검토완료" || st === "심사완료") {
+          savedCommitteeStatus = "검토완료";
+          const cr = lj?.judgment;
+          if (cr === "매수") savedCommitteeResult = "매수";
+          else if (cr === "기각") savedCommitteeResult = "기각";
         }
       }
-      
+
+      if (application.reviewerComment) savedComment = application.reviewerComment;
+
       return {
         actualUsage: (landData?.actualUsage || land.landCategory) as LandCategory,
         landShape: (landData?.reportedShape || land.remainingShape) as LandShape,
@@ -216,6 +218,8 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
         accessRoadLost: landData?.accessRoadLost || false,
         waterChannelLost: landData?.waterChannelLost || false,
         landJudgment: savedJudgment,
+        committeeStatus: savedCommitteeStatus,
+        committeeResult: savedCommitteeResult,
         landComment: savedComment,
       };
     });
@@ -305,10 +309,28 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
   const [showAnalysisFlow, setShowAnalysisFlow] = useState(false);
   const [showCompleteAlert, setShowCompleteAlert] = useState(false);
   const [pendingJudgmentState, setPendingJudgmentState] = useState<{ judgment: "매수" | "기각"; isCommittee: boolean } | null>(null);
+  const [committeeResultErrors, setCommitteeResultErrors] = useState<boolean[]>([]);
   const { toast } = useToast();
   
-  // 심사완료 상태인 경우 뷰어 모드 (편집 불가)
-  const isViewOnly = application.adminStatus === "심사완료";
+  const [isLockedAfterSave, setIsLockedAfterSave] = useState(false);
+
+  // 진행상황: 담당자가 수동으로 설정 (접수완료 / 담당자검토중 / 담당자검토완료)
+  const toThreeStateStatus = (status: AdminStatus): "접수완료" | "담당자검토중" | "담당자검토완료" => {
+    if (status === "접수완료") return "접수완료";
+    if (status === "담당자검토완료" || status === "심의위원회검토완료" || status === "심사완료") return "담당자검토완료";
+    if (status === "담당자검토중" || status === "심의위원회회부" || status === "심의위원회검토중") return "담당자검토중";
+    return "접수완료";
+  };
+  const [progressStatus, setProgressStatus] = useState<"접수완료" | "담당자검토중" | "담당자검토완료">(
+    toThreeStateStatus(application.adminStatus)
+  );
+
+  // 최종 판정(매수/기각) 저장 완료 후 또는 이미 완료된 케이스는 편집 불가
+  const isViewOnly =
+    isLockedAfterSave ||
+    application.adminStatus === "심사완료" ||
+    application.adminStatus === "담당자검토완료" ||
+    (application.adminStatus === "심의위원회검토완료" && !!application.finalJudgment && application.finalJudgment !== "심의위원회 이관");
   const [isAIAnalyzing, setIsAIAnalyzing] = useState(false);
   
   // 필지별 분석 진행 상태: 'pending' | 'analyzing' | 'done'
@@ -900,17 +922,28 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
   // AI 분석 결과
   const aiResult = application.aiResult;
 
-  const handleSave = () => {
+  const doSave = () => {
     setIsSaving(true);
-    
+
     const selectedAssignee = assigneeList.find(a => a.id === reviewData.assigneeId);
-    
+
     // 필지별 판정 결과 생성 (심의서 연동용)
     const landJudgmentsForReview = allLands.map((land, idx) => {
-      const adminResult = adminLandAIResults[land.id];
-      const citizenResult = landAIResults[land.id];
-      const result = adminResult || citizenResult;
-      
+      const review = landReviewDataList[idx];
+      const lj = review?.landJudgment;
+      const cr = review?.committeeResult;
+
+      let judgment = "분석중";
+      let purchaseDecision: "O" | "X" | "-" = "-";
+
+      if (lj === "매수") { judgment = "매수"; purchaseDecision = "O"; }
+      else if (lj === "기각") { judgment = "기각"; purchaseDecision = "X"; }
+      else if (lj === "심의위원회 이관") {
+        if (cr === "매수") { judgment = "매수"; purchaseDecision = "O"; }
+        else if (cr === "기각") { judgment = "기각"; purchaseDecision = "X"; }
+        else { judgment = "심의위원회 이관"; purchaseDecision = "-"; }
+      }
+
       return {
         landId: land.id,
         landIndex: idx,
@@ -920,26 +953,34 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
         originalArea: land.originalArea,
         remainingArea: land.remainingArea,
         remainingRatio: land.remainingRatio,
-        judgment: result?.provisionalJudgment || "분석중",
-purchaseDecision: result?.provisionalJudgment === "수용가능" ? "O" as const :
-              result?.provisionalJudgment === "수용불가" ? "X" as const :
-                          "-" as const,
+        judgment,
+        purchaseDecision,
       };
     });
-    
+
+    // 심의위원회 결과 finalJudgment 도출 (per-parcel 참조용)
+    const hasCommittee = landReviewDataList.some(r => r.landJudgment === "심의위원회 이관");
+    let derivedFinalJudgment = reviewData.finalJudgment;
+    if (hasCommittee) {
+      const committeeParcel = landReviewDataList.find(r => r.landJudgment === "심의위원회 이관");
+      if (committeeParcel?.committeeResult) derivedFinalJudgment = committeeParcel.committeeResult as JudgmentResult;
+      else derivedFinalJudgment = "심의위원회 이관" as unknown as JudgmentResult;
+    } else if (landReviewDataList.length === 1 && landReviewDataList[0].landJudgment) {
+      derivedFinalJudgment = (landReviewDataList[0].landJudgment ?? null) as JudgmentResult;
+    }
+
     const updatedApplication: Application = {
       ...application,
       actualUsage: reviewData.actualUsage,
       reportedShape: reviewData.landShape,
       farmMachineDifficulty: reviewData.farmMachineDifficulty === "해당",
       reviewerComment: reviewData.reviewerComment,
-      finalJudgment: reviewData.finalJudgment,
-      adminStatus: reviewData.adminStatus,
-      status: reviewData.adminStatus === "심사완료" ? "처리완료" : application.status,
+      finalJudgment: derivedFinalJudgment,
+      adminStatus: progressStatus,
+      status: progressStatus === "담당자검토완료" ? "처리완료" : progressStatus === "담당자검토중" ? "검토중" : application.status,
       adminName: selectedAssignee?.name || application.adminName,
       statusUpdatedAt: new Date().toISOString().split("T")[0],
-      isCommitteeCase: reviewData.isCommitteeCase,
-      // 필지별 판정 결과 저장 (심의서 연동)
+      isCommitteeCase: hasCommittee,
       landJudgmentsForReview,
     };
 
@@ -950,11 +991,35 @@ purchaseDecision: result?.provisionalJudgment === "수용가능" ? "O" as const 
       duration: 3000,
     });
 
+    const shouldLockAfterSave = progressStatus === "담당자검토완료";
+
     setTimeout(() => {
       setIsSaving(false);
       clearDirty();
+      if (shouldLockAfterSave) setIsLockedAfterSave(true);
       onSave(updatedApplication);
     }, 1000);
+  };
+
+  // 담당자 검토 완료 선택 후 저장 시 컨펌
+  const handleSave = () => {
+    // 심의위원회 검토완료인데 결과 미선택 필지 검증
+    const errors = landReviewDataList.map(
+      (r) => r.landJudgment === "심의위원회 이관" && r.committeeStatus === "검토완료" && !r.committeeResult
+    );
+    if (errors.some(Boolean)) {
+      setCommitteeResultErrors(errors);
+      const firstErrorIdx = errors.findIndex(Boolean);
+      if (firstErrorIdx !== -1) setSelectedLandIndex(firstErrorIdx);
+      return;
+    }
+    setCommitteeResultErrors([]);
+
+    if (progressStatus === "담당자검토완료" && !isViewOnly) {
+      setShowCompleteAlert(true);
+    } else {
+      doSave();
+    }
   };
 
   // handleSave를 ref에 저장하여 이벤트 리스너가 항상 최신 함수 참조
@@ -1011,6 +1076,40 @@ purchaseDecision: result?.provisionalJudgment === "수용가능" ? "O" as const 
               <span className="text-[16px] text-muted-foreground">신청일시</span>
               <p className="font-medium">{application.appliedAt || "2026-05-01"}</p>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 진행상황 수동 설정 */}
+      <Card className="border-0 shadow-none">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg" style={{ fontSize: '20px' }}>진행상황</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            {(["접수완료", "담당자검토중", "담당자검토완료"] as const).map((status) => {
+              const isSelected = progressStatus === status;
+              const labelMap: Record<string, string> = {
+                접수완료: "접수 완료",
+                담당자검토중: "담당자 검토 중",
+                담당자검토완료: "담당자 검토 완료",
+              };
+              return (
+                <Button
+                  key={status}
+                  type="button"
+                  variant="outline"
+                  disabled={isViewOnly}
+                  onClick={() => {
+                    setProgressStatus(status);
+                    markDirty();
+                  }}
+                  className={`cursor-pointer border-2 ${isSelected ? "border-primary text-primary bg-primary/5" : "border-[#E1E4E7] text-foreground"} ${isViewOnly ? "opacity-60 cursor-not-allowed" : ""}`}
+                >
+                  {labelMap[status]}
+                </Button>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
@@ -2203,13 +2302,12 @@ purchaseDecision: result?.provisionalJudgment === "수용가능" ? "O" as const 
               
               return (
                 <div className="space-y-5">
-                  {/* 담당자 판정 (매수 가능성 높음/매수 가능성 낮음/추가 검토 필요) */}
-                  <div className="space-y-5">
+                  {/* 1차: 담당자 판정 */}
+                  <div className="space-y-3">
                     <Label className="text-[16px] font-medium">담당자 판정</Label>
                     <div className="flex flex-wrap gap-2">
-                      {(["매수", "기각", "심의위원회 이관"] as FinalJudgmentResult[]).map((judgment) => {
+                      {(["매수", "기각", "심의위원회 이관"] as const).map((judgment) => {
                         const config = judgmentConfig[judgment];
-                        if (!config) return null;
                         const Icon = config.icon;
                         const isSelected = landReview.landJudgment === judgment;
                         return (
@@ -2218,7 +2316,21 @@ purchaseDecision: result?.provisionalJudgment === "수용가능" ? "O" as const 
                             type="button"
                             variant="outline"
                             disabled={isViewOnly}
-                            onClick={() => updateLandReviewData(selectedLandIndex, 'landJudgment', landReview.landJudgment === judgment ? null : judgment)}
+                            onClick={() => {
+                              const next = landReview.landJudgment === judgment ? null : judgment;
+                              setLandReviewDataList(prev => {
+                                const updated = [...prev];
+                                updated[selectedLandIndex] = {
+                                  ...updated[selectedLandIndex],
+                                  landJudgment: next,
+                                  // 심의위원회 회부 선택 시 진행 상태 기본값 = 검토중
+                                  committeeStatus: null,
+                                  committeeResult: null,
+                                };
+                                return updated;
+                              });
+                              markDirty();
+                            }}
                             className={`cursor-pointer border-2 ${isSelected ? `${config.borderColor} ${config.textColor}` : "border-[#E1E4E7] text-foreground"} ${isViewOnly ? "opacity-60 cursor-not-allowed" : ""}`}
                           >
                             <Icon className="mr-2 h-4 w-4" />
@@ -2228,8 +2340,8 @@ purchaseDecision: result?.provisionalJudgment === "수용가능" ? "O" as const 
                       })}
                     </div>
                   </div>
-                  
-                  {/* AI 판정(수용가능/수용불가)과 담당자 판정(매수/기각/심의위원회 이관) 불일치 안내 */}
+
+                  {/* AI 판정 불일치 안내 */}
                   {landReview.landJudgment && aiResult?.provisionalJudgment && (
                     (aiResult.provisionalJudgment === "수용가능" && landReview.landJudgment !== "매수") ||
                     (aiResult.provisionalJudgment === "수용불가" && landReview.landJudgment === "매수")
@@ -2241,7 +2353,120 @@ purchaseDecision: result?.provisionalJudgment === "수용가능" ? "O" as const 
                       </p>
                     </div>
                   )}
+
+                  {/* 2차: 심의위원회 진행 상태 (심의위원회 회부 선택 시) */}
+                  {landReview.landJudgment === "심의위원회 이관" && (
+                    <div className="space-y-3 pl-4 border-l-2 border-purple-200">
+                      <Label className="text-[16px] font-medium text-purple-700">심의위원회 진행 상태</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {(["검토중", "검토완료"] as const).map((status) => {
+                          const isSelected = landReview.committeeStatus === status;
+                          const Icon = status === "검토중" ? PlayCircle : CheckCircle2;
+                          return (
+                            <Button
+                              key={status}
+                              type="button"
+                              variant="outline"
+                              disabled={isViewOnly}
+                              onClick={() => {
+                                const next = landReview.committeeStatus === status ? null : status;
+                                setLandReviewDataList(prev => {
+                                  const updated = [...prev];
+                                  updated[selectedLandIndex] = {
+                                    ...updated[selectedLandIndex],
+                                    committeeStatus: next,
+                                    committeeResult: null,
+                                  };
+                                  return updated;
+                                });
+                                markDirty();
+                              }}
+                              className={`cursor-pointer border-2 ${isSelected ? "border-purple-500 text-purple-700 bg-purple-50/50" : "border-[#E1E4E7] text-foreground"} ${isViewOnly ? "opacity-60 cursor-not-allowed" : ""}`}
+                            >
+                              <Icon className="mr-2 h-4 w-4" />{status}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 3차: 심의위원회 검토 결과 (검토완료 선택 시) */}
+                  {landReview.landJudgment === "심의위원회 이관" && landReview.committeeStatus === "검토완료" && (
+                    <div className={`space-y-3 pl-4 border-l-2 ${committeeResultErrors[selectedLandIndex] ? "border-destructive" : "border-purple-200"}`}>
+                      <Label className={`text-[16px] font-medium ${committeeResultErrors[selectedLandIndex] ? "text-destructive" : "text-purple-700"}`}>
+                        심의위원회 검토 결과
+                      </Label>
+                      <div className="flex flex-wrap gap-2">
+                        {(["매수", "기각"] as const).map((result) => {
+                          const config = judgmentConfig[result];
+                          const Icon = config.icon;
+                          const isSelected = landReview.committeeResult === result;
+                          const hasError = committeeResultErrors[selectedLandIndex];
+                          return (
+                            <Button
+                              key={result}
+                              type="button"
+                              variant="outline"
+                              disabled={isViewOnly}
+                              onClick={() => {
+                                const next = landReview.committeeResult === result ? null : result;
+                                updateLandReviewData(selectedLandIndex, 'committeeResult', next);
+                                if (next) {
+                                  setCommitteeResultErrors(prev => {
+                                    const updated = [...prev];
+                                    updated[selectedLandIndex] = false;
+                                    return updated;
+                                  });
+                                }
+                                markDirty();
+                              }}
+                              className={`cursor-pointer border-2 ${
+                                isSelected
+                                  ? `${config.borderColor} ${config.textColor}`
+                                  : hasError
+                                  ? "border-destructive text-destructive"
+                                  : "border-[#E1E4E7] text-foreground"
+                              } ${isViewOnly ? "opacity-60 cursor-not-allowed" : ""}`}
+                            >
+                              <Icon className="mr-2 h-4 w-4" />{config.label}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                      {committeeResultErrors[selectedLandIndex] && (
+                        <p className="text-[14px] text-destructive flex items-center gap-1.5">
+                          <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                          심의위원회 검토 결과를 선택해야 저장할 수 있습니다.
+                        </p>
+                      )}
+                    </div>
+                  )}
                   
+                  {/* 민원인 수용 신청 방법 선택값 — 심의위원회 회부 검토결과 기각일 경우에만 노출 */}
+                  {(() => {
+                    const isCommitteeRejected =
+                      landReview.landJudgment === "심의위원회 이관" && landReview.committeeResult === "기각";
+                    if (!isCommitteeRejected) return null;
+
+                    const perParcelChoice = application.landJudgmentsForReview?.[selectedLandIndex]?.citizenAppealChoice;
+                    const choice = perParcelChoice ?? application.citizenAppealChoice;
+                    if (!choice) return null;
+
+                    const choiceLabel =
+                      choice === "중토위" ? "중앙토지수용위원회에 신청" : "한국도로공사에 신청";
+
+                    return (
+                      <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-2">
+                        <p className="text-[15px] font-medium text-slate-700">민원인 수용 신청 방법</p>
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                          <span className="text-[15px] font-semibold text-primary">{choiceLabel}</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
                   {/* 검토 의견 */}
                   <div className="space-y-5">
                     <Label className="text-[16px] font-medium">검토 의견 <span className="font-normal text-muted-foreground">(선택)</span></Label>
@@ -2300,187 +2525,7 @@ purchaseDecision: result?.provisionalJudgment === "수용가능" ? "O" as const 
         </CardContent>
       </Card>
 
-      {/* Section 03. 진행상황 선택 */}
-      <Card className="border-0 shadow-none">
-        <CardHeader>
-          <CardTitle className="text-lg" style={{ fontSize: '20px' }}>진행상황 선택</CardTitle>
-          <CardDescription>민원인이 신청 현황 조회 시 이 진행상황이 표시됩니다</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {(() => {
-            const st = reviewData.adminStatus;
-            const isCom = reviewData.isCommitteeCase;
-            const fj = reviewData.finalJudgment;
-            const isComplete = st === "심사완료";
-
-            const progressLevel =
-              st === "접수완료" || st === "담당자검토중" ? 0 :
-              st === "담당자검토완료" ? 1 :
-              st === "심의위원회회부" || st === "심의위원회검토중" ? 2 :
-              st === "심의위원회검토완료" ? 3 : 4;
-
-            const showStep2 = progressLevel >= 1 || isComplete;
-            const showStep3 = isCom && (progressLevel >= 2 || isComplete);
-            const showStep4 = isCom && (progressLevel >= 3 || isComplete);
-
-            const stepCircle = (n: number, active: boolean, purple = false) => (
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[13px] font-bold shrink-0 ${active ? (purple ? "bg-purple-600 text-white" : "bg-primary text-white") : "bg-slate-200 text-slate-400"}`}>{n}</div>
-            );
-
-            const stepDivider = (
-              <div className="flex items-center gap-3 my-1 ml-3.5">
-                <div className="w-0.5 h-5 bg-slate-200" />
-              </div>
-            );
-
-            return (
-              <div className="space-y-0">
-                {/* Step 1: 담당자 검토 */}
-                <div className="flex items-start gap-3">
-                  {stepCircle(1, true)}
-                  <div className="flex-1 pb-1">
-                    <p className="text-[15px] font-semibold mb-2">담당자 검토</p>
-                    <div className="flex flex-wrap gap-2">
-                      {(["접수완료", "담당자검토중", "담당자검토완료"] as AdminStatus[]).map((status) => {
-                        const config = adminStatusConfig[status];
-                        const Icon = config.icon;
-                        const isSelected = st === status;
-                        return (
-                          <Button key={status} type="button" variant="outline" disabled={isViewOnly}
-                            onClick={() => { markDirty(); setReviewData(prev => ({ ...prev, adminStatus: status, finalJudgment: null as unknown as JudgmentResult, isCommitteeCase: false })); }}
-                            className={`cursor-pointer border-2 ${isSelected ? "border-primary text-primary bg-primary/5" : "border-[#E1E4E7] text-foreground"} ${isViewOnly ? "opacity-60 cursor-not-allowed" : ""}`}
-                          >
-                            <Icon className="mr-2 h-4 w-4" />{config.label}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Step 2: 담당자 판정 결과 */}
-                {showStep2 && (
-                  <>
-                    {stepDivider}
-                    <div className="flex items-start gap-3">
-                      {stepCircle(2, true)}
-                      <div className="flex-1 pb-1">
-                        <p className="text-[15px] font-semibold mb-2">담당자 판정 결과</p>
-                        <div className="flex flex-wrap gap-2">
-                          {(["매수", "기각"] as const).map((judgment) => {
-                            const config = judgmentConfig[judgment];
-                            const Icon = config.icon;
-                            const isSelected = fj === judgment && !isCom;
-                            return (
-                              <Button key={judgment} type="button" variant="outline" disabled={isViewOnly}
-                                onClick={() => { setPendingJudgmentState({ judgment, isCommittee: false }); setShowCompleteAlert(true); }}
-                                className={`cursor-pointer border-2 ${isSelected ? `${config.borderColor} ${config.textColor}` : "border-[#E1E4E7] text-foreground"} ${isViewOnly ? "opacity-60 cursor-not-allowed" : ""}`}
-                              >
-                                <Icon className="mr-2 h-4 w-4" />{config.label}
-                              </Button>
-                            );
-                          })}
-                          <Button type="button" variant="outline" disabled={isViewOnly}
-                            onClick={() => { markDirty(); setReviewData(prev => ({ ...prev, adminStatus: "심의위원회회부", finalJudgment: "심의위원회 이관" as unknown as JudgmentResult, isCommitteeCase: true })); }}
-                            className={`cursor-pointer border-2 ${isCom ? `${judgmentConfig["심의위원회 이관"].borderColor} ${judgmentConfig["심의위원회 이관"].textColor}` : "border-[#E1E4E7] text-foreground"} ${isViewOnly ? "opacity-60 cursor-not-allowed" : ""}`}
-                          >
-                            <AlertTriangle className="mr-2 h-4 w-4" />심의위원회 회부
-                          </Button>
-                        </div>
-                        {(fj === "매수" || fj === "기각") && !isCom && isComplete && (
-                          <p className="text-[14px] text-emerald-700 mt-2 flex items-center gap-1">
-                            <CheckCircle2 className="h-3.5 w-3.5" />
-                            민원인에게 <span className="font-semibold">{fj === "매수" ? "매수" : "기각"}</span> 결과가 노출됩니다.
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {/* Step 3: 심의위원회 진행 */}
-                {showStep3 && (
-                  <>
-                    {stepDivider}
-                    <div className="flex items-start gap-3">
-                      {stepCircle(3, true, true)}
-                      <div className="flex-1 pb-1">
-                        <p className="text-[15px] font-semibold mb-2 text-purple-700">심의위원회 진행</p>
-                        <div className="flex flex-wrap gap-2">
-                          {(["심의위원회검토중", "심의위원회검토완료"] as AdminStatus[]).map((status) => {
-                            const config = adminStatusConfig[status];
-                            const Icon = config.icon;
-                            const isSelected = st === status;
-                            return (
-                              <Button key={status} type="button" variant="outline" disabled={isViewOnly}
-                                onClick={() => { markDirty(); setReviewData(prev => ({ ...prev, adminStatus: status })); }}
-                                className={`cursor-pointer border-2 ${isSelected ? "border-purple-500 text-purple-700 bg-purple-50/50" : "border-[#E1E4E7] text-foreground"} ${isViewOnly ? "opacity-60 cursor-not-allowed" : ""}`}
-                              >
-                                <Icon className="mr-2 h-4 w-4" />{config.label}
-                              </Button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {/* Step 4: 심의위원회 판정 결과 */}
-                {showStep4 && (
-                  <>
-                    {stepDivider}
-                    <div className="flex items-start gap-3">
-                      {stepCircle(4, true, true)}
-                      <div className="flex-1 pb-1">
-                        <p className="text-[15px] font-semibold mb-2 text-purple-700">심의위원회 판정 결과</p>
-                        <div className="flex flex-wrap gap-2">
-                          {(["매수", "기각"] as const).map((judgment) => {
-                            const config = judgmentConfig[judgment];
-                            const Icon = config.icon;
-                            const isSelected = fj === judgment && isCom;
-                            return (
-                              <Button key={judgment} type="button" variant="outline" disabled={isViewOnly}
-                                onClick={() => { setPendingJudgmentState({ judgment, isCommittee: true }); setShowCompleteAlert(true); }}
-                                className={`cursor-pointer border-2 ${isSelected ? `${config.borderColor} ${config.textColor}` : "border-[#E1E4E7] text-foreground"} ${isViewOnly ? "opacity-60 cursor-not-allowed" : ""}`}
-                              >
-                                <Icon className="mr-2 h-4 w-4" />{config.label}
-                              </Button>
-                            );
-                          })}
-                        </div>
-                        {/* 기각 → 민원인 선택 옵션 */}
-                        {fj === "기각" && isCom && isComplete && (
-                          <div className="mt-3 p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-2">
-                            <p className="text-[14px] font-medium text-slate-600">민원인 수용 신청 선택 옵션</p>
-                            <p className="text-[13px] text-slate-400">기각 처리 시 민원인에게 아래 2가지 선택 옵션이 제공됩니다.</p>
-                            <div className="flex gap-2">
-                              <Badge variant="outline" className="text-[13px]">중토위 수용 신청</Badge>
-                              <Badge variant="outline" className="text-[13px]">한국도로공사 수용 신청</Badge>
-                            </div>
-                            {application.citizenAppealChoice ? (
-                              <p className="text-[14px] text-slate-600 pt-1">
-                                민원인 선택:&nbsp;
-                                <span className="font-semibold">
-                                  {application.citizenAppealChoice === "중토위" ? "중토위 수용 신청" : "한국도로공사 수용 신청"}
-                                </span>
-                              </p>
-                            ) : (
-                              <p className="text-[13px] text-slate-400">민원인이 아직 선택하지 않았습니다.</p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            );
-          })()}
-        </CardContent>
-      </Card>
-
-      {/* Section 04. 최종 검토 의견 */}
+      {/* Section 03. 최종 검토 의견 */}
       <Card className="border-0 shadow-none">
         <CardHeader>
           <CardTitle className="text-lg" style={{ fontSize: '20px' }}>최종 검토 의견 <span className="text-base font-normal text-muted-foreground">(선택)</span></CardTitle>
@@ -2711,6 +2756,13 @@ purchaseDecision: result?.provisionalJudgment === "수용가능" ? "O" as const 
                           isIncluded: true,
                         }))}
                         selectedParcelIds={new Set([allLands[expandedLandIndex]?.id])}
+                        sameOwnerParcels={dummyProcessedParcels
+                          .filter((p) => p.landInfo.ownerName === application.applicantName)
+                          .map((p) => ({
+                            id: p.id,
+                            address: p.landInfo.address,
+                            coordinates: p.landInfo.coordinates ?? [],
+                          }))}
                       />
                     </div>
                     <div className="p-3 border-t bg-muted/30">
@@ -2846,36 +2898,26 @@ purchaseDecision: result?.provisionalJudgment === "수용가능" ? "O" as const 
         </DialogContent>
       </Dialog>
 
-      {/* 심사완료 확인 알럿 */}
+      {/* 저장 전 최종 판정 확인 알럿 */}
       <AlertDialog open={showCompleteAlert} onOpenChange={setShowCompleteAlert}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>심사완료 처리</AlertDialogTitle>
-            <AlertDialogDescription>
-              심사완료 처리 시 해당건은 완료 처리되며 더 이상 수정이 불가합니다.
+            <AlertDialogTitle>검토 완료 저장</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-1">
+              <span className="block">저장 후에는 수정이 불가합니다.</span>
+              <span className="block text-muted-foreground">담당자 검토 완료로 저장하시겠습니까?</span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setShowCompleteAlert(false)}>다시 확인</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                markDirty();
-                if (pendingJudgmentState) {
-                  setReviewData((prev) => ({
-                    ...prev,
-                    adminStatus: "심사완료",
-                    finalJudgment: pendingJudgmentState.judgment,
-                    isCommitteeCase: pendingJudgmentState.isCommittee,
-                  }));
-                  setPendingJudgmentState(null);
-                } else {
-                  setReviewData((prev) => ({ ...prev, adminStatus: "심사완료" }));
-                }
                 setShowCompleteAlert(false);
+                doSave();
               }}
               className="bg-primary text-white hover:bg-primary/90"
             >
-              확인
+              저장
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

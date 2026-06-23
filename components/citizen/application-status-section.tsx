@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { dummyApplications, landCategories } from "@/lib/dummy-data";
 import { formatDateTime } from "@/lib/format";
 import type { Application, AdminStatus } from "@/lib/types";
@@ -34,7 +34,7 @@ import {
   Clock
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { AdminStatusBadge, adminStatusConfig } from "@/components/ui/status-badge";
+import { AdminStatusBadge } from "@/components/ui/status-badge";
 import { JudgmentStatus } from "@/components/ui/judgment-status";
 
 // 샘플 주소 데이터 (실제로는 API에서 가져옴)
@@ -143,7 +143,7 @@ function AddressSearchModal({
         </div>
         
         <div className="border-t bg-muted/30 p-3">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-[15px] text-muted-foreground">
             * 정확한 주소를 찾을 수 없는 경우, 가까운 건물명이나 도로명으로 검색해 보세요.
           </p>
         </div>
@@ -269,7 +269,7 @@ function LandInfoSection({
       <div className="flex items-center justify-between border-b border-border bg-muted/50 px-4 py-2.5">
         <h4 className="font-semibold text-foreground">심사 대상 필지</h4>
         {isMultipleLands && (
-          <span className={`flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium ${PARCEL_COUNT_COLORS.bg} ${PARCEL_COUNT_COLORS.text}`}>
+          <span className={`flex items-center gap-1 rounded px-2 py-0.5 text-[15px] font-medium ${PARCEL_COUNT_COLORS.bg} ${PARCEL_COUNT_COLORS.text}`}>
             <Layers className="h-3 w-3" />
             {allLands.length}필지
           </span>
@@ -279,8 +279,8 @@ function LandInfoSection({
       {/* 복수 필지일 경우 셀렉트박스로 표시 */}
       {isMultipleLands && (
         <div className="flex border-b border-border">
-          <div className="flex w-28 shrink-0 items-center bg-muted/30 px-4 py-3">
-            <span className="text-sm font-medium">필지 선택</span>
+          <div className="flex w-36 shrink-0 whitespace-nowrap items-center bg-muted/30 px-4 py-3">
+            <span className="text-[15px] font-medium">필지 선택</span>
           </div>
           <div className="flex flex-1 items-center px-4 py-3">
             <Select
@@ -304,32 +304,32 @@ function LandInfoSection({
       
       {/* 필지 주소 행 */}
       <div className="flex border-b border-border">
-        <div className="flex w-28 shrink-0 items-center bg-muted/30 px-4 py-3">
-          <span className="text-sm font-medium">필지 주소</span>
+        <div className="flex w-36 shrink-0 whitespace-nowrap items-center bg-muted/30 px-4 py-3">
+          <span className="text-[15px] font-medium">필지 주소</span>
         </div>
         <div className="flex flex-1 items-center px-4 py-3">
-          <span className="text-sm">{selectedLand.address}</span>
+          <span className="text-[15px]">{selectedLand.address}</span>
         </div>
       </div>
       
       {/* 토지 유형 행 */}
       <div className="flex border-b border-border">
-        <div className="flex w-28 shrink-0 items-center bg-muted/30 px-4 py-3">
-          <span className="text-sm font-medium">토지 유형</span>
+        <div className="flex w-36 shrink-0 whitespace-nowrap items-center bg-muted/30 px-4 py-3">
+          <span className="text-[15px] font-medium">토지 유형</span>
         </div>
         <div className="flex flex-1 items-center px-4 py-3">
-          <span className="text-sm">{selectedLand.landType}</span>
+          <span className="text-[15px]">{selectedLand.landType}</span>
         </div>
       </div>
       
       {/* 잔여 면적 행 */}
       <div className="flex border-b border-border">
-        <div className="flex w-28 shrink-0 items-center bg-muted/30 px-4 py-3">
-          <span className="text-sm font-medium">잔여 면적</span>
+        <div className="flex w-36 shrink-0 whitespace-nowrap items-center bg-muted/30 px-4 py-3">
+          <span className="text-[15px] font-medium">잔여 면적</span>
         </div>
         <div className="flex flex-1 items-center px-4 py-3">
           <span className="font-medium text-black">{selectedLand.remainingArea.toLocaleString()}m²</span>
-          <span className="ml-2 text-sm text-muted-foreground">(잔여 비율 {selectedLand.remainingRatio}%)</span>
+          <span className="ml-2 text-[15px] text-muted-foreground">(잔여 비율 {selectedLand.remainingRatio}%)</span>
         </div>
       </div>
       
@@ -350,8 +350,8 @@ function LandInfoSection({
           <Collapsible defaultOpen={false} className="border-b border-border">
             <CollapsibleTrigger asChild>
               <div className="flex cursor-pointer hover:bg-muted/50 transition-colors">
-                <div className="flex w-28 shrink-0 items-center bg-muted/30 px-4 py-3">
-                  <span className="text-sm font-medium">AI 판정</span>
+                <div className="flex w-36 shrink-0 whitespace-nowrap items-center bg-muted/30 px-4 py-3">
+                  <span className="text-[15px] font-medium">AI 판정</span>
                 </div>
                 <div className="flex flex-1 items-center justify-between px-4 py-3">
                   <div className="flex items-center gap-2">
@@ -386,7 +386,7 @@ function LandInfoSection({
       {/* 수정 모드 안내 */}
       {isEditMode && (
         <div className="border-b border-border bg-blue-50 px-4 py-2">
-          <p className="text-xs text-blue-700">
+          <p className="text-[15px] text-blue-700">
             AI 판단과 실제 현황이 다를 수 있습니다. 현재 토지의 실제 활용 상황을 입력해 주세요. (필지 주소는 수정 불가)
           </p>
         </div>
@@ -394,8 +394,8 @@ function LandInfoSection({
 
       {/* 활용 지목 / 공부상 지목 행 */}
       <div className="flex border-b border-border">
-        <div className="flex w-28 shrink-0 items-center bg-muted/30 px-4 py-3">
-          <span className="text-sm font-medium">활용 지목</span>
+        <div className="flex w-36 shrink-0 whitespace-nowrap items-center bg-muted/30 px-4 py-3">
+          <span className="text-[15px] font-medium">활용 지목</span>
         </div>
         <div className="flex flex-1 items-center px-4 py-3">
           {isEditMode && editData && onEditDataChange ? (
@@ -405,16 +405,16 @@ function LandInfoSection({
               triggerClassName="h-10 w-full max-w-[200px] bg-background"
             />
           ) : (
-            <span className="text-sm">
+            <span className="text-[15px]">
               {getLandUsageLabel(selectedLand.currentUsage || selectedLand.landCategory || "대")}
             </span>
           )}
         </div>
-        <div className="flex w-28 shrink-0 items-center border-l border-border bg-muted/30 px-4 py-3">
-          <span className="text-sm font-medium">공부상 지목</span>
+        <div className="flex w-36 shrink-0 whitespace-nowrap items-center border-l border-border bg-muted/30 px-4 py-3">
+          <span className="text-[15px] font-medium">공부상 지목</span>
         </div>
         <div className="flex flex-1 items-center px-4 py-3">
-          <span className="text-sm text-muted-foreground">{selectedLand.landType || "대 (택지)"}</span>
+          <span className="text-[15px] text-muted-foreground">{selectedLand.landType || "대 (택지)"}</span>
         </div>
       </div>
       
@@ -422,13 +422,13 @@ function LandInfoSection({
       
       {/* 확인 항목 행 */}
       <div className="flex border-b border-border">
-        <div className="flex w-28 shrink-0 items-start bg-muted/30 px-4 py-3">
-          <span className="text-sm font-medium">확인 항목</span>
+        <div className="flex w-36 shrink-0 whitespace-nowrap items-start bg-muted/30 px-4 py-3">
+          <span className="text-[15px] font-medium">확인 항목</span>
         </div>
         <div className="flex flex-1 flex-col px-4 py-3">
           {isEditMode && editData && onEditDataChange ? (
             <>
-              <p className="mb-3 text-xs text-muted-foreground">
+              <p className="mb-3 text-[15px] text-muted-foreground">
                 AI가 자동 판독할 수 없는 사항입니다. 해당되는 경우 체크해 주세요.
               </p>
               <div className="flex flex-wrap gap-x-6 gap-y-2">
@@ -438,7 +438,7 @@ function LandInfoSection({
                     checked={editData.roadFrontageLoss ?? false}
                     onCheckedChange={(checked) => onEditDataChange({ roadFrontageLoss: checked === true })}
                   />
-                  <span className="text-sm">접면도로 상실</span>
+                  <span className="text-[15px]">접면도로 상실</span>
                 </label>
                 <label className="flex cursor-pointer items-center gap-2">
                   <Checkbox
@@ -446,7 +446,7 @@ function LandInfoSection({
                     checked={editData.irrigationCanalLoss ?? false}
                     onCheckedChange={(checked) => onEditDataChange({ irrigationCanalLoss: checked === true })}
                   />
-                  <span className="text-sm">관개수로 상실</span>
+                  <span className="text-[15px]">관개수로 상실</span>
                 </label>
                 <label className="flex cursor-pointer items-center gap-2">
                   <Checkbox
@@ -454,7 +454,7 @@ function LandInfoSection({
                     checked={editData.farmEquipmentTurnImpossible ?? false}
                     onCheckedChange={(checked) => onEditDataChange({ farmEquipmentTurnImpossible: checked === true })}
                   />
-                  <span className="text-sm">농기계 회전 불가</span>
+                  <span className="text-[15px]">농기계 회전 불가</span>
                 </label>
               </div>
             </>
@@ -467,13 +467,13 @@ function LandInfoSection({
               return checks.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
                   {checks.map((check, i) => (
-                    <span key={i} className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                    <span key={i} className="rounded bg-amber-100 px-2 py-0.5 text-[15px] font-medium text-amber-700">
                       {check}
                     </span>
                   ))}
                 </div>
               ) : (
-                <span className="text-sm text-muted-foreground">해당 없음</span>
+                <span className="text-[15px] text-muted-foreground">해당 없음</span>
               );
             })()
           )}
@@ -482,11 +482,11 @@ function LandInfoSection({
 
       {/* 인접 토지 소유 여부 행 */}
       <div className="flex border-b border-border">
-        <div className="flex w-28 shrink-0 items-center bg-muted/30 px-4 py-3">
-          <span className="text-sm font-medium">인접 토지 소유</span>
+        <div className="flex w-36 shrink-0 whitespace-nowrap items-center bg-muted/30 px-4 py-3">
+          <span className="text-[15px] font-medium">인접 토지 소유</span>
         </div>
         <div className="flex flex-1 items-center px-4 py-3">
-          <span className="text-sm">
+          <span className="text-[15px]">
             {application.hasAdjacentLand ? "있음" : "없음"}
           </span>
         </div>
@@ -494,37 +494,37 @@ function LandInfoSection({
 
       {/* 신청사유 행 */}
       <div className="flex border-b border-border">
-        <div className="flex w-28 shrink-0 items-start bg-muted/30 px-4 py-3">
-          <span className="text-sm font-medium">신청사유</span>
+        <div className="flex w-36 shrink-0 whitespace-nowrap items-start bg-muted/30 px-4 py-3">
+          <span className="text-[15px] font-medium">신청사유</span>
         </div>
         <div className="flex flex-1 items-center px-4 py-3">
           {isEditMode && editData && onEditDataChange ? (
             <Textarea
               value={editData.reason}
               onChange={(e) => onEditDataChange({ reason: e.target.value })}
-              className="min-h-[80px] text-sm"
+              className="min-h-[80px] text-[15px]"
             />
           ) : (
-            <span className="text-sm">{application.reason}</span>
+            <span className="text-[15px]">{application.reason}</span>
           )}
         </div>
       </div>
 
       {/* 첨부 서류 행 */}
       <div className="flex">
-        <div className="flex w-28 shrink-0 items-start bg-muted/30 px-4 py-3">
-          <span className="text-sm font-medium">첨부 서류</span>
+        <div className="flex w-36 shrink-0 whitespace-nowrap items-start bg-muted/30 px-4 py-3">
+          <span className="text-[15px] font-medium">첨부 서류</span>
         </div>
         <div className="flex flex-1 px-4 py-3">
           {isEditMode && editData && onFileChange && onRemoveFile ? (
             <div className="w-full space-y-3">
               <div className="rounded-md border border-dashed border-gray-300 bg-gray-50 p-3">
-                <p className="mb-2 text-center text-sm text-muted-foreground">
+                <p className="mb-2 text-center text-[15px] text-muted-foreground">
                   첨부할 파일을 여기에 끌어다 놓거나, 파일 선택 버튼을 클릭하세요.
                 </p>
                 <div className="flex items-center justify-center">
                   <label className="cursor-pointer">
-                    <span className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-foreground shadow-sm transition-colors hover:bg-gray-50">
+                    <span className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-[15px] font-medium text-foreground shadow-sm transition-colors hover:bg-gray-50">
                       <Upload className="size-[14px]" />
                       파일선택
                     </span>
@@ -541,7 +541,7 @@ function LandInfoSection({
 
               {editData.attachments.length > 0 && (
                 <div className="space-y-1.5">
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-[15px] text-muted-foreground">
                     {editData.attachments.length}개 / {MAX_FILES}개
                   </span>
                   <ul className="space-y-1">
@@ -550,7 +550,7 @@ function LandInfoSection({
                         key={index}
                         className="flex items-center justify-between rounded-md border border-gray-200 bg-white px-3 py-2"
                       >
-                        <span className="truncate text-xs text-foreground">
+                        <span className="truncate text-[15px] text-foreground">
                           {file.name} <span className="text-muted-foreground">[{file.size}]</span>
                         </span>
                         <Button
@@ -568,7 +568,7 @@ function LandInfoSection({
                 </div>
               )}
 
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[15px] text-muted-foreground">
                 PDF, JPG, PNG 파일 (최대 {MAX_FILES}개, 파일당 20MB 이하)
               </p>
             </div>
@@ -576,7 +576,7 @@ function LandInfoSection({
             <div className="space-y-1.5">
               {application.attachments && application.attachments.length > 0 ? (
                 <>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-[15px] text-muted-foreground">
                     {application.attachments.length}개 파일 첨부됨
                   </span>
                   <ul className="flex flex-row flex-wrap gap-2">
@@ -587,7 +587,7 @@ function LandInfoSection({
                         onClick={() => openFileViewer(fileName)}
                         title="파일 보기"
                       >
-                        <span className="truncate max-w-[120px] text-xs text-foreground">
+                        <span className="truncate max-w-[120px] text-[15px] text-foreground">
                           {fileName}
                         </span>
                         <Eye className="size-[14px] shrink-0 text-muted-foreground" />
@@ -596,7 +596,7 @@ function LandInfoSection({
                   </ul>
                 </>
               ) : (
-                <span className="text-sm text-muted-foreground">첨부된 파일 없음</span>
+                <span className="text-[15px] text-muted-foreground">첨부된 파일 없음</span>
               )}
             </div>
           )}
@@ -606,10 +606,14 @@ function LandInfoSection({
       {/* 최종 판정 항목 (심의위원회 회부 이후 또는 심사완료 시 표시) */}
       {(() => {
         const st = application.adminStatus;
-        const fj = application.finalJudgment;
         const isCom = application.isCommitteeCase;
         const isComplete = st === "심사완료";
         const isCommitteeStage = st === "심의위원회회부" || st === "심의위원회검토중" || st === "심의위원회검토완료";
+
+        // 복수필지 per-parcel 판정 우선, 없으면 전체 finalJudgment 사용
+        const perParcel = application.landJudgmentsForReview?.[selectedLandIndex];
+        const fj: string | undefined = perParcel?.judgment ?? application.finalJudgment;
+        const appealChoice = perParcel ? perParcel.citizenAppealChoice : application.citizenAppealChoice;
 
         if (!isCommitteeStage && !(isComplete && fj)) return null;
 
@@ -623,8 +627,8 @@ function LandInfoSection({
           textColor = "text-amber-700";
         } else if (st === "심의위원회검토중") {
           label = "심의 위원회 회부(검토 중)";
-          icon = <PlayCircle className="h-5 w-5 text-purple-500" />;
-          textColor = "text-purple-700";
+          icon = <PlayCircle className="h-5 w-5 text-amber-500" />;
+          textColor = "text-amber-700";
         } else if (st === "심의위원회검토완료") {
           if (fj === "매수") {
             label = "심의 위원회 회부(검토 완료 - 매수)";
@@ -634,11 +638,8 @@ function LandInfoSection({
             label = "심의 위원회 회부(검토 완료 - 기각)";
             icon = <AlertTriangle className="h-5 w-5 text-destructive" />;
             textColor = "text-destructive";
-          } else {
-            label = "심의 위원회 회부(검토 완료)";
-            icon = <CheckCircle2 className="h-5 w-5 text-purple-500" />;
-            textColor = "text-purple-700";
           }
+          // finalJudgment 없으면 표시 안 함 (판정 미입력 상태)
         } else if (isComplete && isCom && fj === "매수") {
           label = "심의 위원회 회부(검토 완료 - 매수)";
           icon = <CheckCircle2 className="h-5 w-5 text-success" />;
@@ -656,7 +657,6 @@ function LandInfoSection({
           icon = <AlertTriangle className="h-5 w-5 text-destructive" />;
           textColor = "text-destructive";
         } else if (isComplete && fj === "심의위원회 이관") {
-          // 구형 데이터 호환: finalJudgment가 "심의위원회 이관"으로 저장된 경우
           label = "심의위원회 회부";
           icon = <Clock className="h-5 w-5 text-amber-500" />;
           textColor = "text-amber-700";
@@ -664,29 +664,61 @@ function LandInfoSection({
 
         if (!label) return null;
 
+        // 기각 + 수용신청 옵션 표시 여부
+        const showAppeal = fj === "기각" && onSave &&
+          ((isComplete && (isCom || application.finalJudgment === "심의위원회 이관")) || st === "심의위원회검토완료");
+
+        // CommitteeRejectionAppeal에 전달할 application (per-parcel이면 해당 필지의 선택값 주입)
+        const appealApp = perParcel
+          ? { ...application, citizenAppealChoice: appealChoice ?? null }
+          : application;
+
+        const handleAppealSave = onSave
+          ? (updated: Application) => {
+              if (perParcel && application.landJudgmentsForReview) {
+                const updatedJudgments = application.landJudgmentsForReview.map((j, i) =>
+                  i === selectedLandIndex ? { ...j, citizenAppealChoice: updated.citizenAppealChoice } : j
+                );
+                onSave({ ...updated, landJudgmentsForReview: updatedJudgments });
+              } else {
+                onSave(updated);
+              }
+            }
+          : undefined;
+
         return (
           <>
             <div className="flex border-t border-border">
-              <div className="flex w-28 shrink-0 items-center bg-muted/30 px-4 py-4">
-                <span className="text-sm font-medium">최종 판정</span>
+              <div className="flex w-36 shrink-0 whitespace-nowrap items-center bg-muted/30 px-4 py-4">
+                <span className="text-[15px] font-medium">최종 판정</span>
               </div>
               <div className="flex flex-1 items-center gap-3 px-4 py-4">
                 {icon}
                 <span className={`text-base font-semibold ${textColor}`}>{label}</span>
               </div>
             </div>
+            {(st === "심의위원회회부" || st === "심의위원회검토중") && (
+              <div className="flex items-start gap-2 border-t border-border bg-amber-50 px-4 py-3">
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+                <p className="text-[14px] text-amber-700 leading-relaxed">
+                  {st === "심의위원회회부"
+                    ? "심의위원회 검토가 곧 진행 될 예정입니다."
+                    : "심의위원회에서 검토가 진행 중입니다. 검토가 완료되면 결과를 안내드리겠습니다."}
+                </p>
+              </div>
+            )}
             {application.reviewerComment && (
               <div className="flex border-t border-border">
-                <div className="flex w-28 shrink-0 bg-muted/30 px-4 py-3">
-                  <span className="text-sm font-medium">검토 의견</span>
+                <div className="flex w-36 shrink-0 whitespace-nowrap bg-muted/30 px-4 py-3">
+                  <span className="text-[15px] font-medium">검토 의견</span>
                 </div>
                 <div className="flex flex-1 px-4 py-3">
-                  <p className="text-sm text-muted-foreground">{application.reviewerComment}</p>
+                  <p className="text-[15px] text-muted-foreground">{application.reviewerComment}</p>
                 </div>
               </div>
             )}
-            {((isComplete && (isCom || fj === "심의위원회 이관")) || st === "심의위원회검토완료") && fj === "기각" && onSave && (
-              <CommitteeRejectionAppeal application={application} onSave={onSave} />
+            {showAppeal && handleAppealSave && (
+              <CommitteeRejectionAppeal key={perParcel?.landId ?? "single"} application={appealApp} onSave={handleAppealSave} />
             )}
           </>
         );
@@ -701,7 +733,7 @@ function LandInfoSection({
                 첨부파일 미리보기
               </DialogTitle>
               <div className="flex items-center gap-3">
-                <span className="text-sm text-muted-foreground">{selectedFile}</span>
+                <span className="text-[15px] text-muted-foreground">{selectedFile}</span>
                 <Button
                   variant="outline"
                   size="sm"
@@ -723,7 +755,7 @@ function LandInfoSection({
                       alt={selectedFile}
                       className="max-w-full max-h-full object-contain rounded-lg"
                     />
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1.5 rounded-full">
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white text-[15px] px-3 py-1.5 rounded-full">
                       데모용 샘플 이미지입니다
                     </div>
                   </div>
@@ -734,7 +766,7 @@ function LandInfoSection({
                       className="w-full h-full border-0"
                       title={selectedFile}
                     />
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1.5 rounded-full">
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white text-[15px] px-3 py-1.5 rounded-full">
                       데모용 샘플 PDF입니다
                     </div>
                   </div>
@@ -742,7 +774,7 @@ function LandInfoSection({
                   <div className="flex flex-col items-center justify-center gap-4 text-muted-foreground w-full h-full">
                     <FileText className="size-24 text-muted-foreground/50" />
                     <p className="text-base">미리보기를 지원하지 않는 파일 형식입니다.</p>
-                    <p className="text-sm">파일을 다운로드하여 확인해 주세요.</p>
+                    <p className="text-[15px]">파일을 다운로드하여 확인해 주세요.</p>
                   </div>
                 )}
               </div>
@@ -765,62 +797,174 @@ function CommitteeRejectionAppeal({
   application: Application;
   onSave: (updatedApp: Application) => void;
 }) {
-  const [selectedAppeal, setSelectedAppeal] = useState<"중토위" | "한국도로공사" | null>(
+  const [selected, setSelected] = useState<"중토위" | "한국도로공사" | null>(
     application.citizenAppealChoice ?? null
   );
-  const [expandedInfo, setExpandedInfo] = useState<"중토위" | "한국도로공사" | null>(null);
+  const [pendingChoice, setPendingChoice] = useState<"중토위" | "한국도로공사" | null>(null);
+  const isLocked = selected !== null; // 한 번 선택하면 번복 불가
 
   const handleSelect = (choice: "중토위" | "한국도로공사") => {
-    setSelectedAppeal(choice);
-    setExpandedInfo(choice);
+    if (isLocked) return;
+    setSelected(choice);
     onSave({ ...application, citizenAppealChoice: choice });
   };
 
-  const guideText: Record<"중토위" | "한국도로공사", string> = {
-    중토위:
-      "중앙토지수용위원회(중토위)에 이의신청을 하실 수 있습니다. 재결 신청서를 작성하여 사업 시행자를 통해 제출하거나, 중토위에 직접 제출하실 수 있습니다. 재결 신청 기간은 보상협의 요청을 받은 날부터 30일 이내입니다.",
-    한국도로공사:
-      "한국도로공사에 직접 수용을 신청하실 수 있습니다. 사업 담당 부서에 수용 신청서와 관련 서류를 제출하시면 내부 검토 후 결과를 안내드립니다.",
+  const handleConfirm = () => {
+    if (pendingChoice) {
+      handleSelect(pendingChoice);
+      setPendingChoice(null);
+    }
   };
 
-  return (
-    <div className="border-t border-border px-4 py-4 space-y-3">
-      <p className="text-sm font-semibold text-foreground">수용 신청 방법 선택</p>
-      <p className="text-xs text-muted-foreground">
-        심의위원회에서 기각되었습니다. 아래 방법 중 하나를 선택하여 수용 신청을 진행하실 수 있습니다.
-      </p>
-      {application.citizenAppealChoice ? (
-        <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 space-y-2">
-          <p className="text-sm font-medium text-slate-700">
-            선택하신 방법:{" "}
-            <span className="text-primary">
-              {application.citizenAppealChoice === "중토위" ? "중토위 수용 신청" : "한국도로공사 수용 신청"}
+  const options: {
+    key: "중토위" | "한국도로공사";
+    title: string;
+    badge: string;
+    badgeColor: string;
+    summary: string;
+    detail: React.ReactNode;
+  }[] = [
+    {
+      key: "한국도로공사",
+      title: "한국도로공사에 신청",
+      badge: "담당자가 연락 드립니다",
+      badgeColor: "bg-emerald-50 text-emerald-700",
+      summary: "한국도로공사 담당자가 직접 연락하여 수용 신청 절차를 안내해 드립니다.",
+      detail: (
+        <ul className="space-y-1 text-[15px] text-slate-600">
+          <li>· 선택 후 담당자가 등록된 연락처로 순차 연락 드립니다</li>
+          <li>· 담당자 안내에 따라 서류(토지대장, 등기사항전부증명서, 현황사진 등) 준비</li>
+          <li>· 내부 검토 및 현장 확인 후 매수 여부·보상금 서면 통보</li>
+          <li>· 결과에 이의가 있을 경우 중토위 재결 신청 가능</li>
+          <li className="text-slate-400 text-[13px]">※ 문의: 한국도로공사 고객센터 ☎ 1588-2504</li>
+        </ul>
+      ),
+    },
+    {
+      key: "중토위",
+      title: "중앙토지수용위원회에 신청",
+      badge: "민원인 직접 신청",
+      badgeColor: "bg-blue-50 text-blue-700",
+      summary: "민원인이 직접 중앙토지수용위원회(중토위)에 수용 재결을 신청하는 방법입니다.",
+      detail: (
+        <ul className="space-y-1 text-[15px] text-slate-600">
+          <li>· 보상협의 요청일로부터 <span className="font-medium text-slate-800">30일 이내</span> 재결 신청서 제출</li>
+          <li>· 준비 서류: 등기사항전부증명서, 보상협의 결렬 확인서, 신분증 사본</li>
+          <li>· 사업 시행자(한국도로공사) 경유 또는 중토위에 직접 제출 가능</li>
+          <li>· 심리·재결 후 보상금 확정 / 불복 시 행정소송 가능</li>
+          <li className="text-slate-400 text-[13px]">※ 문의: 중앙토지수용위원회 ☎ 1670-4655</li>
+        </ul>
+      ),
+    },
+  ];
+
+  // 선택 완료 후: 선택한 옵션만 표시
+  if (isLocked) {
+    const chosen = options.find((o) => o.key === selected)!;
+    return (
+      <div className="border-t border-border px-4 py-4 space-y-3">
+        <p className="text-[15px] font-semibold text-foreground">수용 신청 방법</p>
+        <div className="rounded-lg border-2 border-primary bg-primary/5 p-4 space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[15px] font-semibold text-foreground">{chosen.title}</span>
+            <span className={`rounded-full px-2 py-0.5 text-[13px] font-medium ${chosen.badgeColor}`}>
+              {chosen.badge}
             </span>
-          </p>
-          <p className="text-xs text-muted-foreground">{guideText[application.citizenAppealChoice]}</p>
+          </div>
+          <p className="text-[15px] text-muted-foreground">{chosen.summary}</p>
+          <div className="rounded-md bg-slate-50 border border-slate-100 px-3 py-2.5">
+            {chosen.detail}
+          </div>
         </div>
-      ) : (
-        <div className="flex flex-col gap-2">
-          {(["중토위", "한국도로공사"] as const).map((choice) => (
-            <div key={choice}>
-              <Button
-                variant="outline"
-                className={`w-full justify-start border-2 ${selectedAppeal === choice ? "border-primary text-primary" : "border-[#E1E4E7] text-foreground"}`}
-                onClick={() => handleSelect(choice)}
-              >
-                {choice === "중토위" ? "중토위 수용 신청" : "한국도로공사 수용 신청"}
-              </Button>
-              {expandedInfo === choice && (
-                <div className="mt-1 px-3 py-2 rounded-md bg-slate-50 border border-slate-200 text-xs text-slate-600">
-                  {guideText[choice]}
+        <div className="flex items-center gap-2 rounded-md bg-primary/5 border border-primary/20 px-3 py-2">
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
+          <p className="text-[15px] text-primary font-medium">
+            {selected === "중토위"
+              ? "선택이 완료되었습니다."
+              : "선택이 완료되었습니다. 담당자에게 전달되었습니다."}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // 선택 전: 두 옵션 카드 모두 표시
+  return (
+    <>
+      <AlertDialog open={pendingChoice !== null} onOpenChange={(open) => { if (!open) setPendingChoice(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>수용 신청 방법 확정</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-1">
+              <span className="block">
+                <span className="font-semibold text-foreground">
+                  {pendingChoice === "한국도로공사" ? "한국도로공사에 신청" : "중앙토지수용위원회에 신청"}
+                </span>
+                을 선택하셨습니다.
+              </span>
+              <span className="block text-muted-foreground">
+                한 번 선택하면 이후 변경이 불가합니다. 신중하게 확인 후 확정해 주세요.
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingChoice(null)}>재확인</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirm}>확정</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <div className="border-t border-border px-4 py-4 space-y-3">
+        <div className="space-y-3">
+          <p className="text-[15px] font-semibold text-foreground">수용 신청 방법 선택</p>
+          <div className="rounded-md bg-slate-50 border border-slate-200 px-4 py-3 space-y-1.5">
+            <p className="text-[15px] font-medium text-slate-700">수용 신청(수용재결신청)이란?</p>
+            <p className="text-[15px] text-slate-600 leading-relaxed">
+              공익사업(도로 건설, 재개발 등)을 위해 사업시행자가 토지 소유자와 보상 협의를
+              하지 못했을 때, 관할 토지수용위원회에 토지와 물건의 수용 및 보상금 산정을
+              공식적으로 재결해 달라고 요구하는 법적 절차입니다.
+            </p>
+            <p className="text-[15px] text-slate-500 leading-relaxed">
+              아래 두 가지 방법 중 하나를 선택하여 진행하실 수 있습니다.
+              각 절차를 충분히 확인하신 후 선택해 주세요. 선택 후에는 변경이 불가합니다.
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-col gap-3">
+          {options.map((opt) => (
+            <button
+              key={opt.key}
+              onClick={() => setPendingChoice(opt.key)}
+              className="w-full text-left rounded-lg border-2 border-slate-200 bg-white p-4 transition-all hover:border-slate-300 hover:bg-slate-50"
+            >
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-slate-300" />
+                <div className="flex-1 space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[15px] font-semibold text-foreground">{opt.title}</span>
+                    <span className={`rounded-full px-2 py-0.5 text-[13px] font-medium ${opt.badgeColor}`}>
+                      {opt.badge}
+                    </span>
+                  </div>
+                  <p className="text-[15px] text-muted-foreground">{opt.summary}</p>
+                  <div className="rounded-md bg-slate-50 border border-slate-100 px-3 py-2.5">
+                    {opt.detail}
+                  </div>
                 </div>
-              )}
-            </div>
+              </div>
+            </button>
           ))}
         </div>
-      )}
-    </div>
+      </div>
+    </>
   );
+}
+
+// 신청 목록/상세 공통: 실제 상태를 3단계 시민 표시 상태로 변환
+function toListStatus(status: AdminStatus): AdminStatus {
+  if (status === "접수완료") return "접수완료";
+  if (status === "담당자검토중" || status === "심의위원회회부" || status === "심의위원회검토중") return "담당자검토중";
+  return "담당자검토완료";
 }
 
 // 상세 정보 패널 컴포넌트 (고용24 스타일)
@@ -1018,9 +1162,7 @@ function ApplicationDetailPanel({
       {/* 상세 화면 타이틀 헤더 */}
       <div className="flex items-center justify-between px-0 py-3">
         <div className="flex items-center gap-3">
-          <Badge variant={adminStatusConfig[application.adminStatus].variant}>
-            {adminStatusConfig[application.adminStatus].label}
-          </Badge>
+          <AdminStatusBadge status={toListStatus(application.adminStatus)} />
           <span className="text-lg font-semibold text-foreground">{application.applicationNumber}</span>
         </div>
         {/* 수정/저장/취소 버튼 - 접수완료 상태에서만 활성화 */}
@@ -1030,7 +1172,7 @@ function ApplicationDetailPanel({
               variant="outline"
               size="sm"
               onClick={handleCancel}
-              className="h-8 gap-1.5 text-xs"
+              className="h-8 gap-1.5 text-[15px]"
             >
               <X className="size-[18px]" />
               취소
@@ -1038,7 +1180,7 @@ function ApplicationDetailPanel({
             <Button
               size="sm"
               onClick={handleSaveClick}
-              className="h-8 gap-1.5 text-xs"
+              className="h-8 gap-1.5 text-[15px]"
             >
               <Save className="size-[18px]" />
               저장
@@ -1047,7 +1189,7 @@ function ApplicationDetailPanel({
         ) : (
           <div className="flex items-center gap-2">
             {!canEdit && (
-              <span className="text-xs text-muted-foreground">
+              <span className="text-[15px] text-muted-foreground">
                 이미 심사가 완료되어 정보 수정이 제한됩니다
               </span>
             )}
@@ -1062,7 +1204,7 @@ function ApplicationDetailPanel({
                   onEditModeChange(true);
                 }
               }}
-              className={`h-8 text-xs ${!canEdit ? "opacity-50 cursor-not-allowed" : ""}`}
+              className={`h-8 text-[15px] ${!canEdit ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               수정
             </Button>
@@ -1078,11 +1220,11 @@ function ApplicationDetailPanel({
         
         {/* 신청일 행 */}
         <div className="flex border-b border-border">
-          <div className="flex w-28 shrink-0 items-center bg-muted/30 px-4 py-3">
-            <span className="text-sm font-medium">신청일시</span>
+          <div className="flex w-36 shrink-0 whitespace-nowrap items-center bg-muted/30 px-4 py-3">
+            <span className="text-[15px] font-medium">신청일시</span>
           </div>
           <div className="flex flex-1 items-center px-4 py-3">
-            <span className="text-sm">{formatDateTime(application.appliedAt)}</span>
+            <span className="text-[15px]">{formatDateTime(application.appliedAt)}</span>
           </div>
         </div>
 
@@ -1090,8 +1232,8 @@ function ApplicationDetailPanel({
         {((isEditMode && editData.applicantRelation === "agent") || (!isEditMode && application.applicantRelation === "agent")) && (
           <>
             <div className="flex border-b border-border">
-              <div className="flex w-28 shrink-0 items-center bg-muted/30 px-4 py-3">
-                <span className="text-sm font-medium">대리인 성명</span>
+              <div className="flex w-36 shrink-0 whitespace-nowrap items-center bg-muted/30 px-4 py-3">
+                <span className="text-[15px] font-medium">대리인 성명</span>
               </div>
               <div className="flex flex-1 items-center px-4 py-3">
                 {isEditMode ? (
@@ -1099,16 +1241,16 @@ function ApplicationDetailPanel({
                     value={editData.agentName}
                     onChange={(e) => setEditData({ ...editData, agentName: e.target.value })}
                     placeholder="대리인 성명을 입력해주세요"
-                    className="h-10 text-sm"
+                    className="h-10 text-[15px]"
                   />
                 ) : (
-                  <span className="text-sm">{application.agentName || "-"}</span>
+                  <span className="text-[15px]">{application.agentName || "-"}</span>
                 )}
               </div>
             </div>
             <div className="flex border-b border-border">
-              <div className="flex w-28 shrink-0 items-center bg-muted/30 px-4 py-3">
-                <span className="text-sm font-medium">대리인 연락처</span>
+              <div className="flex w-36 shrink-0 whitespace-nowrap items-center bg-muted/30 px-4 py-3">
+                <span className="text-[15px] font-medium">대리인 연락처</span>
               </div>
               <div className="flex flex-1 items-center px-4 py-3">
                 {isEditMode ? (
@@ -1123,16 +1265,16 @@ function ApplicationDetailPanel({
                     }}
                     placeholder="'-' 없이 숫자만 입력"
                     maxLength={13}
-                    className="h-10 text-sm"
+                    className="h-10 text-[15px]"
                   />
                 ) : (
-                  <span className="text-sm">{application.agentContact || "-"}</span>
+                  <span className="text-[15px]">{application.agentContact || "-"}</span>
                 )}
               </div>
             </div>
             {isEditMode && (
               <div className="border-b border-border bg-amber-50 px-4 py-2">
-                <p className="text-xs text-amber-700">
+                <p className="text-[15px] text-amber-700">
                   대리인 신청 시 위임장 및 대리인 신분증 사본을 첨부 서류에 추가해 주세요.
                 </p>
               </div>
@@ -1142,26 +1284,26 @@ function ApplicationDetailPanel({
 
         {/* 소유자 성명 행 */}
         <div className="flex border-b border-border">
-          <div className="flex w-28 shrink-0 items-center bg-muted/30 px-4 py-3">
-            <span className="text-sm font-medium">소유자 성명</span>
+          <div className="flex w-36 shrink-0 whitespace-nowrap items-center bg-muted/30 px-4 py-3">
+            <span className="text-[15px] font-medium">소유자 성명</span>
           </div>
           <div className="flex flex-1 items-center px-4 py-3">
             {isEditMode ? (
               <Input
                 value={editData.applicantName}
                 onChange={(e) => setEditData({ ...editData, applicantName: e.target.value })}
-                className="h-10 text-sm"
+                className="h-10 text-[15px]"
               />
             ) : (
-              <span className="text-sm">{application.applicantName}</span>
+              <span className="text-[15px]">{application.applicantName}</span>
             )}
           </div>
         </div>
 
         {/* 소유자 연락처 행 */}
         <div className="flex border-b border-border">
-          <div className="flex w-28 shrink-0 items-center bg-muted/30 px-4 py-3">
-            <span className="text-sm font-medium">소유자 연락처</span>
+          <div className="flex w-36 shrink-0 whitespace-nowrap items-center bg-muted/30 px-4 py-3">
+            <span className="text-[15px] font-medium">소유자 연락처</span>
           </div>
           <div className="flex flex-1 items-center px-4 py-3">
             {isEditMode ? (
@@ -1176,18 +1318,18 @@ function ApplicationDetailPanel({
                 }}
                 placeholder="'-' 없이 숫자만 입력"
                 maxLength={13}
-                className="h-10 text-sm"
+                className="h-10 text-[15px]"
               />
             ) : (
-              <span className="text-sm">{application.applicantContact}</span>
+              <span className="text-[15px]">{application.applicantContact}</span>
             )}
           </div>
         </div>
 
         {/* 주소 행 */}
         <div className="flex border-b border-border">
-          <div className="flex w-28 shrink-0 items-start bg-muted/30 px-4 py-3">
-            <span className="text-sm font-medium">주소</span>
+          <div className="flex w-36 shrink-0 whitespace-nowrap items-start bg-muted/30 px-4 py-3">
+            <span className="text-[15px] font-medium">주소</span>
           </div>
           <div className="flex flex-1 items-center px-4 py-3">
             {isEditMode ? (
@@ -1197,7 +1339,7 @@ function ApplicationDetailPanel({
                     value={editData.postalCode}
                     placeholder="우편번호"
                     readOnly
-                    className="h-10 w-24 bg-muted text-sm"
+                    className="h-10 w-24 bg-muted text-[15px]"
                   />
                   <Button
                     type="button"
@@ -1213,17 +1355,17 @@ function ApplicationDetailPanel({
                   value={editData.baseAddress}
                   placeholder="기본주소"
                   readOnly
-                  className="h-10 bg-muted text-sm"
+                  className="h-10 bg-muted text-[15px]"
                 />
                 <Input
                   value={editData.detailAddress}
                   onChange={(e) => setEditData({ ...editData, detailAddress: e.target.value })}
                   placeholder="상세주소를 입력해주세요"
-                  className="h-10 text-sm"
+                  className="h-10 text-[15px]"
                 />
               </div>
             ) : (
-              <span className="text-sm">{application.applicantAddress}</span>
+              <span className="text-[15px]">{application.applicantAddress}</span>
             )}
           </div>
         </div>
@@ -1280,7 +1422,7 @@ function ApplicationDetailPanel({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="mx-4 w-full max-w-md rounded-lg bg-background p-6 shadow-xl">
             <h3 className="mb-2 text-lg font-semibold">저장 확인</h3>
-            <p className="mb-6 text-sm text-muted-foreground">
+            <p className="mb-6 text-[15px] text-muted-foreground">
               변경된 내용을 저장하시겠습니까?
             </p>
             <div className="flex justify-end gap-2">
@@ -1370,14 +1512,14 @@ export function ApplicationStatusSection({ onReapply }: ApplicationStatusSection
         <div className="flex h-full max-h-[calc(100vh-200px)] flex-col overflow-hidden rounded-lg border border-border">
           <div className="flex shrink-0 items-center justify-between border-b border-border bg-muted/50 px-4 py-2.5">
             <h3 className="font-semibold text-foreground">신청 목록</h3>
-            <span className="text-sm text-muted-foreground">{myApplications.length}건</span>
+            <span className="text-[15px] text-muted-foreground">{myApplications.length}건</span>
           </div>
           
           {myApplications.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center p-8 text-center">
               <FileText className="h-10 w-10 text-muted-foreground" />
-              <p className="mt-4 text-sm font-medium text-foreground">신청 내역이 없습니다</p>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="mt-4 text-[15px] font-medium text-foreground">신청 내역이 없습니다</p>
+              <p className="mt-1 text-[15px] text-muted-foreground">
                 신규 신청 탭에서 잔여지 매수를 신청해 주세요.
               </p>
             </div>
@@ -1399,14 +1541,14 @@ export function ApplicationStatusSection({ onReapply }: ApplicationStatusSection
                     >
                       {/* 상단: 상태 + 접수번호 */}
                       <div className="flex items-center gap-2">
-                        <AdminStatusBadge status={app.adminStatus} size="sm" />
-                        <span className={`text-sm font-semibold ${isSelected ? "text-primary" : "text-foreground"}`}>
+                        <AdminStatusBadge status={toListStatus(app.adminStatus)} size="sm" />
+                        <span className={`text-[15px] font-semibold ${isSelected ? "text-primary" : "text-foreground"}`}>
                           {app.applicationNumber}
                         </span>
                       </div>
 
                       {/* 주소 */}
-                      <p className="mt-1.5 truncate text-xs text-muted-foreground">
+                      <p className="mt-1.5 truncate text-[15px] text-muted-foreground">
                         {app.landInfo.address}
                         {isMultipleLands && (
                           <span className="ml-1 font-medium text-black">외 {app.additionalLands.length}필지</span>
@@ -1415,7 +1557,7 @@ export function ApplicationStatusSection({ onReapply }: ApplicationStatusSection
 
                       {/* 하단: 날짜 */}
                       <div className="mt-2">
-                        <span className="text-xs text-muted-foreground">{formatDateTime(app.appliedAt)}</span>
+                        <span className="text-[15px] text-muted-foreground">{formatDateTime(app.appliedAt)}</span>
                       </div>
                     </button>
                   </li>
@@ -1445,7 +1587,7 @@ export function ApplicationStatusSection({ onReapply }: ApplicationStatusSection
             <div className="flex h-48 items-center justify-center">
               <div className="text-center">
                 <FileText className="mx-auto h-8 w-8 text-muted-foreground" />
-                <p className="mt-2 text-sm text-muted-foreground">신청 내역을 선택해주세요</p>
+                <p className="mt-2 text-[15px] text-muted-foreground">신청 내역을 선택해주세요</p>
               </div>
             </div>
           </div>
@@ -1457,7 +1599,7 @@ export function ApplicationStatusSection({ onReapply }: ApplicationStatusSection
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="mx-4 w-full max-w-md rounded-lg bg-background p-6 shadow-xl">
             <h3 className="mb-2 text-lg font-semibold">수정 내용이 저장되지 않습니다</h3>
-            <p className="mb-6 text-sm text-muted-foreground">
+            <p className="mb-6 text-[15px] text-muted-foreground">
               현재 수정 중인 내용이 있습니다. 저장하지 않고 다른 신청으로 이동하시겠습니까?
             </p>
             <div className="flex justify-end gap-2">
@@ -1478,9 +1620,9 @@ export function ApplicationStatusSection({ onReapply }: ApplicationStatusSection
           <div className="mx-4 w-full max-w-md rounded-lg bg-background p-6 shadow-xl">
             <h3 className="font-semibold text-lg mb-3">신청 내용 수정 안내</h3>
             
-            <div className="text-sm text-muted-foreground space-y-2 mb-6">
+            <div className="text-[15px] text-muted-foreground space-y-2 mb-6">
               <p>신청 내용 수정 시 기존 신청은 자동 취소되며, 해당 필지로 새 신청서를 작성해야합니다.</p>
-              <p className="text-xs">* 새로운 신청번호가 부여됩니다.</p>
+              <p className="text-[15px]">* 새로운 신청번호가 부여됩니다.</p>
             </div>
             
             <div className="flex justify-end gap-2">

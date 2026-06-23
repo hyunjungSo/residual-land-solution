@@ -351,7 +351,7 @@ export function IncomingParcelList({ onConfirmParcels }: IncomingParcelListProps
         <div 
           className="flex cursor-pointer flex-col items-center rounded-lg bg-blue-50 p-4 transition-all hover:bg-blue-100"
         >
-          <span className="text-[15px] font-medium text-blue-600">신규 적재</span>
+          <span className="text-[16px] font-medium text-blue-600">신규 적재</span>
           <div className="flex items-baseline gap-0.5" style={{ marginTop: '8px' }}>
             <span className="font-bold text-blue-900" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.totalNew}</span>
             <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
@@ -362,7 +362,7 @@ export function IncomingParcelList({ onConfirmParcels }: IncomingParcelListProps
         <div 
           className="flex cursor-pointer flex-col items-center rounded-lg bg-emerald-50 p-4 transition-all hover:bg-emerald-100"
         >
-          <span className="text-[15px] font-medium text-emerald-600">오늘 적재</span>
+          <span className="text-[16px] font-medium text-emerald-600">오늘 적재</span>
           <div className="flex items-baseline gap-0.5" style={{ marginTop: '8px' }}>
             <span className="font-bold text-emerald-900" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.todayLoaded}</span>
             <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
@@ -370,24 +370,39 @@ export function IncomingParcelList({ onConfirmParcels }: IncomingParcelListProps
         </div>
       </div>
 
-      {/* 검색 및 필터 */}
+      {/* 필지 목록 테이블 */}
       <Card className="border-0">
         <CardHeader>
-          <CardTitle>검색 및 필터</CardTitle>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CardTitle>필지 목록</CardTitle>
+              <span className="text-[16px] text-muted-foreground">
+                총 {filteredParcels.length}건
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.location.reload()}
+                className="border-[#2E8B57] text-[#2E8B57] hover:bg-[#2E8B57] hover:text-white gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                새로고침
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* 검색바 */}
+          {/* 검색 및 필터 */}
           <SearchInput
             value={searchQuery}
             onChange={setSearchQuery}
             placeholder="소재지를 입력하세요"
           />
-          
-          {/* 필터 영역 */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-6">
-            {/* 사업단 선택 필터 */}
             <div className="flex items-center gap-3">
-              <span className="text-[15px] font-medium whitespace-nowrap text-gray-700">사업단:</span>
+              <span className="text-[16px] font-medium whitespace-nowrap text-gray-700">사업단:</span>
               <Select value={businessUnitFilter} onValueChange={setBusinessUnitFilter}>
                 <SelectTrigger className="w-[180px] h-[40px]">
                   <SelectValue placeholder="사업단 선택" />
@@ -400,8 +415,6 @@ export function IncomingParcelList({ onConfirmParcels }: IncomingParcelListProps
                 </SelectContent>
               </Select>
             </div>
-            
-            {/* AI 판정 필터 */}
             <RadioFilterGroup
               label="AI 판정"
               name="ai-judgment"
@@ -414,33 +427,7 @@ export function IncomingParcelList({ onConfirmParcels }: IncomingParcelListProps
               ]}
             />
           </div>
-        </CardContent>
-      </Card>
 
-      {/* 필지 목록 테이블 */}
-      <Card className="border-0">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <CardTitle>필지 목록</CardTitle>
-              <span className="text-[15px] text-muted-foreground">
-                총 {filteredParcels.length}건
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => window.location.reload()}
-                className="border-[#2E8B57] text-[#2E8B57] hover:bg-[#2E8B57] hover:text-white gap-2"
-              >
-                <RefreshCw className="h-4 w-4" />
-                새로고침
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
           {/* 액션 버튼 영역 */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -528,14 +515,14 @@ export function IncomingParcelList({ onConfirmParcels }: IncomingParcelListProps
                         <Button
                           size="sm"
                           variant="cta-outline"
-                          className="h-7 px-2 text-xs"
+                          className="h-8 px-3 text-xs"
                           onClick={() => handleAIAnalysis(parcel.id)}
                         >
                           분석
                         </Button>
                       )}
                     </TableCell>
-                    <TableCell className="text-center text-[15px] text-muted-foreground">
+                    <TableCell className="text-center text-[16px] text-muted-foreground">
                       {formatLoadedTime(parcel.loadedAt)}
                     </TableCell>
                   </TableRow>
@@ -604,7 +591,7 @@ export function IncomingParcelList({ onConfirmParcels }: IncomingParcelListProps
                 마지막
               </PaginationNavButton>
               
-              <span className="text-[15px] text-muted-foreground ml-2">
+              <span className="text-[16px] text-muted-foreground ml-2">
                 ({filteredParcels.length}건 중 {(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, filteredParcels.length)}건)
               </span>
             </div>
