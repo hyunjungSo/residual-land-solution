@@ -2901,7 +2901,7 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setShowCompleteAlert(false)}>다시 확인</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setShowCompleteAlert(false)}>재확인</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 setShowCompleteAlert(false);
