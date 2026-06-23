@@ -9,9 +9,8 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
@@ -41,12 +40,12 @@ import {
   ArrowDown,
   Download,
   Play,
-  Info
+  Info,
+  AlertTriangle
 } from "lucide-react";
 import { 
   SearchInput, 
   RadioFilterGroup, 
-  PublishRadioCell, 
   AIJudgmentBadge, 
   isHighPossibility 
 } from "@/components/admin/shared";
@@ -225,25 +224,37 @@ export function BatchAnalysis({
   // 필터 (라디오 버튼)
   const [aiJudgmentFilter, setAiJudgmentFilter] = useState<"all" | "high" | "low" | "pending">("all");
   const [businessUnitFilter, setBusinessUnitFilter] = useState<string>("");
-  const [visibilityFilter, setVisibilityFilter] = useState<"all" | "visible" | "hidden">("all");
   // 편입 유형 필터 (기존 잔여지 판정)
-  const [inclusionTypeFilter, setInclusionTypeFilter] = useState<"all" | "full" | "partial" | "pending">("all");
-  // 검토여부 필터
-  const [reviewStatusFilter, setReviewStatusFilter] = useState<"all" | "done" | "undone">("all");
-  
+  const [inclusionTypeFilter, setInclusionTypeFilter] = useState<"all" | "full" | "partial" | "pending">("partial");
+  // 판독 유형 필터 (AI판독 / 수동판독 / 전체)
+  const [analysisSourceFilter, setAnalysisSourceFilter] = useState<"all" | "ai" | "manual-select">("all");
+  // 담당자 판독결과 필터
+  const [manualSelectJudgmentFilter, setManualSelectJudgmentFilter] = useState<"all" | "high" | "low" | "none">("all");
+  // 재검토 요망 필터
+  const [reReviewFilter, setReReviewFilter] = useState<"all" | "required">("all");
+
   // 편입 유형 카드 클릭 핸들러 (필터 리셋 포함)
   const handleInclusionTypeClick = (value: "all" | "full" | "partial" | "pending") => {
     setInclusionTypeFilter(value);
     setAiJudgmentFilter("all");
+    setAnalysisSourceFilter("all");
     setVisibilityFilter("all");
     setCurrentPage(1);
   };
-  
+
   // AI 매수 가능성 카드 클릭 핸들러 — 항상 잔여지인정 필지 기준으로 필터
   const handleAiJudgmentClick = (value: "all" | "high" | "low" | "pending") => {
     setAiJudgmentFilter(value);
     setInclusionTypeFilter("partial");
     setVisibilityFilter("all");
+    setCurrentPage(1);
+  };
+
+  // 판독 유형 카드 클릭 핸들러
+  const handleAnalysisSourceClick = (source: "ai" | "manual-select", judgment: "all" | "high" | "low" = "all") => {
+    setAnalysisSourceFilter(source);
+    setAiJudgmentFilter(judgment);
+    setInclusionTypeFilter("partial");
     setCurrentPage(1);
   };
   
@@ -569,23 +580,38 @@ export function BatchAnalysis({
         if (!matchesAddress && !matchesOwner && !matchesBusinessUnit) return false;
       }
       
-      // AI 판정 필터 (라디오)
+      // AI판독결과 필터 (auto/auto-change/manual 소스만)
       if (aiJudgmentFilter !== "all") {
+        const aiEntry = [...(parcel.analysisHistory ?? [])].reverse().find(
+          h => h.aiResult?.analysisSource === "auto" || h.aiResult?.analysisSource === "auto-change" || h.aiResult?.analysisSource === "manual"
+        );
+        const aiJudgment = aiEntry?.aiResult?.provisionalJudgment
+          ?? (parcel.aiResult?.analysisSource !== "manual-select" ? parcel.aiResult?.provisionalJudgment : undefined);
         if (aiJudgmentFilter === "pending") {
-          if (parcel.aiResult) return false;
+          if (aiJudgment) return false;
         } else {
-          if (!parcel.aiResult) return false;
-          const isHigh = isHighPossibility(parcel.aiResult.provisionalJudgment);
+          if (!aiJudgment) return false;
+          const isHigh = isHighPossibility(aiJudgment);
           if (aiJudgmentFilter === "high" && !isHigh) return false;
           if (aiJudgmentFilter === "low" && isHigh) return false;
         }
       }
-      
-      // 관리(노출/미노출) 필터
-      if (visibilityFilter !== "all") {
-        const isVisible = parcel.isVisible !== false;
-        if (visibilityFilter === "visible" && !isVisible) return false;
-        if (visibilityFilter === "hidden" && isVisible) return false;
+
+      // 담당자 판독결과 필터 (manual-select 소스만)
+      if (manualSelectJudgmentFilter !== "all") {
+        const msJudgment = parcel.aiResult?.analysisSource === "manual-select"
+          ? parcel.aiResult.provisionalJudgment
+          : [...(parcel.analysisHistory ?? [])].reverse().find(
+              h => h.aiResult?.analysisSource === "manual-select"
+            )?.aiResult?.provisionalJudgment;
+        if (manualSelectJudgmentFilter === "none") {
+          if (msJudgment) return false;
+        } else {
+          if (!msJudgment) return false;
+          const isHigh = isHighPossibility(msJudgment);
+          if (manualSelectJudgmentFilter === "high" && !isHigh) return false;
+          if (manualSelectJudgmentFilter === "low" && isHigh) return false;
+        }
       }
       
       // 편입 유형 필터 — "all"도 분석 완료(기준 미달 or 잔여지 인정)만 포함
@@ -600,11 +626,16 @@ export function BatchAnalysis({
         if (parcel.residualStatus !== "잔여지 인정" && parcel.residualStatus !== "기준 미달") return false;
       }
 
-      // 검토여부 필터
-      if (reviewStatusFilter !== "all") {
-        const isDone = (parcel.reviewStatus ?? (parcel.aiResult ? "완료" : "미완료")) === "완료";
-        if (reviewStatusFilter === "done" && !isDone) return false;
-        if (reviewStatusFilter === "undone" && isDone) return false;
+      // 재검토 요망 필터 (auto-change 소스 = 토지정보 변동으로 AI 재분석 실행)
+      if (reReviewFilter === "required") {
+        if (parcel.aiResult?.analysisSource !== "auto-change") return false;
+      }
+
+      // 판독 유형 필터
+      if (analysisSourceFilter !== "all") {
+        const src = parcel.aiResult?.analysisSource;
+        if (analysisSourceFilter === "ai" && src !== "auto" && src !== "auto-change" && src !== "manual") return false;
+        if (analysisSourceFilter === "manual-select" && src !== "manual-select") return false;
       }
 
       return true;
@@ -624,7 +655,7 @@ export function BatchAnalysis({
     }
 
     return result;
-  }, [parcels, businessUnit, businessUnitFilter, searchQuery, aiJudgmentFilter, visibilityFilter, inclusionTypeFilter, periodFilter, selectedYear, customDateRange, sortColumn, sortDirection]);
+  }, [parcels, businessUnit, businessUnitFilter, searchQuery, aiJudgmentFilter, manualSelectJudgmentFilter, reReviewFilter, inclusionTypeFilter, analysisSourceFilter, periodFilter, selectedYear, customDateRange, sortColumn, sortDirection]);
 
   // 페이지네이션 계산
   const totalPages = Math.ceil(filteredParcels.length / itemsPerPage);
@@ -636,9 +667,9 @@ export function BatchAnalysis({
   // 필터 변경 시 페이지 리셋
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, aiJudgmentFilter, businessUnitFilter, visibilityFilter, inclusionTypeFilter, periodFilter, selectedYear]);
+  }, [searchQuery, aiJudgmentFilter, manualSelectJudgmentFilter, reReviewFilter, businessUnitFilter, inclusionTypeFilter, analysisSourceFilter, periodFilter, selectedYear]);
 
-  // 통계 — 목록과 동일한 기준 필터 적용 (검색어·공개여부·검토여부 포함, 편입유형·AI판정 제외)
+  // 통계 — 목록과 동일한 기준 필터 적용
   const stats = useMemo(() => {
     const relevantParcels = parcels.filter(parcel => {
       if (businessUnit && parcel.businessUnit !== businessUnit) return false;
@@ -652,16 +683,7 @@ export function BatchAnalysis({
           !parcel.businessUnit.toLowerCase().includes(q)
         ) return false;
       }
-      if (visibilityFilter !== "all") {
-        const isVisible = parcel.isVisible !== false;
-        if (visibilityFilter === "visible" && !isVisible) return false;
-        if (visibilityFilter === "hidden" && isVisible) return false;
-      }
-      if (reviewStatusFilter !== "all") {
-        const isDone = (parcel.reviewStatus ?? (parcel.aiResult ? "완료" : "미완료")) === "완료";
-        if (reviewStatusFilter === "done" && !isDone) return false;
-        if (reviewStatusFilter === "undone" && isDone) return false;
-      }
+
       return true;
     });
 
@@ -677,8 +699,52 @@ export function BatchAnalysis({
       p.residualStatus === "잔여지 인정" && p.aiResult && !isHighPossibility(p.aiResult.provisionalJudgment)
     ).length;
 
-    return { total, pendingInclusion, fullInclusion, partialInclusion, pendingReview, highPossibility, lowPossibility };
-  }, [parcels, businessUnit, businessUnitFilter, periodFilter, selectedYear, customDateRange, searchQuery, visibilityFilter, reviewStatusFilter]);
+    // AI판독 통합 (auto + auto-change + manual AI재판독)
+    const autoRegular = relevantParcels.filter(p =>
+      p.residualStatus === "잔여지 인정" && p.aiResult?.analysisSource === "auto"
+    ).length;
+    const autoChange = relevantParcels.filter(p =>
+      p.residualStatus === "잔여지 인정" && p.aiResult?.analysisSource === "auto-change"
+    ).length;
+    const aiReanalysis = relevantParcels.filter(p =>
+      p.residualStatus === "잔여지 인정" && p.aiResult?.analysisSource === "manual"
+    ).length;
+    const aiCount = autoRegular + autoChange + aiReanalysis;
+
+    // 담당자 직접 선택 (manual-select)
+    const manualSelectCount = relevantParcels.filter(p =>
+      p.residualStatus === "잔여지 인정" && p.aiResult?.analysisSource === "manual-select"
+    ).length;
+
+    // 결과별 분류
+    const isAiSource = (src?: string) => src === "auto" || src === "auto-change" || src === "manual";
+    const highAI = relevantParcels.filter(p =>
+      p.residualStatus === "잔여지 인정" && p.aiResult && isHighPossibility(p.aiResult.provisionalJudgment) &&
+      isAiSource(p.aiResult.analysisSource)
+    ).length;
+    const lowAI = relevantParcels.filter(p =>
+      p.residualStatus === "잔여지 인정" && p.aiResult && !isHighPossibility(p.aiResult.provisionalJudgment) &&
+      isAiSource(p.aiResult.analysisSource)
+    ).length;
+    const highManualSelect = relevantParcels.filter(p =>
+      p.residualStatus === "잔여지 인정" && p.aiResult && isHighPossibility(p.aiResult.provisionalJudgment) &&
+      p.aiResult.analysisSource === "manual-select"
+    ).length;
+    const lowManualSelect = relevantParcels.filter(p =>
+      p.residualStatus === "잔여지 인정" && p.aiResult && !isHighPossibility(p.aiResult.provisionalJudgment) &&
+      p.aiResult.analysisSource === "manual-select"
+    ).length;
+
+    const aiTotal = pendingReview + highAI + lowAI;
+    const manualSelectPending = partialInclusion - manualSelectCount;
+
+    return {
+      total, pendingInclusion, fullInclusion, partialInclusion, pendingReview,
+      highPossibility, lowPossibility,
+      autoRegular, autoChange, aiReanalysis, aiCount, manualSelectCount,
+      highAI, lowAI, highManualSelect, lowManualSelect, aiTotal, manualSelectPending,
+    };
+  }, [parcels, businessUnit, businessUnitFilter, periodFilter, selectedYear, customDateRange, searchQuery]);
 
   // 히스토리 보기
   const handleViewHistory = (parcel: ProcessedParcel) => {
@@ -693,47 +759,6 @@ export function BatchAnalysis({
     }
   };
 
-  // 담당자 확인 완료 처리
-  const handleConfirm = (parcelId: string) => {
-    setParcels(prev => prev.map(p => {
-      if (p.id === parcelId) {
-        return {
-          ...p,
-          publishStatus: "담당자확인완료",
-          confirmedAt: new Date().toISOString(),
-          confirmedBy: "현재 담당자",
-        } as ProcessedParcel;
-      }
-      return p;
-    }));
-  };
-
-  // 공개 처리
-  const handlePublish = (parcelId: string) => {
-    setParcels(prev => prev.map(p => {
-      if (p.id === parcelId) {
-        return {
-          ...p,
-          publishStatus: "공개",
-        } as ProcessedParcel;
-      }
-      return p;
-    }));
-  };
-
-  // 미노출 처리
-  const handleUnpublish = (parcelId: string) => {
-    setParcels(prev => prev.map(p => {
-      if (p.id === parcelId) {
-        return {
-          ...p,
-          publishStatus: "담당자확인완료",
-        } as ProcessedParcel;
-      }
-      return p;
-    }));
-  };
-
   return (
     <div className="space-y-6">
       {/* 타이틀 영역 */}
@@ -743,25 +768,25 @@ export function BatchAnalysis({
       
       <p className="text-muted-foreground -mt-4">편입 유형 분석 및 매수 가능성 심사를 관리합니다.</p>
 
-      {/* 대시보드 요약 - 신청관리와 동일한 UI */}
-      <div className="grid gap-5 lg:grid-cols-11">
+      {/* 대시보드 요약 - 3카드 구조 */}
+      <div className="grid gap-5 lg:grid-cols-3">
         {/* 편입 유형 현황 카드 */}
-        <Card className="lg:col-span-6">
+        <Card>
           <CardHeader style={{ paddingBottom: '6px' }}>
             <CardTitle className="text-base font-medium" style={{ fontSize: '18px', fontWeight: '600' }}>편입 유형 현황</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2" style={{ paddingTop: '0' }}>
             {/* 진행률 바 */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-[15px]">
-                <span className="text-muted-foreground">편입 유형 판독 완료율</span>
+              <div className="flex items-center justify-between text-[16px]">
+                <span className="text-muted-foreground">잔여지 발생율</span>
                 <span style={{ fontSize: '30px', fontWeight: '800', color: 'rgb(20, 113, 97)' }}>
-                  {(stats.fullInclusion + stats.partialInclusion) > 0 ? Math.round(((stats.fullInclusion + stats.partialInclusion) / (stats.fullInclusion + stats.partialInclusion + stats.pendingInclusion)) * 100) : 0}%
+                  {(stats.fullInclusion + stats.partialInclusion) > 0 ? Math.round((stats.partialInclusion / (stats.fullInclusion + stats.partialInclusion)) * 100) : 0}%
                 </span>
               </div>
               <Progress
-                value={(stats.fullInclusion + stats.partialInclusion + stats.pendingInclusion) > 0 ? ((stats.fullInclusion + stats.partialInclusion) / (stats.fullInclusion + stats.partialInclusion + stats.pendingInclusion)) * 100 : 0}
-                className="h-[9px]" 
+                value={(stats.fullInclusion + stats.partialInclusion) > 0 ? (stats.partialInclusion / (stats.fullInclusion + stats.partialInclusion)) * 100 : 0}
+                className="h-[9px]"
                 indicatorClassName="bg-[#2E8B57]"
                 style={{ backgroundColor: '#e8f2f0' }}
               />
@@ -774,7 +799,7 @@ export function BatchAnalysis({
                 onClick={() => handleInclusionTypeClick("all")}
                 className="flex cursor-pointer flex-col items-center rounded-lg bg-slate-50 p-4 transition-all hover:bg-slate-100"
               >
-                <span className="text-[15px] font-medium text-black" style={{ order: 1 }}>전체</span>
+                <span className="text-[16px] font-medium text-black" style={{ order: 1 }}>전체</span>
                 <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
                   <span className="font-bold text-black" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.fullInclusion + stats.partialInclusion}</span>
                   <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
@@ -787,7 +812,7 @@ export function BatchAnalysis({
               >
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="inline-flex items-center gap-1 text-[15px] font-medium text-gray-500 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}><Info className="h-3.5 w-3.5 flex-shrink-0" />전체 편입</span>
+                    <span className="inline-flex items-center gap-1 text-[16px] font-medium text-gray-500 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}><Info className="h-3.5 w-3.5 flex-shrink-0" />전체 편입</span>
                   </TooltipTrigger>
                   <TooltipContent side="top">전체 편입으로 잔여지가 발생하지 않은 필지입니다.</TooltipContent>
                 </Tooltip>
@@ -803,7 +828,7 @@ export function BatchAnalysis({
               >
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="inline-flex items-center gap-1 text-[15px] font-medium text-emerald-600 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}><Info className="h-3.5 w-3.5 flex-shrink-0" />잔여지 발생</span>
+                    <span className="inline-flex items-center gap-1 text-[16px] font-medium text-emerald-600 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}><Info className="h-3.5 w-3.5 flex-shrink-0" />잔여지 발생</span>
                   </TooltipTrigger>
                   <TooltipContent side="top">편입 후 잔여지가 발생하여 AI 매수 가능성 분석 대상인 필지입니다.</TooltipContent>
                 </Tooltip>
@@ -813,101 +838,196 @@ export function BatchAnalysis({
                 </div>
               </div>
             </div>
-            {/* 기준 안내 문구 */}
-            <p className="pt-2 text-xs text-muted-foreground/70">
-              ※ 잔여지 발생 필지만 잔여지 발생으로 AI 매수 가능성 분석 대상입니다.
-            </p>
           </CardContent>
         </Card>
 
-        {/* AI 매수 가능성 현황 카드 */}
-        <Card className="lg:col-span-5 border-0 shadow-none">
+        {/* AI판독현황 카드 (자동 + AI재판독 통합) */}
+        <Card>
           <CardHeader style={{ paddingBottom: '6px' }}>
-            <CardTitle className="text-base font-medium" style={{ fontSize: '18px', fontWeight: '600' }}>AI 매수 가능성 현황</CardTitle>
+            <CardTitle className="text-base font-medium" style={{ fontSize: '18px', fontWeight: '600' }}>AI판독현황</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2" style={{ paddingTop: '0' }}>
-            {/* 진행률 바 - 좌측과 동일한 포맷 */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-[15px]">
+              <div className="flex items-center justify-between text-[16px]">
                 <span className="text-muted-foreground">AI 매수 가능성 높음 비율</span>
                 <span style={{ fontSize: '30px', fontWeight: '800', color: 'rgb(20, 113, 97)' }}>
-                  {stats.partialInclusion > 0 ? Math.min(100, Math.round(((stats.highPossibility + stats.lowPossibility) / stats.partialInclusion) * 100)) : 0}%
+                  {stats.partialInclusion > 0 ? Math.round((stats.highAI / stats.partialInclusion) * 100) : 0}%
                 </span>
               </div>
-              <Progress 
-                value={stats.partialInclusion > 0 ? Math.min(100, ((stats.highPossibility + stats.lowPossibility) / stats.partialInclusion) * 100) : 0} 
-                className="h-[9px]" 
+              <Progress
+                value={stats.partialInclusion > 0 ? (stats.highAI / stats.partialInclusion) * 100 : 0}
+                className="h-[9px]"
                 indicatorClassName="bg-[#2E8B57]"
                 style={{ backgroundColor: '#e8f2f0' }}
               />
             </div>
-            
-            {/* 상태별 현황 그리드 - 4개 카드 */}
-            <div className="grid grid-cols-4 gap-2 pt-2">
-              {/* 전체: Black — 잔여지 발생 건수와 동일 */}
+
+            <div className="grid grid-cols-2 gap-2 pt-2">
+              {/* 전체 */}
               <div
-                onClick={() => handleAiJudgmentClick("all")}
+                onClick={() => handleAnalysisSourceClick("ai", "all")}
                 className="flex cursor-pointer flex-col items-center rounded-lg bg-slate-50 p-4 transition-all hover:bg-slate-100"
               >
-                <span className="text-[15px] font-medium text-black" style={{ order: 1 }}>전체</span>
-                <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
+                <span className="text-[16px] font-medium text-black">전체</span>
+                <div className="flex items-baseline gap-0.5 mt-2">
                   <span className="font-bold text-black" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.partialInclusion}</span>
                   <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
                 </div>
               </div>
-              {/* 검토필요: Amber */}
+              {/* 검토필요 */}
               <div
-                onClick={() => handleAiJudgmentClick("pending")}
+                onClick={() => { setAiJudgmentFilter("pending"); setInclusionTypeFilter("partial"); setAnalysisSourceFilter("all"); setCurrentPage(1); }}
                 className="flex cursor-pointer flex-col items-center rounded-lg bg-amber-50 p-4 transition-all hover:bg-amber-100"
               >
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="inline-flex items-center gap-1 text-[15px] font-medium text-amber-600 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}><Info className="h-3.5 w-3.5 flex-shrink-0" />검토 필요</span>
+                    <span className="inline-flex items-center gap-1 text-[16px] font-medium text-amber-600 underline decoration-dotted underline-offset-2 cursor-help"><Info className="h-3.5 w-3.5 flex-shrink-0" />검토필요</span>
                   </TooltipTrigger>
-                  <TooltipContent side="top">분석결과 담당자의 검토가 필요한 건</TooltipContent>
+                  <TooltipContent side="top">AI 분석 결과만으로 매수 가능성을 판정하기 어려워 담당자의 직접 확인이 필요한 건수입니다.</TooltipContent>
                 </Tooltip>
-                <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
-                  <span className="font-bold text-amber-700" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.pendingReview}</span>
+                <div className="flex items-baseline gap-0.5 mt-2">
+                  <span className="font-bold text-amber-600" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.pendingReview}</span>
                   <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
                 </div>
               </div>
-              {/* 높음: Emerald */}
+              {/* 높음 */}
               <div
-                onClick={() => handleAiJudgmentClick("high")}
+                onClick={() => handleAnalysisSourceClick("ai", "high")}
                 className="flex cursor-pointer flex-col items-center rounded-lg bg-emerald-50 p-4 transition-all hover:bg-emerald-100"
               >
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="inline-flex items-center gap-1 text-[15px] font-medium text-emerald-600 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}><Info className="h-3.5 w-3.5 flex-shrink-0" />높음</span>
+                    <span className="inline-flex items-center gap-1 text-[16px] font-medium text-emerald-600 underline decoration-dotted underline-offset-2 cursor-help"><Info className="h-3.5 w-3.5 flex-shrink-0" />매수가능성 높음</span>
                   </TooltipTrigger>
-                  <TooltipContent side="top">AI가 매수 가능성이 높다고 판단한 필지입니다.</TooltipContent>
+                  <TooltipContent side="top">AI가 매수 가능성이 높다고 판단한 건수입니다.</TooltipContent>
                 </Tooltip>
-                <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
-                  <span className="font-bold text-emerald-700" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.highPossibility}</span>
+                <div className="flex items-baseline gap-0.5 mt-2">
+                  <span className="font-bold text-emerald-700" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.highAI}</span>
                   <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
                 </div>
               </div>
-              {/* 낮음: Rose */}
+              {/* 낮음 */}
               <div
-                onClick={() => handleAiJudgmentClick("low")}
+                onClick={() => handleAnalysisSourceClick("ai", "low")}
                 className="flex cursor-pointer flex-col items-center rounded-lg bg-rose-50 p-4 transition-all hover:bg-rose-100"
               >
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="inline-flex items-center gap-1 text-[15px] font-medium text-rose-500 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}><Info className="h-3.5 w-3.5 flex-shrink-0" />낮음</span>
+                    <span className="inline-flex items-center gap-1 text-[16px] font-medium text-rose-500 underline decoration-dotted underline-offset-2 cursor-help"><Info className="h-3.5 w-3.5 flex-shrink-0" />매수가능성 낮음</span>
                   </TooltipTrigger>
-                  <TooltipContent side="top">AI가 매수 가능성이 낮다고 판단한 필지입니다.</TooltipContent>
+                  <TooltipContent side="top">AI가 매수 가능성이 낮다고 판단한 건수입니다.</TooltipContent>
                 </Tooltip>
-                <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
-                  <span className="font-bold text-rose-600" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.lowPossibility}</span>
+                <div className="flex items-baseline gap-0.5 mt-2">
+                  <span className="font-bold text-rose-600" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.lowAI}</span>
                   <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
                 </div>
               </div>
             </div>
-            {/* 기준 안내 문구 */}
-            <p className="pt-2 text-xs text-muted-foreground/70">
-              ※ AI 매수 가능성 심사가 완료된 현황입니다.
-            </p>
+            <div className="mt-3 px-1 space-y-1.5">
+              <p className="text-[15px] text-slate-600 flex items-start gap-2">
+                <span className="mt-px shrink-0 text-slate-400">•</span>
+                전체 건수는 <span className="font-medium text-slate-700">잔여지 발생</span> 필지를 대상으로 AI가 매수 가능성을 판독한 건수입니다.
+              </p>
+              <p className="text-[15px] text-slate-600 flex items-start gap-2">
+                <span className="mt-px shrink-0 text-slate-400">•</span>
+                AI 판독은 <span className="font-medium text-slate-700">7일에 한 번씩</span> 자동으로 업데이트됩니다.
+              </p>
+              <p className="text-[15px] text-slate-600 flex items-start gap-2">
+                <span className="mt-px shrink-0 text-slate-400">•</span>
+                토지정보 <span className="font-medium text-slate-700">변동 감지 시</span> 자동으로 재판독이 실행됩니다.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 수동판독현황 카드 (담당자 직접 선택) */}
+        <Card>
+          <CardHeader style={{ paddingBottom: '6px' }}>
+            <CardTitle className="text-base font-medium" style={{ fontSize: '18px', fontWeight: '600' }}>담당자 판독현황</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2" style={{ paddingTop: '0' }}>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-[16px]">
+                <span className="text-muted-foreground">매수 가능성 높음 비율</span>
+                <span style={{ fontSize: '30px', fontWeight: '800', color: 'rgb(20, 113, 97)' }}>
+                  {stats.partialInclusion > 0 ? Math.round((stats.highManualSelect / stats.partialInclusion) * 100) : 0}%
+                </span>
+              </div>
+              <Progress
+                value={stats.partialInclusion > 0 ? (stats.highManualSelect / stats.partialInclusion) * 100 : 0}
+                className="h-[9px]"
+                indicatorClassName="bg-[#2E8B57]"
+                style={{ backgroundColor: '#e8f2f0' }}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 pt-2">
+              {/* 전체 */}
+              <div
+                onClick={() => handleAnalysisSourceClick("manual-select", "all")}
+                className="flex cursor-pointer flex-col items-center rounded-lg bg-slate-50 p-4 transition-all hover:bg-slate-100"
+              >
+                <span className="text-[16px] font-medium text-black">전체</span>
+                <div className="flex items-baseline gap-0.5 mt-2">
+                  <span className="font-bold text-black" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.partialInclusion}</span>
+                  <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
+                </div>
+              </div>
+              {/* 판독대기 */}
+              <div
+                onClick={() => { setManualSelectJudgmentFilter("none"); setInclusionTypeFilter("partial"); setAnalysisSourceFilter("all"); setCurrentPage(1); }}
+                className="flex cursor-pointer flex-col items-center rounded-lg bg-slate-100 p-4 transition-all hover:bg-slate-200"
+              >
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex items-center gap-1 text-[16px] font-medium text-slate-500 underline decoration-dotted underline-offset-2 cursor-help"><Info className="h-3.5 w-3.5 flex-shrink-0" />판독대기</span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">AI 판독 결과가 도출되었으나 오류 여부 및 판단의 적정성을 담당자가 아직 직접 검토하지 않은 건수입니다.</TooltipContent>
+                </Tooltip>
+                <div className="flex items-baseline gap-0.5 mt-2">
+                  <span className="font-bold text-slate-500" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.manualSelectPending}</span>
+                  <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
+                </div>
+              </div>
+              {/* 높음 */}
+              <div
+                onClick={() => handleAnalysisSourceClick("manual-select", "high")}
+                className="flex cursor-pointer flex-col items-center rounded-lg bg-emerald-50 p-4 transition-all hover:bg-emerald-100"
+              >
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex items-center gap-1 text-[16px] font-medium text-emerald-600 underline decoration-dotted underline-offset-2 cursor-help"><Info className="h-3.5 w-3.5 flex-shrink-0" />매수가능성 높음</span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">담당자가 매수 가능성이 높다고 직접 판단한 건수입니다.</TooltipContent>
+                </Tooltip>
+                <div className="flex items-baseline gap-0.5 mt-2">
+                  <span className="font-bold text-emerald-700" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.highManualSelect}</span>
+                  <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
+                </div>
+              </div>
+              {/* 낮음 */}
+              <div
+                onClick={() => handleAnalysisSourceClick("manual-select", "low")}
+                className="flex cursor-pointer flex-col items-center rounded-lg bg-rose-50 p-4 transition-all hover:bg-rose-100"
+              >
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex items-center gap-1 text-[16px] font-medium text-rose-500 underline decoration-dotted underline-offset-2 cursor-help"><Info className="h-3.5 w-3.5 flex-shrink-0" />매수가능성 낮음</span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">담당자가 매수 가능성이 낮다고 직접 판단한 건수입니다.</TooltipContent>
+                </Tooltip>
+                <div className="flex items-baseline gap-0.5 mt-2">
+                  <span className="font-bold text-rose-600" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.lowManualSelect}</span>
+                  <span className="text-xs font-medium ml-0.5" style={{ color: '#959595' }}>건</span>
+                </div>
+              </div>
+            </div>
+            <div className="mt-3 px-1 space-y-1.5">
+              <p className="text-[15px] text-slate-600 flex items-start gap-2">
+                <span className="mt-px shrink-0 text-slate-400">•</span>
+                담당자가 필지를 <span className="font-medium text-slate-700">직접 확인</span> 후 매수가능성 높음/낮음을 선택한 건수입니다.
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -918,58 +1038,70 @@ export function BatchAnalysis({
           <CardTitle className="text-lg">검색 및 필터</CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
-          {/* 필터 레이아웃 - 단일 행(1줄) 구조 */}
-          <div className="flex flex-row items-center gap-6">
-            {/* 좌측: 검색바 */}
-            <SearchInput
-              value={searchQuery}
-              onChange={setSearchQuery}
-              placeholder="소재지, 소유자명을 입력하세요"
-              className="flex-1 min-w-0"
-            />
+          <div className="space-y-4">
+            {/* 1행: 검색바 + 편입유형 + AI판독결과 */}
+            <div className="flex flex-row items-center gap-[2.4rem]">
+              <SearchInput
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="소재지, 소유자명을 입력하세요"
+                className="flex-1 min-w-0"
+              />
+              <div className="flex flex-wrap items-center gap-[2.4rem]">
+                <RadioFilterGroup
+                  label="편입 유형"
+                  name="inclusion-type"
+                  value={inclusionTypeFilter}
+                  onChange={(v) => setInclusionTypeFilter(v as "all" | "full" | "partial" | "pending")}
+                  options={[
+                    { value: "all", label: "전체" },
+                    { value: "full", label: "전체 편입" },
+                    { value: "partial", label: "잔여지 발생" }
+                  ]}
+                />
+                <RadioFilterGroup
+                  label="AI판독결과"
+                  name="ai-judgment"
+                  value={aiJudgmentFilter}
+                  onChange={(v) => setAiJudgmentFilter(v as "all" | "high" | "low" | "pending")}
+                  options={[
+                    { value: "all", label: "전체" },
+                    { value: "pending", label: "검토필요" },
+                    { value: "high", label: "매수가능성 높음" },
+                    { value: "low", label: "매수가능성 낮음" }
+                  ]}
+                />
+              </div>
+            </div>
 
-            {/* 우측: 편입 유형 + 매수 가능성 + 공개 여부 필터 (수평 정렬) */}
-            <div className="flex flex-wrap items-center justify-end gap-6">
-              {/* 편입 유형 필터 */}
+            {/* 2행: 담당자 판독결과 + Switch */}
+            <div className="flex flex-wrap items-center gap-[2.4rem]">
               <RadioFilterGroup
-                label="편입 유형"
-                name="inclusion-type"
-                value={inclusionTypeFilter}
-                onChange={(v) => setInclusionTypeFilter(v as "all" | "full" | "partial" | "pending")}
+                label="담당자 판독결과"
+                name="manual-select-judgment"
+                value={manualSelectJudgmentFilter}
+                onChange={(v) => setManualSelectJudgmentFilter(v as "all" | "high" | "low" | "none")}
                 options={[
                   { value: "all", label: "전체" },
-                  { value: "full", label: "전체 편입" },
-                  { value: "partial", label: "잔여지 발생" }
+                  { value: "none", label: "판독대기" },
+                  { value: "high", label: "매수가능성 높음" },
+                  { value: "low", label: "매수가능성 낮음" }
                 ]}
               />
 
-              {/* 매수 가능성 필터 */}
-              <RadioFilterGroup
-                label="매수 가능성"
-                name="ai-judgment"
-                value={aiJudgmentFilter}
-                onChange={(v) => setAiJudgmentFilter(v as "all" | "high" | "low" | "pending")}
-                options={[
-                  { value: "all", label: "전체" },
-                  { value: "pending", label: "검토 필요" },
-                  { value: "high", label: "높음" },
-                  { value: "low", label: "낮음" }
-                ]}
-              />
-
-              {/* 검토여부 필터 */}
-              <RadioFilterGroup
-                label="검토여부"
-                name="review-status"
-                value={reviewStatusFilter}
-                onChange={(v) => setReviewStatusFilter(v as "all" | "done" | "undone")}
-                options={[
-                  { value: "all", label: "전체" },
-                  { value: "done", label: "완료" },
-                  { value: "undone", label: "미완료" }
-                ]}
-              />
-
+              <div className="flex items-center gap-2">
+              <label
+                  htmlFor="re-review-switch"
+                  className="text-[16px] font-medium whitespace-nowrap cursor-pointer select-none"
+                >
+                  "재검토 요망"건만 보기
+                </label>
+                <Switch
+                  id="re-review-switch"
+                  checked={reReviewFilter === "required"}
+                  onCheckedChange={(checked) => setReReviewFilter(checked ? "required" : "all")}
+                />
+              </div>
             </div>
           </div>
         </CardContent>
@@ -981,9 +1113,6 @@ export function BatchAnalysis({
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-lg">필지 관리 목록</CardTitle>
-              <CardDescription>
-                AI 판독은 7일에 한 번씩 자동으로 업데이트됩니다.
-              </CardDescription>
             </div>
             {/* 엑셀 다운로드 + AI 통합 판독 버튼 */}
             <div className="flex items-center gap-2">
@@ -1000,7 +1129,7 @@ export function BatchAnalysis({
                 onClick={handleIntegratedAnalysis}
                 disabled={selectedParcelIds.size === 0 || integratedStep !== "idle"}
                 variant="cta"
-                className={`whitespace-nowrap min-w-[230px] ${integratedStep !== "idle" ? "pointer-events-none opacity-80" : ""}`}
+                className={`whitespace-nowrap min-w-[260px] ${integratedStep !== "idle" ? "pointer-events-none opacity-80" : ""}`}
               >
                 {integratedStep === "idle" && (
                   <>AI 통합 판독 실행 ({selectedParcelIds.size}건)</>
@@ -1070,16 +1199,17 @@ export function BatchAnalysis({
                       {sortColumn === "remainingRatio" ? (sortDirection === "asc" ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/50" />}
                     </div>
                   </TableHead>
-                  <TableHead className="text-center">편입 유형</TableHead>
-                  <TableHead className="text-center">매수 가능성</TableHead>
-                  <TableHead className="text-center">검토여부</TableHead>
+                  <TableHead className="text-center">편입유형</TableHead>
+                  <TableHead className="text-center">AI판독결과</TableHead>
+                  <TableHead className="text-center">담당자판독결과</TableHead>
+                  <TableHead className="text-center w-[130px]">알림</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedParcels.map((parcel, index) => (
                   <TableRow
                     key={parcel.id}
-                    className={`cursor-pointer hover:bg-muted/50 ${selectedParcelIds.has(parcel.id) ? 'bg-blue-50' : ''}`}
+                    className={`cursor-pointer hover:bg-muted/50 ${selectedParcelIds.has(parcel.id) ? 'bg-blue-50' : parcel.aiResult?.analysisSource === 'auto-change' ? 'bg-amber-50/20' : ''}`}
                     onClick={() => handleParcelClick(parcel)}
                   >
                     <TableCell className="text-center">
@@ -1100,7 +1230,7 @@ export function BatchAnalysis({
                     >
                       {parcel.landInfo.address}
                     </TableCell>
-                    <TableCell className="text-center text-[15px]">
+                    <TableCell className="text-center text-[16px]">
                       {parcel.landInfo.ownerName}
                     </TableCell>
                     <TableCell className="text-center">
@@ -1112,56 +1242,66 @@ export function BatchAnalysis({
                     <TableCell className="text-center">
                       {parcel.landInfo.remainingRatio != null ? `${parcel.landInfo.remainingRatio}%` : "-"}
                     </TableCell>
-                    {/* 편입 유형 컬럼 */}
                     <TableCell className="text-center">
-                      {isInclusionAnalyzing && selectedParcelIds.has(parcel.id) ? (
-                        <div className="flex items-center justify-center gap-1">
-                          <Loader2 className="h-4 w-4 animate-spin text-[#2E8B57]" />
-                          <span className="text-xs text-[#2E8B57]">분석중</span>
-                        </div>
-                      ) : parcel.residualStatus === "잔여지 인정" ? (
-                        <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-0">
-                          잔여지 발생
-                        </Badge>
+                      {parcel.residualStatus === "잔여지 인정" ? (
+                        <Badge className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-0">잔여지 발생</Badge>
                       ) : parcel.residualStatus === "기준 미달" ? (
-                        <Badge className="bg-gray-100 text-gray-500 hover:bg-gray-200 border-0">
-                          전체 편입
-                        </Badge>
+                        <Badge className="bg-slate-100 text-slate-600 hover:bg-slate-200 border-0">전체 편입</Badge>
                       ) : (
-                        <span className="text-[15px] text-muted-foreground">-</span>
+                        <span className="text-muted-foreground">-</span>
                       )}
                     </TableCell>
-                    {/* 매수 가능성 컬럼 */}
+                    {/* AI판독결과 컬럼 (auto + auto-change + manual 모두 포함) */}
                     <TableCell className="text-center">
-                      {/* 잔여지 인정 아닌 경우 AI 분석 미해당 */}
                       {parcel.residualStatus !== "잔여지 인정" ? (
-                        <span className="text-[15px] text-muted-foreground">-</span>
+                        <span className="text-muted-foreground">-</span>
                       ) : isPurchaseAnalyzing && selectedParcelIds.has(parcel.id) ? (
                         <div className="flex items-center justify-center gap-1">
                           <Loader2 className="h-4 w-4 animate-spin text-[#2E8B57]" />
                           <span className="text-xs text-[#2E8B57]">분석중</span>
                         </div>
-                      ) : parcel.aiResult ? (
-                        <AIJudgmentBadge judgment={parcel.aiResult.provisionalJudgment} />
-                      ) : (
-                        <Badge className="bg-amber-50 text-amber-600 hover:bg-amber-100 border-0">
-                          검토 필요
+                      ) : (() => {
+                        const aiEntry = [...(parcel.analysisHistory ?? [])].reverse().find(
+                          h => h.aiResult?.analysisSource === "auto" || h.aiResult?.analysisSource === "auto-change" || h.aiResult?.analysisSource === "manual"
+                        );
+                        const judgment = aiEntry?.aiResult?.provisionalJudgment
+                          ?? (parcel.aiResult?.analysisSource !== "manual-select" ? parcel.aiResult?.provisionalJudgment : undefined);
+                        if (!judgment) return <Badge className="bg-amber-50 text-amber-600 hover:bg-amber-100 border-0">검토필요</Badge>;
+                        return isHighPossibility(judgment)
+                          ? <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-0">매수가능성 높음</Badge>
+                          : <Badge className="bg-rose-50 text-rose-600 hover:bg-rose-100 border-0">매수가능성 낮음</Badge>;
+                      })()}
+                    </TableCell>
+                    {/* 수동판독결과 컬럼 (담당자 직접 선택 manual-select만) */}
+                    <TableCell className="text-center">
+                      {parcel.residualStatus !== "잔여지 인정" ? (
+                        <span className="text-muted-foreground">-</span>
+                      ) : (() => {
+                        const judgment = parcel.aiResult?.analysisSource === "manual-select"
+                          ? parcel.aiResult.provisionalJudgment
+                          : [...(parcel.analysisHistory ?? [])].reverse().find(
+                              h => h.aiResult?.analysisSource === "manual-select"
+                            )?.aiResult?.provisionalJudgment;
+                        if (!judgment) return <span className="text-muted-foreground">-</span>;
+                        return isHighPossibility(judgment)
+                          ? <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-0">매수가능성 높음</Badge>
+                          : <Badge className="bg-rose-50 text-rose-600 hover:bg-rose-100 border-0">매수가능성 낮음</Badge>;
+                      })()}
+                    </TableCell>
+                    {/* 알림 컬럼 */}
+                    <TableCell className="text-center">
+                      {parcel.aiResult?.analysisSource === "auto-change" && (
+                        <Badge className="bg-amber-50 text-amber-700 border border-amber-200 inline-flex items-center gap-1 whitespace-nowrap w-fit mx-auto">
+                          <AlertTriangle className="h-3.5 w-3.5 shrink-0" />재검토 요망
                         </Badge>
                       )}
                     </TableCell>
-                    {/* 검토여부 컬럼 */}
-                    <TableCell className="text-center">
-                      {(parcel.reviewStatus ?? (parcel.aiResult ? "완료" : "미완료")) === "완료" ? (
-                        <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-0">완료</Badge>
-                      ) : (
-                        <Badge className="bg-slate-100 text-slate-500 hover:bg-slate-200 border-0">미완료</Badge>
-                      )}
-                    </TableCell>
+
                   </TableRow>
                 ))}
                 {filteredParcels.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
                       조건에 맞는 필지가 없습니다.
                     </TableCell>
                   </TableRow>
@@ -1227,7 +1367,7 @@ export function BatchAnalysis({
               마지막
             </PaginationNavButton>
             
-            <span className="text-[15px] text-muted-foreground ml-2">
+            <span className="text-[16px] text-muted-foreground ml-2">
               {filteredParcels.length === 0 
                 ? "(0건)" 
                 : `(${filteredParcels.length}건 중 ${(currentPage - 1) * itemsPerPage + 1}-${Math.min(currentPage * itemsPerPage, filteredParcels.length)}건)`
@@ -1260,13 +1400,13 @@ export function BatchAnalysis({
                         </Badge>
                         {index === 0 && <Badge variant="outline">최신</Badge>}
                       </div>
-                      <p className="text-[15px] text-muted-foreground">
+                      <p className="text-[16px] text-muted-foreground">
                         {formatDateTime(history.analyzedAt)} | {history.analyzedBy}
                       </p>
                     </div>
                     <div className="text-right">
                       {history.previousResult && (
-                        <div className="flex items-center gap-2 text-[15px]">
+                        <div className="flex items-center gap-2 text-[16px]">
                           <span className={history.previousResult.includes("높음") || history.previousResult === "수용가능" ? "text-emerald-600" : "text-rose-600"}>
                             {history.previousResult}
                           </span>
@@ -1285,12 +1425,12 @@ export function BatchAnalysis({
                   </div>
                   
                   {history.changeReason && (
-                    <div className="mt-3 p-2 bg-muted rounded text-[15px]">
+                    <div className="mt-3 p-2 bg-muted rounded text-[16px]">
                       <strong>변경 사유:</strong> {history.changeReason}
                     </div>
                   )}
                   {history.memo && (
-                    <div className="mt-2 text-[15px] text-muted-foreground">
+                    <div className="mt-2 text-[16px] text-muted-foreground">
                       <strong>메모:</strong> {history.memo}
                     </div>
                   )}

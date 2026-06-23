@@ -1,29 +1,49 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { Clock, PlayCircle, CheckCircle2 } from "lucide-react";
+import { Clock, PlayCircle, CheckCircle2, AlertTriangle } from "lucide-react";
 import type { AdminStatus, ProcessStatus } from "@/lib/types";
 
-// 담당자 진행상황 (접수완료/진행중/심사완료) - 새 컬러 시스템 적용
+// 담당자 진행상황 - 새 흐름 적용
 const adminStatusConfig: Record<AdminStatus, {
   label: string;
   icon: typeof Clock;
-  variant: "outline-indigo" | "outline-blue" | "outline-green";
+  variant: "outline-indigo" | "outline-blue" | "outline-green" | "outline-purple" | "outline-amber";
 }> = {
   접수완료: {
-    label: "접수완료",
+    label: "접수 완료",
     icon: Clock,
-    variant: "outline-indigo", // Indigo #6366F1: 신규 접수 강조
+    variant: "outline-indigo",
   },
-  진행중: {
-    label: "진행중",
+  담당자검토중: {
+    label: "담당자 검토 중",
     icon: PlayCircle,
-    variant: "outline-blue", // Blue: 활동 상태 강조
+    variant: "outline-blue",
+  },
+  담당자검토완료: {
+    label: "담당자 검토 완료",
+    icon: CheckCircle2,
+    variant: "outline-blue",
+  },
+  심의위원회회부: {
+    label: "심의위원회 회부",
+    icon: AlertTriangle,
+    variant: "outline-purple",
+  },
+  심의위원회검토중: {
+    label: "심의위원회 검토 중",
+    icon: PlayCircle,
+    variant: "outline-purple",
+  },
+  심의위원회검토완료: {
+    label: "심의위원회 검토 완료",
+    icon: CheckCircle2,
+    variant: "outline-purple",
   },
   심사완료: {
-    label: "심사완료",
+    label: "담당자 검토 완료",
     icon: CheckCircle2,
-    variant: "outline-green", // Green: 완료 상태 강조
+    variant: "outline-green",
   },
 };
 

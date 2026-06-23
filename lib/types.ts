@@ -42,7 +42,14 @@ export type ApplicationType =
 export type ProcessStatus = "접수완료" | "AI분석완료" | "검토중" | "처리완료";
 
 // 담당자 진행상황
-export type AdminStatus = "접수완료" | "진행중" | "심사완료";
+export type AdminStatus =
+  | "접수완료"
+  | "담당자검토중"
+  | "담당자검토완료"
+  | "심의위원회회부"
+  | "심의위원회검토중"
+  | "심의위원회검토완료"
+  | "심사완료";
 
 // AI 1차 판독 결과
 // 관리자: 수용가능/수용불가, 시민: 매수 가능성 높음/매수 가능성 낮음
@@ -164,6 +171,8 @@ export interface Application {
   finalJudgment?: JudgmentResult; // 최종 판정
   reviewerComment?: string; // 담당자 검토 의견
   finalReviewOpinion?: string; // 최종 검토 의견 (복수 필지용, 심의서 현지상황 및 검토의견에 자동입력)
+  citizenAppealChoice?: "중토위" | "한국도로공사" | null; // 심의위원회 기각 후 민원인 선택
+  isCommitteeCase?: boolean; // 심의위원회 경유 여부
   adminName?: string; // 담당자명
   statusUpdatedAt?: string; // 상태 변경일
   landDataList?: LandSpecificData[]; // 토지별 민원인 입력 데이터 (복수 필지)
@@ -187,7 +196,7 @@ export interface LandJudgmentForReview {
 
 // AI 분석 결과
 export interface AIAnalysisResult {
-  analysisSource?: "auto" | "auto-change" | "manual"; // 분석 실행 구분 (정기자동/변동감지자동/수동)
+  analysisSource?: "auto" | "auto-change" | "manual" | "manual-select"; // 분석 실행 구분 (정기자동/변동감지자동/AI재판독/담당자직접선택)
   landTypePath: LandType; // 판단 경로 (토지 유형)
   criteriaChecks: CriteriaCheck[]; // 기준 충족 여부
   provisionalJudgment: AIJudgmentResult; // AI 1차 판독 결과 (수용가능/수용불가)

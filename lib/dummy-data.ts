@@ -1,4 +1,4 @@
-import type { LandInfo, Application, AIAnalysisResult, JudgmentRationale, PreRegisteredParcel, ProcessedParcel, AnalysisHistory, ResidualStatus } from "./types";
+import type { LandInfo, Application, AIAnalysisResult, JudgmentRationale, PreRegisteredParcel, ProcessedParcel, AnalysisHistory, ResidualStatus, AdminStatus, ProcessStatus, LandCategory, LandShape } from "./types";
 
 // 동적 날짜+시간 생성 헬퍼 함수
 const getDateTimeString = (daysAgo: number, hour?: number, minute?: number): string => {
@@ -1931,7 +1931,7 @@ export const dummyApplications: Application[] = [
     reason: "도로확장사업으로 인해 잔여지 형상이 역삼각형으로 변형되고 관개수로가 단절되어 농업 활동이 불가능합니다.",
     attachments: ["토지대장.pdf", "현황사진.jpg"],
     status: "검토중",
-    adminStatus: "진행중",
+    adminStatus: "담당자검토중",
     appliedAt: TWO_DAYS_AGO,
     aiResult: {
       landTypePath: "농지",
@@ -2000,7 +2000,7 @@ export const dummyApplications: Application[] = [
     reason: "법인 소유 토지에 대해 법무사가 대리 신청합니다. 고속도로 편입으로 산림이 분할되어 임업 경영이 불가능해졌습니다.",
     attachments: ["토지대장.pdf", "법인등기부등본.pdf", "위임장.pdf", "대리인자격증명.pdf"],
     status: "검토중",
-    adminStatus: "진행중",
+    adminStatus: "담당자검토중",
     appliedAt: YESTERDAY,
     aiResult: generateAIResult(dummyLandInfoList[4]),
     adminName: "홍길동",
@@ -2042,7 +2042,7 @@ export const dummyApplications: Application[] = [
     reason: "도로 편입으로 농지가 분할되어 농기계 회전 및 회전이 불가능해졌습니다. 남은 면적으로는 농업 활동이 어렵습니다.",
     attachments: ["토지대장.pdf", "농지원부.pdf"],
     status: "검토중",
-    adminStatus: "진행중",
+    adminStatus: "담당자검토중",
     appliedAt: TODAY,
     aiResult: generateAIResult(dummyLandInfoList[1]),
     adminName: "홍길동",
@@ -2136,7 +2136,7 @@ export const dummyApplications: Application[] = [
     ],
     attachments: ["토지대장_100-1.pdf", "토지대장_100-2.pdf", "등기부등본.pdf"],
     status: "검토중",
-    adminStatus: "진행중",
+    adminStatus: "담당자검토중",
     appliedAt: THREE_DAYS_AGO,
     aiResult: generateAIResult(dummyLandInfoList[6]),
     adminName: "홍길동",
@@ -2179,7 +2179,7 @@ export const dummyApplications: Application[] = [
     reason: "도로 편입으로 토지가 삼각형으로 변형되어 건축이 불가능합니다. 잔여면적 70㎡로 기준 이하입니다.",
     attachments: ["토지대장.pdf", "지적도.pdf"],
     status: "검토중",
-    adminStatus: "진행중",
+    adminStatus: "담당자검토중",
     appliedAt: SIX_DAYS_AGO,
     aiResult: generateAIResult(dummyLandInfoList[4]),
     adminName: "홍길동",
@@ -2201,7 +2201,7 @@ export const dummyApplications: Application[] = [
     reason: "도로 편입으로 토지가 자루형으로 변형되었습니다. 면적 기준은 애매하여 실측이 필요합니다.",
     attachments: ["토지대장.pdf", "지적도.pdf", "현황사진.jpg"],
     status: "검토중",
-    adminStatus: "진행중",
+    adminStatus: "담당자검토중",
     appliedAt: TEN_DAYS_AGO,
     aiResult: {
       landTypePath: "택지",
@@ -2299,7 +2299,7 @@ export const dummyApplications: Application[] = [
     reason: "토지 일부가 도로에 편입되어 잔여지 매수를 신청합니다.",
     attachments: ["토지대장.pdf", "등기부등본.pdf"],
     status: "검토중",
-    adminStatus: "진행중",
+    adminStatus: "담당자검토중",
     appliedAt: SIX_MONTHS_AGO,
     aiResult: generateAIResult(dummyLandInfoList[10]),
     adminName: "홍길동",
@@ -2421,7 +2421,7 @@ export const dummyApplications: Application[] = [
       "농지원부.pdf",
     ],
     status: "검토중",
-    adminStatus: "진행중",
+    adminStatus: "담당자검토중",
     appliedAt: TWO_WEEKS_AGO,
     aiResult: generateAIResult(dummyLandInfoList[11]),
     adminName: "홍길동",
@@ -2461,7 +2461,7 @@ export const dummyApplications: Application[] = [
     reason: "산지 접근이 불가능해졌습니다.",
     attachments: ["토지대장.pdf"],
     status: "검토중",
-    adminStatus: "진행중",
+    adminStatus: "담당자검토중",
     appliedAt: ONE_MONTH_AGO,
     aiResult: generateAIResult(dummyLandInfoList[2]),
     adminName: "홍길동",
@@ -2639,7 +2639,7 @@ export const dummyApplications: Application[] = [
     ],
     attachments: ["토지대장_777-1.pdf", "토지대장_777-2.pdf", "토지대장_777-3.pdf", "토지대장_777-4.pdf", "등기부등본.pdf", "건축물대장.pdf"],
     status: "검토중",
-    adminStatus: "진행중",
+    adminStatus: "담당자검토중",
     appliedAt: TWO_MONTHS_AGO,
     aiResult: {
       landTypePath: "택지",
@@ -2821,7 +2821,7 @@ export const dummyApplications: Application[] = [
     ],
     attachments: ["토지대장_산101.pdf", "토지대장_산102.pdf", "토지대장_산103.pdf", "토지대장_산104.pdf", "토지대장_산105.pdf", "등기부등본.pdf", "산림경영계획서.pdf", "조림현황사진.jpg"],
     status: "검토중",
-    adminStatus: "진행중",
+    adminStatus: "담당자검토중",
     appliedAt: SIX_MONTHS_AGO,
     aiResult: {
       landTypePath: "산지",
@@ -2916,7 +2916,7 @@ export const dummyApplications: Application[] = [
     ],
     attachments: ["토지대장_200-1.pdf", "토지대장_200-2.pdf", "토지대장_55-1.pdf", "토지대장_55-2.pdf", "등기부등본.pdf"],
     status: "검토중",
-    adminStatus: "진행중",
+    adminStatus: "담당자검토중",
     appliedAt: TWO_YEARS_AGO,
     aiResult: {
       landTypePath: "농지",
@@ -3052,7 +3052,7 @@ export const dummyApplications: Application[] = [
     ],
     attachments: ["토지대장_용인시_포곡읍_200-1.pdf", "지적도_용인시_포곡읍_200-1.pdf", "현장사진_20260501.jpg"],
     status: "검토중",
-    adminStatus: "진행중",
+    adminStatus: "담당자검토중",
     appliedAt: ONE_WEEK_AGO,
     // 민원인 AI 분석 결과 - 농지 2필지 개별 분석
     aiResult: {
@@ -3568,6 +3568,270 @@ export const dummyApplications: Application[] = [
     statusUpdatedAt: THREE_WEEKS_AGO,
     businessUnit: "강진광주건설 사업단",
   },
+  // ─────────────────────────────────────────────────────────
+  // 담당자 검토완료 케이스 — 상태별 전체 경우의 수
+  // ─────────────────────────────────────────────────────────
+
+  // Case 1: 담당자 검토완료 (판정 대기 중)
+  {
+    id: "app-case-01",
+    applicationNumber: "2026-0601-001",
+    applicationType: "single",
+    applicantName: "김도현",
+    applicantContact: "010-1111-0101",
+    applicantAddress: "경기도 수원시 팔달구 인계동 100",
+    landInfo: dummyLandInfoList[0],
+    actualUsage: "대",
+    reportedShape: "삼각형",
+    farmMachineDifficulty: false,
+    reason: "도로 편입으로 잔여지가 삼각형 형태로 변형되어 건축이 불가능합니다.",
+    attachments: ["토지대장.pdf", "지적도.pdf"],
+    status: "검토중",
+    adminStatus: "담당자검토완료",
+    appliedAt: THREE_DAYS_AGO,
+    aiResult: generateAIResult(dummyLandInfoList[0]),
+    adminName: "홍길동",
+    statusUpdatedAt: YESTERDAY,
+    businessUnit: "강진광주건설 사업단",
+  },
+
+  // Case 2: 담당자 판정 — 매수 (심사완료, 비위원회)
+  {
+    id: "app-case-02",
+    applicationNumber: "2026-0601-002",
+    applicationType: "single",
+    applicantName: "이서연",
+    applicantContact: "010-2222-0202",
+    applicantAddress: "경기도 용인시 수지구 풍덕천동 200",
+    landInfo: dummyLandInfoList[1],
+    actualUsage: "답",
+    reportedShape: "역삼각형",
+    farmMachineDifficulty: true,
+    reason: "농지가 역삼각형으로 변형되어 정상적인 경작이 불가능합니다.",
+    attachments: ["토지대장.pdf", "농지원부.pdf"],
+    status: "처리완료",
+    adminStatus: "심사완료",
+    isCommitteeCase: false,
+    appliedAt: FIVE_DAYS_AGO,
+    aiResult: generateAIResult(dummyLandInfoList[1]),
+    finalJudgment: "매수",
+    reviewerComment: "형상지수 악화(1.8→3.2) 및 농기계 진입 불가 확인. 잔여지 매수 기준 충족으로 매수 판정.",
+    adminName: "박민수",
+    statusUpdatedAt: TWO_DAYS_AGO,
+    businessUnit: "강진광주건설 사업단",
+  },
+
+  // Case 3: 담당자 판정 — 기각 (심사완료, 비위원회)
+  {
+    id: "app-case-03",
+    applicationNumber: "2026-0601-003",
+    applicationType: "single",
+    applicantName: "박준영",
+    applicantContact: "010-3333-0303",
+    applicantAddress: "경기도 화성시 동탄면 반월동 300",
+    landInfo: dummyLandInfoList[2],
+    actualUsage: "전",
+    reportedShape: "가로장방형",
+    farmMachineDifficulty: false,
+    reason: "도로 편입 후 잔여지가 남았으나 활용이 어려워 매수를 신청합니다.",
+    attachments: ["토지대장.pdf"],
+    status: "처리완료",
+    adminStatus: "심사완료",
+    isCommitteeCase: false,
+    appliedAt: SIX_DAYS_AGO,
+    aiResult: generateAIResult(dummyLandInfoList[2]),
+    finalJudgment: "기각",
+    reviewerComment: "잔여비율 78%로 매수 기준(30% 이하) 초과. 형상지수 변화 미미(0.05)하여 종래 용도 사용 가능. 기각 처리.",
+    adminName: "이정은",
+    statusUpdatedAt: THREE_DAYS_AGO,
+    businessUnit: "강진광주건설 사업단",
+  },
+
+  // Case 4: 심의위원회 회부 (판정 대기)
+  {
+    id: "app-case-04",
+    applicationNumber: "2026-0601-004",
+    applicationType: "single",
+    applicantName: "최수진",
+    applicantContact: "010-4444-0404",
+    applicantAddress: "경기도 성남시 분당구 정자동 400",
+    landInfo: dummyLandInfoList[3],
+    actualUsage: "대",
+    reportedShape: "사다리형",
+    farmMachineDifficulty: false,
+    reason: "택지가 사다리형으로 변형되어 건축 허가가 어렵습니다.",
+    attachments: ["토지대장.pdf", "건축설계도면.pdf"],
+    status: "검토중",
+    adminStatus: "심의위원회회부",
+    isCommitteeCase: true,
+    appliedAt: TEN_DAYS_AGO,
+    aiResult: generateAIResult(dummyLandInfoList[3]),
+    finalJudgment: "심의위원회 이관",
+    reviewerComment: "AI 판정 결과 경계값에 위치하여 심의위원회 전문 심의 필요.",
+    adminName: "홍길동",
+    statusUpdatedAt: FOUR_DAYS_AGO,
+    businessUnit: "강진광주건설 사업단",
+  },
+
+  // Case 5: 심의위원회 검토 중
+  {
+    id: "app-case-05",
+    applicationNumber: "2026-0601-005",
+    applicationType: "single",
+    applicantName: "정민재",
+    applicantContact: "010-5555-0505",
+    applicantAddress: "경기도 안양시 만안구 안양동 500",
+    landInfo: dummyLandInfoList[4],
+    actualUsage: "답",
+    reportedShape: "부정형",
+    farmMachineDifficulty: true,
+    reason: "농지 형상이 부정형으로 변형되어 농기계 회전이 불가합니다.",
+    attachments: ["토지대장.pdf", "농지원부.pdf", "현황사진.jpg"],
+    status: "검토중",
+    adminStatus: "심의위원회검토중",
+    isCommitteeCase: true,
+    appliedAt: TWO_WEEKS_AGO,
+    aiResult: generateAIResult(dummyLandInfoList[4]),
+    finalJudgment: "심의위원회 이관",
+    reviewerComment: "인접 토지 소유자 분쟁 가능성 및 현장 추가 확인 필요로 심의위원회에 회부.",
+    adminName: "박민수",
+    statusUpdatedAt: ONE_WEEK_AGO,
+    businessUnit: "강진광주건설 사업단",
+  },
+
+  // Case 6: 심의위원회 검토 완료 (판정 대기)
+  {
+    id: "app-case-06",
+    applicationNumber: "2026-0601-006",
+    applicationType: "single",
+    applicantName: "강하은",
+    applicantContact: "010-6666-0606",
+    applicantAddress: "경기도 고양시 덕양구 행신동 600",
+    landInfo: dummyLandInfoList[5],
+    actualUsage: "임",
+    reportedShape: "자루형",
+    farmMachineDifficulty: false,
+    reason: "산지 진입로가 완전히 차단되어 접근이 불가능합니다.",
+    attachments: ["토지대장.pdf", "현황사진.jpg"],
+    status: "검토중",
+    adminStatus: "심의위원회검토완료",
+    isCommitteeCase: true,
+    appliedAt: THREE_WEEKS_AGO,
+    aiResult: generateAIResult(dummyLandInfoList[5]),
+    finalJudgment: "심의위원회 이관",
+    reviewerComment: "심의위원회 현장 검토 완료. 최종 판정 결과 입력 대기 중.",
+    adminName: "이정은",
+    statusUpdatedAt: THREE_DAYS_AGO,
+    businessUnit: "강진광주건설 사업단",
+  },
+
+  // Case 7: 심의위원회 판정 — 매수 (심사완료, 위원회 경유)
+  {
+    id: "app-case-07",
+    applicationNumber: "2026-0601-007",
+    applicationType: "single",
+    applicantName: "윤지호",
+    applicantContact: "010-7777-0707",
+    applicantAddress: "경기도 부천시 원미구 중동 700",
+    landInfo: dummyLandInfoList[6],
+    actualUsage: "대",
+    reportedShape: "세로장방형",
+    farmMachineDifficulty: false,
+    reason: "택지가 세로로 협소하게 잔여지가 남아 건축이 불가능합니다.",
+    attachments: ["토지대장.pdf", "건축설계도면.pdf", "현황사진.jpg"],
+    status: "처리완료",
+    adminStatus: "심사완료",
+    isCommitteeCase: true,
+    appliedAt: THREE_MONTHS_AGO,
+    aiResult: generateAIResult(dummyLandInfoList[6]),
+    finalJudgment: "매수",
+    reviewerComment: "심의위원회 현장 검토 결과, 잔여지 폭 2.1m로 건축법상 최소 기준 미달. 매수 기준 충족으로 판정.",
+    adminName: "홍길동",
+    statusUpdatedAt: ONE_WEEK_AGO,
+    businessUnit: "강진광주건설 사업단",
+  },
+
+  // Case 8: 심의위원회 판정 — 기각, 민원인 미선택 (심사완료, 위원회 경유)
+  {
+    id: "app-case-08",
+    applicationNumber: "2026-0601-008",
+    applicationType: "single",
+    applicantName: "임채원",
+    applicantContact: "010-8888-0808",
+    applicantAddress: "경기도 의정부시 의정부동 800",
+    landInfo: dummyLandInfoList[7],
+    actualUsage: "전",
+    reportedShape: "역삼각형",
+    farmMachineDifficulty: true,
+    reason: "농지 형상이 역삼각형으로 변형되어 영농이 어렵습니다.",
+    attachments: ["토지대장.pdf", "농지원부.pdf"],
+    status: "처리완료",
+    adminStatus: "심사완료",
+    isCommitteeCase: true,
+    citizenAppealChoice: null,
+    appliedAt: THREE_MONTHS_AGO,
+    aiResult: generateAIResult(dummyLandInfoList[7]),
+    finalJudgment: "기각",
+    reviewerComment: "심의위원회 현장 검토 결과, 잔여면적(580㎡) 및 형상지수 변화(0.08)가 매수 기준에 미달. 기각 처리.",
+    adminName: "박민수",
+    statusUpdatedAt: TWO_DAYS_AGO,
+    businessUnit: "강진광주건설 사업단",
+  },
+
+  // Case 9: 심의위원회 기각 — 중토위 수용 신청 선택
+  {
+    id: "app-case-09",
+    applicationNumber: "2026-0601-009",
+    applicationType: "single",
+    applicantName: "한예슬",
+    applicantContact: "010-9999-0909",
+    applicantAddress: "경기도 남양주시 화도읍 마석우리 900",
+    landInfo: dummyLandInfoList[8],
+    actualUsage: "답",
+    reportedShape: "삼각형",
+    farmMachineDifficulty: false,
+    reason: "농지가 삼각형으로 변형되어 경작이 불가능합니다.",
+    attachments: ["토지대장.pdf", "농지원부.pdf", "현황사진.jpg"],
+    status: "처리완료",
+    adminStatus: "심사완료",
+    isCommitteeCase: true,
+    citizenAppealChoice: "중토위",
+    appliedAt: SIX_MONTHS_AGO,
+    aiResult: generateAIResult(dummyLandInfoList[8]),
+    finalJudgment: "기각",
+    reviewerComment: "심의위원회 검토 결과 기각. 토지보상법 제74조 요건 미충족.",
+    adminName: "이정은",
+    statusUpdatedAt: TWO_WEEKS_AGO,
+    businessUnit: "강진광주건설 사업단",
+  },
+
+  // Case 10: 심의위원회 기각 — 한국도로공사 수용 신청 선택
+  {
+    id: "app-case-10",
+    applicationNumber: "2026-0601-010",
+    applicationType: "single",
+    applicantName: "조성현",
+    applicantContact: "010-0000-1010",
+    applicantAddress: "경기도 구리시 교문동 1000",
+    landInfo: dummyLandInfoList[9],
+    actualUsage: "대",
+    reportedShape: "부정형",
+    farmMachineDifficulty: false,
+    reason: "도로 편입으로 잔여지가 부정형으로 남아 건축이 곤란합니다.",
+    attachments: ["토지대장.pdf", "등기부등본.pdf"],
+    status: "처리완료",
+    adminStatus: "심사완료",
+    isCommitteeCase: true,
+    citizenAppealChoice: "한국도로공사",
+    appliedAt: SIX_MONTHS_AGO,
+    aiResult: generateAIResult(dummyLandInfoList[9]),
+    finalJudgment: "기각",
+    reviewerComment: "잔여면적 620㎡으로 매수 기준 초과. 심의위원회 기각 최종 확정.",
+    adminName: "홍길동",
+    statusUpdatedAt: THREE_WEEKS_AGO,
+    businessUnit: "강진광주건설 사업단",
+  },
+
   // 추가 더미 민원 신청 — 각 사업단별 최소 30건 확보 (사업단당 32건 생성)
   ...((): Application[] => {
     const applicantNames = ["김철수", "이영희", "박민수", "최지원", "정수연", "강민호", "윤서윤", "조현우", "임재현", "한소희"];
@@ -3576,8 +3840,8 @@ export const dummyApplications: Application[] = [
     const landShapes: LandShape[] = ["가로장방형", "세로장방형", "정방형", "삼각형", "역삼각형", "사다리형", "부정형"];
     const statuses: { status: ProcessStatus; adminStatus: AdminStatus }[] = [
       { status: "접수완료", adminStatus: "접수완료" },
-      { status: "AI분석완료", adminStatus: "진행중" },
-      { status: "검토중", adminStatus: "진행중" },
+      { status: "AI분석완료", adminStatus: "담당자검토중" },
+      { status: "검토중", adminStatus: "담당자검토중" },
       { status: "처리완료", adminStatus: "심사완료" },
     ];
 
@@ -4740,6 +5004,7 @@ const rawProcessedParcels: ProcessedParcel[] = [
   // 추가 더미 데이터 — 각 사업단별 6페이지 이상(목록 12건/페이지 기준 사업단당 72건) 생성
   ...((): ProcessedParcel[] => {
     const ownerNames = ["김철수", "이영희", "박민수", "최지원", "정수연", "강민호", "윤서윤", "조현우", "임재현", "한소희"];
+    const staffNames = ["김담당", "이담당", "박담당", "최담당", "정담당"];
     const landCategories = ["전", "답", "대", "임"];
     const landShapes = ["가로장방형", "세로장방형", "정방형", "삼각형", "역삼각형", "사다리형", "부정형"];
     // ProcessedParcel.publishStatus 유효값. "대기중" = 분석 전(AI 결과 없음 → 판독대기)
@@ -4847,6 +5112,29 @@ const rawProcessedParcels: ProcessedParcel[] = [
             }
           : null;
 
+        // AI 재판독: 잔여지 인정 필지 중 일부 (i % 9 === 3) — AI 옵션 변경 후 재판독
+        const isManualParcel = hasAiResult && residualStatus === "잔여지 인정" && i % 9 === 3;
+        const manualAiResult = isManualParcel
+          ? {
+              ...generateAIResult(landInfo),
+              analysisSource: "manual" as const,
+              remainingShapeIndex: (2.0 + (i % 6) * 1.0) * (i % 2 === 0 ? 0.85 : 1.15),
+              farmMachineDifficulty: i % 3 === 0,
+              accessRoadLost: i % 5 === 0,
+            }
+          : null;
+
+        // 담당자 직접 선택: 잔여지 인정 필지 중 일부 (i % 9 === 6) — AI 없이 담당자가 직접 높음/낮음 선택
+        const isManualSelectParcel = hasAiResult && residualStatus === "잔여지 인정" && i % 9 === 6 && !isManualParcel;
+        const manualSelectJudgment: import("./types").AIJudgmentResult = i % 3 === 0 ? "매수 가능성 높음" : "매수 가능성 낮음";
+        const manualSelectAiResult = isManualSelectParcel
+          ? {
+              ...generateAIResult(landInfo),
+              analysisSource: "manual-select" as const,
+              provisionalJudgment: manualSelectJudgment,
+            }
+          : null;
+
         const autoHistory: AnalysisHistory[] = fullAiResult
           ? [
               {
@@ -4903,6 +5191,42 @@ const rawProcessedParcels: ProcessedParcel[] = [
             ]
           : [];
 
+        // AI 재판독 이력 항목
+        const prevResult = (autoChangeAiResult || fullAiResult)?.provisionalJudgment;
+        const manualHistory: AnalysisHistory[] = isManualParcel && manualAiResult && prevResult
+          ? [{
+              id: `history-gen-${String(n).padStart(3, "0")}-m`,
+              parcelId: `processed-gen-${String(n).padStart(3, "0")}`,
+              stage: "3차분석" as const,
+              analyzedAt: dateAt(1).toISOString(),
+              analyzedBy: staffNames[i % staffNames.length],
+              previousResult: prevResult,
+              newResult: manualAiResult.provisionalJudgment,
+              changedOptions: {},
+              changeReason: "현장 실사 및 담당자 검토에 따른 수동 재판독",
+              memo: "소유자 면담 및 현장 사진 확인 후 판단 기준 재적용",
+              aiResult: manualAiResult,
+            }]
+          : [];
+
+        // 담당자 직접 선택 이력 항목
+        const prevResultForSelect = (manualAiResult || autoChangeAiResult || fullAiResult)?.provisionalJudgment;
+        const manualSelectHistory: AnalysisHistory[] = isManualSelectParcel && manualSelectAiResult && prevResultForSelect
+          ? [{
+              id: `history-gen-${String(n).padStart(3, "0")}-s`,
+              parcelId: `processed-gen-${String(n).padStart(3, "0")}`,
+              stage: "3차분석" as const,
+              analyzedAt: dateAt(1).toISOString(),
+              analyzedBy: staffNames[(i + 2) % staffNames.length],
+              previousResult: prevResultForSelect,
+              newResult: manualSelectJudgment,
+              changedOptions: {},
+              changeReason: "현장 확인 후 담당자 직접 판단",
+              memo: "소유자 면담 및 현지 확인을 통한 최종 판정",
+              aiResult: manualSelectAiResult,
+            }]
+          : [];
+
         return {
           id: `processed-gen-${String(n).padStart(3, "0")}`,
           businessUnit: cfg.businessUnit,
@@ -4915,14 +5239,14 @@ const rawProcessedParcels: ProcessedParcel[] = [
           },
           currentUsage: landCategory,
           landShape,
-          ...(fullAiResult && { aiResult: autoChangeAiResult || fullAiResult }),
+          ...(fullAiResult && { aiResult: manualSelectAiResult || manualAiResult || autoChangeAiResult || fullAiResult }),
           preRegistrationStatus: "등록완료" as const,
           registeredAt: dateAt(0),
           registeredBy: "관리자",
           publishStatus,
           ...(hasAiResult && { residualStatus }),
           isVisible,
-          analysisHistory: autoHistory,
+          analysisHistory: [...autoHistory, ...manualHistory, ...manualSelectHistory],
           ...(hasAiResult && { firstAnalyzedAt: dateAt(7) }),
           ...(hasAiResult && { lastAnalyzedAt: autoChangeAiResult ? dateAt(3) : dateAt(7) }),
           ...((publishStatus === "담당자확인완료" || publishStatus === "공개") && {

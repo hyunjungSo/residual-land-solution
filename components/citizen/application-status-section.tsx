@@ -13,8 +13,8 @@ import { dummyApplications, landCategories } from "@/lib/dummy-data";
 import { formatDateTime } from "@/lib/format";
 import type { Application, AdminStatus } from "@/lib/types";
 import { PARCEL_COUNT_COLORS } from "@/components/ui/judgment-badge";
-import { 
-  FileText, 
+import {
+  FileText,
   MapPin,
   Layers,
   CheckCircle2,
@@ -29,7 +29,9 @@ import {
   Search,
   Download,
   Eye,
-  FileImage
+  FileImage,
+  PlayCircle,
+  Clock
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { AdminStatusBadge, adminStatusConfig } from "@/components/ui/status-badge";
@@ -202,8 +204,8 @@ interface LandEditData {
   farmEquipmentTurnImpossible: boolean;
 }
 
-function LandInfoSection({ 
-  application, 
+function LandInfoSection({
+  application,
   isEditMode = false,
   selectedLandIndex = 0,
   onSelectedLandIndexChange,
@@ -211,8 +213,9 @@ function LandInfoSection({
   onEditDataChange,
   onFileChange,
   onRemoveFile,
+  onSave,
   MAX_FILES = 10
-}: { 
+}: {
   application: Application;
   isEditMode?: boolean;
   selectedLandIndex?: number;
@@ -221,6 +224,7 @@ function LandInfoSection({
   onEditDataChange?: (data: Partial<LandEditData>) => void;
   onFileChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveFile?: (index: number) => void;
+  onSave?: (updatedApp: Application) => void;
   MAX_FILES?: number;
 }) {
   const isMultipleLands = application.additionalLands && application.additionalLands.length > 0;
@@ -263,7 +267,7 @@ function LandInfoSection({
   return (
     <div className={`overflow-hidden rounded-lg border transition-colors duration-300 ${isEditMode ? "border-primary/50 bg-primary/5" : "border-border"}`}>
       <div className="flex items-center justify-between border-b border-border bg-muted/50 px-4 py-2.5">
-        <h4 className="font-semibold text-foreground">토지 정보</h4>
+        <h4 className="font-semibold text-foreground">심사 대상 필지</h4>
         {isMultipleLands && (
           <span className={`flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium ${PARCEL_COUNT_COLORS.bg} ${PARCEL_COUNT_COLORS.text}`}>
             <Layers className="h-3 w-3" />
@@ -599,6 +603,95 @@ function LandInfoSection({
         </div>
       </div>
 
+      {/* 최종 판정 항목 (심의위원회 회부 이후 또는 심사완료 시 표시) */}
+      {(() => {
+        const st = application.adminStatus;
+        const fj = application.finalJudgment;
+        const isCom = application.isCommitteeCase;
+        const isComplete = st === "심사완료";
+        const isCommitteeStage = st === "심의위원회회부" || st === "심의위원회검토중" || st === "심의위원회검토완료";
+
+        if (!isCommitteeStage && !(isComplete && fj)) return null;
+
+        let label = "";
+        let icon: React.ReactNode = null;
+        let textColor = "";
+
+        if (st === "심의위원회회부") {
+          label = "심의위원회 회부";
+          icon = <Clock className="h-5 w-5 text-amber-500" />;
+          textColor = "text-amber-700";
+        } else if (st === "심의위원회검토중") {
+          label = "심의 위원회 회부(검토 중)";
+          icon = <PlayCircle className="h-5 w-5 text-purple-500" />;
+          textColor = "text-purple-700";
+        } else if (st === "심의위원회검토완료") {
+          if (fj === "매수") {
+            label = "심의 위원회 회부(검토 완료 - 매수)";
+            icon = <CheckCircle2 className="h-5 w-5 text-success" />;
+            textColor = "text-success";
+          } else if (fj === "기각") {
+            label = "심의 위원회 회부(검토 완료 - 기각)";
+            icon = <AlertTriangle className="h-5 w-5 text-destructive" />;
+            textColor = "text-destructive";
+          } else {
+            label = "심의 위원회 회부(검토 완료)";
+            icon = <CheckCircle2 className="h-5 w-5 text-purple-500" />;
+            textColor = "text-purple-700";
+          }
+        } else if (isComplete && isCom && fj === "매수") {
+          label = "심의 위원회 회부(검토 완료 - 매수)";
+          icon = <CheckCircle2 className="h-5 w-5 text-success" />;
+          textColor = "text-success";
+        } else if (isComplete && isCom && fj === "기각") {
+          label = "심의 위원회 회부(검토 완료 - 기각)";
+          icon = <AlertTriangle className="h-5 w-5 text-destructive" />;
+          textColor = "text-destructive";
+        } else if (isComplete && fj === "매수") {
+          label = "매수";
+          icon = <CheckCircle2 className="h-5 w-5 text-success" />;
+          textColor = "text-success";
+        } else if (isComplete && fj === "기각") {
+          label = "기각";
+          icon = <AlertTriangle className="h-5 w-5 text-destructive" />;
+          textColor = "text-destructive";
+        } else if (isComplete && fj === "심의위원회 이관") {
+          // 구형 데이터 호환: finalJudgment가 "심의위원회 이관"으로 저장된 경우
+          label = "심의위원회 회부";
+          icon = <Clock className="h-5 w-5 text-amber-500" />;
+          textColor = "text-amber-700";
+        }
+
+        if (!label) return null;
+
+        return (
+          <>
+            <div className="flex border-t border-border">
+              <div className="flex w-28 shrink-0 items-center bg-muted/30 px-4 py-4">
+                <span className="text-sm font-medium">최종 판정</span>
+              </div>
+              <div className="flex flex-1 items-center gap-3 px-4 py-4">
+                {icon}
+                <span className={`text-base font-semibold ${textColor}`}>{label}</span>
+              </div>
+            </div>
+            {application.reviewerComment && (
+              <div className="flex border-t border-border">
+                <div className="flex w-28 shrink-0 bg-muted/30 px-4 py-3">
+                  <span className="text-sm font-medium">검토 의견</span>
+                </div>
+                <div className="flex flex-1 px-4 py-3">
+                  <p className="text-sm text-muted-foreground">{application.reviewerComment}</p>
+                </div>
+              </div>
+            )}
+            {((isComplete && (isCom || fj === "심의위원회 이관")) || st === "심의위원회검토완료") && fj === "기각" && onSave && (
+              <CommitteeRejectionAppeal application={application} onSave={onSave} />
+            )}
+          </>
+        );
+      })()}
+
       {/* 파일 뷰어 다이얼로그 - 풀페이지 */}
       <Dialog open={fileViewerOpen} onOpenChange={setFileViewerOpen}>
         <DialogContent className="fixed inset-0 w-[100vw] h-[100vh] !max-w-none rounded-none border-none overflow-hidden flex flex-col p-0 translate-x-0 translate-y-0 top-0 left-0">
@@ -664,14 +757,80 @@ function LandInfoSection({
 // RationaleCard 컴포넌트를 import해서 사용
 import { RationaleCard } from "@/components/ui/rationale-card";
 
+// 심의위원회 기각 후 민원인 수용 신청 선택 컴포넌트
+function CommitteeRejectionAppeal({
+  application,
+  onSave,
+}: {
+  application: Application;
+  onSave: (updatedApp: Application) => void;
+}) {
+  const [selectedAppeal, setSelectedAppeal] = useState<"중토위" | "한국도로공사" | null>(
+    application.citizenAppealChoice ?? null
+  );
+  const [expandedInfo, setExpandedInfo] = useState<"중토위" | "한국도로공사" | null>(null);
+
+  const handleSelect = (choice: "중토위" | "한국도로공사") => {
+    setSelectedAppeal(choice);
+    setExpandedInfo(choice);
+    onSave({ ...application, citizenAppealChoice: choice });
+  };
+
+  const guideText: Record<"중토위" | "한국도로공사", string> = {
+    중토위:
+      "중앙토지수용위원회(중토위)에 이의신청을 하실 수 있습니다. 재결 신청서를 작성하여 사업 시행자를 통해 제출하거나, 중토위에 직접 제출하실 수 있습니다. 재결 신청 기간은 보상협의 요청을 받은 날부터 30일 이내입니다.",
+    한국도로공사:
+      "한국도로공사에 직접 수용을 신청하실 수 있습니다. 사업 담당 부서에 수용 신청서와 관련 서류를 제출하시면 내부 검토 후 결과를 안내드립니다.",
+  };
+
+  return (
+    <div className="border-t border-border px-4 py-4 space-y-3">
+      <p className="text-sm font-semibold text-foreground">수용 신청 방법 선택</p>
+      <p className="text-xs text-muted-foreground">
+        심의위원회에서 기각되었습니다. 아래 방법 중 하나를 선택하여 수용 신청을 진행하실 수 있습니다.
+      </p>
+      {application.citizenAppealChoice ? (
+        <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 space-y-2">
+          <p className="text-sm font-medium text-slate-700">
+            선택하신 방법:{" "}
+            <span className="text-primary">
+              {application.citizenAppealChoice === "중토위" ? "중토위 수용 신청" : "한국도로공사 수용 신청"}
+            </span>
+          </p>
+          <p className="text-xs text-muted-foreground">{guideText[application.citizenAppealChoice]}</p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {(["중토위", "한국도로공사"] as const).map((choice) => (
+            <div key={choice}>
+              <Button
+                variant="outline"
+                className={`w-full justify-start border-2 ${selectedAppeal === choice ? "border-primary text-primary" : "border-[#E1E4E7] text-foreground"}`}
+                onClick={() => handleSelect(choice)}
+              >
+                {choice === "중토위" ? "중토위 수용 신청" : "한국도로공사 수용 신청"}
+              </Button>
+              {expandedInfo === choice && (
+                <div className="mt-1 px-3 py-2 rounded-md bg-slate-50 border border-slate-200 text-xs text-slate-600">
+                  {guideText[choice]}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // 상세 정보 패널 컴포넌트 (고용24 스타일)
-function ApplicationDetailPanel({ 
+function ApplicationDetailPanel({
   application,
   isEditMode,
   onEditModeChange,
   onSave,
   onReapplyClick
-}: { 
+}: {
   application: Application;
   isEditMode: boolean;
   onEditModeChange: (value: boolean) => void;
@@ -1079,11 +1238,12 @@ function ApplicationDetailPanel({
       )}
 
       {/* 토지 정보 (활용 지목, 토지 모양, 택지 유형, 확인 항목, 신청 사유, 첨부 서류) */}
-      <LandInfoSection 
+      <LandInfoSection
         application={application}
         isEditMode={isEditMode}
         selectedLandIndex={selectedLandIndex}
         onSelectedLandIndexChange={setSelectedLandIndex}
+        onSave={onSave}
         editData={{
           ...landEditDataList[selectedLandIndex],
           reason: editData.reason,
@@ -1114,40 +1274,6 @@ function ApplicationDetailPanel({
         onRemoveFile={handleRemoveFile}
         MAX_FILES={MAX_FILES}
       />
-
-      {/* 처리 완료 시 결과 표시 */}
-      {application.adminStatus === "심사완료" && application.finalJudgment && (
-        <div className="overflow-hidden rounded-lg border border-border">
-          <div className="border-b border-border bg-muted/50 px-4 py-2.5">
-            <h4 className="font-semibold text-foreground">심사 결과</h4>
-          </div>
-          <div className="flex">
-            <div className="flex w-28 shrink-0 items-center bg-muted/30 px-4 py-4">
-              <span className="text-sm font-medium">최종 판정</span>
-            </div>
-            <div className="flex flex-1 items-center gap-3 px-4 py-4">
-              {application.finalJudgment === "매수" && <CheckCircle2 className="h-5 w-5 text-success" />}
-              {application.finalJudgment === "기각" && <AlertTriangle className="h-5 w-5 text-destructive" />}
-              {application.finalJudgment === "심의위원회 이관" && <Info className="h-5 w-5 text-warning" />}
-              <JudgmentStatus 
-                judgment={application.finalJudgment} 
-                variant="text" 
-                size="lg"
-              />
-            </div>
-          </div>
-          {application.reviewerComment && (
-            <div className="flex border-t border-border">
-              <div className="flex w-28 shrink-0 bg-muted/30 px-4 py-3">
-                <span className="text-sm font-medium">심사 의견</span>
-              </div>
-              <div className="flex flex-1 px-4 py-3">
-                <p className="text-sm text-muted-foreground">{application.reviewerComment}</p>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
 
       {/* 컨펌 모달 */}
       {showConfirmModal && (
@@ -1281,20 +1407,9 @@ export function ApplicationStatusSection({ onReapply }: ApplicationStatusSection
                         )}
                       </p>
 
-                      {/* 하단: 날짜 + 결과 */}
-                      <div className="mt-2 flex items-center justify-between">
+                      {/* 하단: 날짜 */}
+                      <div className="mt-2">
                         <span className="text-xs text-muted-foreground">{formatDateTime(app.appliedAt)}</span>
-                        {app.adminStatus === "심사완료" && app.finalJudgment && (
-                          <span className={`text-xs font-medium ${
-                            app.finalJudgment === "매수" 
-                              ? "text-success" 
-                              : app.finalJudgment === "기각"
-                                ? "text-destructive"
-                                : "text-warning"
-                          }`}>
-                            {app.finalJudgment}
-                          </span>
-                        )}
                       </div>
                     </button>
                   </li>
