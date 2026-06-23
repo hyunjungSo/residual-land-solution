@@ -1316,8 +1316,14 @@ export function ApplicationStatusSection({ onReapply }: ApplicationStatusSection
   const [showReapplyAlert, setShowReapplyAlert] = useState(false);
   const [reapplyTarget, setReapplyTarget] = useState<Application | null>(null);
 
-  // 현재 로그인한 사용자의 신청 목록
-  const myApplications = applications;
+  // 현재 로그인한 사용자의 신청 목록 (심의위원회 회부 케이스 상단 배치)
+  const committeeStatuses = new Set(["심의위원회회부", "심의위원회검토중", "심의위원회검토완료"]);
+  const myApplications = [...applications].sort((a, b) => {
+    const aIsCommittee = committeeStatuses.has(a.adminStatus);
+    const bIsCommittee = committeeStatuses.has(b.adminStatus);
+    if (aIsCommittee === bIsCommittee) return 0;
+    return aIsCommittee ? -1 : 1;
+  });
 
   // 첫 번째 신청이 있으면 기본 선택
   const displayedApplication = selectedApplication || (myApplications.length > 0 ? myApplications[0] : null);
