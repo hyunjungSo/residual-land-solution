@@ -189,9 +189,15 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
       let savedComment = "";
 
       const st = application.adminStatus;
-      const lj = application.landJudgmentsForReview?.find(j => j.landId === land.id);
+      // landId 매칭 우선, 없으면 순서(index) 기반 fallback
+      const lj = application.landJudgmentsForReview?.find(j => j.landId === land.id)
+        ?? application.landJudgmentsForReview?.[index];
 
-      if (lj) {
+      if (application.isCommitteeCase) {
+        // 심의위원회 경유 건: 담당자 판정은 항상 "심의위원회 이관"
+        // lj.purchaseDecision(O/X)과 lj.judgment는 심의위원회 결과
+        savedJudgment = "심의위원회 이관";
+      } else if (lj) {
         if (lj.purchaseDecision === "O") savedJudgment = "매수";
         else if (lj.purchaseDecision === "X") savedJudgment = "기각";
         else if (lj.purchaseDecision === "-") savedJudgment = "심의위원회 이관";
@@ -199,13 +205,18 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
         savedJudgment = application.finalJudgment;
       }
 
-      if (application.isCommitteeCase && savedJudgment === "심의위원회 이관") {
+      if (application.isCommitteeCase) {
         if (st === "심의위원회검토중") savedCommitteeStatus = "검토중";
         else if (st === "심의위원회검토완료" || st === "심사완료") {
           savedCommitteeStatus = "검토완료";
-          const cr = lj?.judgment;
-          if (cr === "매수") savedCommitteeResult = "매수";
-          else if (cr === "기각") savedCommitteeResult = "기각";
+          if (lj) {
+            // 복수필지: 필지별 심의위원회 결과
+            if (lj.judgment === "매수") savedCommitteeResult = "매수";
+            else if (lj.judgment === "기각") savedCommitteeResult = "기각";
+          } else if (application.finalJudgment === "매수" || application.finalJudgment === "기각") {
+            // 단일필지: 최종판정에서 심의위원회 결과 복원
+            savedCommitteeResult = application.finalJudgment;
+          }
         }
       }
 
@@ -1119,8 +1130,17 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
         <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
           <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
           <div>
-            <p className="font-medium text-amber-800">심사완료 건입니다</p>
-            <p className="text-[16px] text-amber-700">심사가 완료되어 편집이 불가능합니다. 조회만 가능합니다.</p>
+            {application.adminStatus === "담당자검토완료" ? (
+              <>
+                <p className="font-medium text-amber-800">담당자 검토 완료 건입니다</p>
+                <p className="text-[16px] text-amber-700">담당자 검토가 완료되어 수정이 불가능합니다. 조회만 가능합니다.</p>
+              </>
+            ) : (
+              <>
+                <p className="font-medium text-amber-800">심사완료 건입니다</p>
+                <p className="text-[16px] text-amber-700">심사가 완료되어 편집이 불가능합니다. 조회만 가능합니다.</p>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -1143,13 +1163,6 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
                 value={selectedLandIndex.toString()}
                 onValueChange={(value) => {
                   setSelectedLandIndex(parseInt(value));
-                  // 필지 전환 시 스크롤 위치 리셋
-                  setTimeout(() => {
-                    const landInfoSection = document.getElementById('land-info-section');
-                    if (landInfoSection) {
-                      landInfoSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                  }, 100);
                 }}
               >
                 <SelectTrigger className="w-[320px] h-10 bg-white border-blue-300 focus:ring-blue-500 font-medium">
@@ -1174,12 +1187,6 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
                   className="h-8 w-8 border-blue-300 hover:bg-blue-100"
                   onClick={() => {
                     setSelectedLandIndex(Math.max(0, selectedLandIndex - 1));
-                    setTimeout(() => {
-                      const landInfoSection = document.getElementById('land-info-section');
-                      if (landInfoSection) {
-                        landInfoSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                      }
-                    }, 100);
                   }}
                   disabled={selectedLandIndex === 0}
                 >
@@ -1192,12 +1199,6 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
                   className="h-8 w-8 border-blue-300 hover:bg-blue-100"
                   onClick={() => {
                     setSelectedLandIndex(Math.min(applicationLands.length - 1, selectedLandIndex + 1));
-                    setTimeout(() => {
-                      const landInfoSection = document.getElementById('land-info-section');
-                      if (landInfoSection) {
-                        landInfoSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                      }
-                    }, 100);
                   }}
                   disabled={selectedLandIndex === applicationLands.length - 1}
                 >
@@ -2356,12 +2357,14 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
 
                   {/* 2차: 심의위원회 진행 상태 (심의위원회 회부 선택 시) */}
                   {landReview.landJudgment === "심의위원회 이관" && (
-                    <div className="space-y-3 pl-4 border-l-2 border-purple-200">
-                      <Label className="text-[16px] font-medium text-purple-700">심의위원회 진행 상태</Label>
+                    <div className="space-y-3">
+                      <Label className="text-[16px] font-medium">심의위원회 진행 상태</Label>
                       <div className="flex flex-wrap gap-2">
                         {(["검토중", "검토완료"] as const).map((status) => {
                           const isSelected = landReview.committeeStatus === status;
                           const Icon = status === "검토중" ? PlayCircle : CheckCircle2;
+                          const borderColor = status === "검토중" ? "border-sky-500" : "border-violet-500";
+                          const textColor = status === "검토중" ? "text-sky-600" : "text-violet-700";
                           return (
                             <Button
                               key={status}
@@ -2381,7 +2384,7 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
                                 });
                                 markDirty();
                               }}
-                              className={`cursor-pointer border-2 ${isSelected ? "border-purple-500 text-purple-700 bg-purple-50/50" : "border-[#E1E4E7] text-foreground"} ${isViewOnly ? "opacity-60 cursor-not-allowed" : ""}`}
+                              className={`cursor-pointer border-2 ${isSelected ? `${borderColor} ${textColor}` : "border-[#E1E4E7] text-foreground"} ${isViewOnly ? "opacity-60 cursor-not-allowed" : ""}`}
                             >
                               <Icon className="mr-2 h-4 w-4" />{status}
                             </Button>
@@ -2393,8 +2396,8 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
 
                   {/* 3차: 심의위원회 검토 결과 (검토완료 선택 시) */}
                   {landReview.landJudgment === "심의위원회 이관" && landReview.committeeStatus === "검토완료" && (
-                    <div className={`space-y-3 pl-4 border-l-2 ${committeeResultErrors[selectedLandIndex] ? "border-destructive" : "border-purple-200"}`}>
-                      <Label className={`text-[16px] font-medium ${committeeResultErrors[selectedLandIndex] ? "text-destructive" : "text-purple-700"}`}>
+                    <div className="space-y-3">
+                      <Label className={`text-[16px] font-medium ${committeeResultErrors[selectedLandIndex] ? "text-destructive" : ""}`}>
                         심의위원회 검토 결과
                       </Label>
                       <div className="flex flex-wrap gap-2">
@@ -2442,20 +2445,21 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
                       )}
                     </div>
                   )}
-                  
-                  {/* 민원인 수용 신청 방법 선택값 — 심의위원회 회부 검토결과 기각일 경우에만 노출 */}
+
+                  {/* 민원인 수용 신청 방법 — 심의위원회 기각 건에서 민원인이 선택한 경우 노출 */}
                   {(() => {
                     const isCommitteeRejected =
-                      landReview.landJudgment === "심의위원회 이관" && landReview.committeeResult === "기각";
+                      application.isCommitteeCase === true && (
+                        // 단일필지: finalJudgment 기준
+                        (application.finalJudgment === "기각" && !application.landJudgmentsForReview?.length) ||
+                        // 복수필지: 현재 선택된 필지의 judgment 기준
+                        (application.landJudgmentsForReview?.[selectedLandIndex]?.judgment === "기각")
+                      );
                     if (!isCommitteeRejected) return null;
-
                     const perParcelChoice = application.landJudgmentsForReview?.[selectedLandIndex]?.citizenAppealChoice;
                     const choice = perParcelChoice ?? application.citizenAppealChoice;
                     if (!choice) return null;
-
-                    const choiceLabel =
-                      choice === "중토위" ? "중앙토지수용위원회에 신청" : "한국도로공사에 신청";
-
+                    const choiceLabel = choice === "중토위" ? "중앙토지수용위원회에 신청" : "한국도로공사에 신청";
                     return (
                       <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-2">
                         <p className="text-[15px] font-medium text-slate-700">민원인 수용 신청 방법</p>
@@ -2491,12 +2495,6 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
               className="h-8 w-8 border-blue-300 hover:bg-blue-100"
               onClick={() => {
                 setSelectedLandIndex(Math.max(0, selectedLandIndex - 1));
-                setTimeout(() => {
-                  const landInfoSection = document.getElementById('land-info-section');
-                  if (landInfoSection) {
-                    landInfoSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }
-                }, 100);
               }}
               disabled={selectedLandIndex === 0}
             >
@@ -2509,12 +2507,6 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
               className="h-8 w-8 border-blue-300 hover:bg-blue-100"
               onClick={() => {
                 setSelectedLandIndex(Math.min(applicationLands.length - 1, selectedLandIndex + 1));
-                setTimeout(() => {
-                  const landInfoSection = document.getElementById('land-info-section');
-                  if (landInfoSection) {
-                    landInfoSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }
-                }, 100);
               }}
               disabled={selectedLandIndex === applicationLands.length - 1}
             >
