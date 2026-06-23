@@ -1091,60 +1091,6 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
         </CardContent>
       </Card>
 
-      {/* 진행상황 수동 설정 */}
-      <Card className="border-0 shadow-none">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg" style={{ fontSize: '20px' }}>진행상황</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
-            {(["접수완료", "담당자검토중", "담당자검토완료"] as const).map((status) => {
-              const isSelected = progressStatus === status;
-              const labelMap: Record<string, string> = {
-                접수완료: "접수 완료",
-                담당자검토중: "담당자 검토 중",
-                담당자검토완료: "담당자 검토 완료",
-              };
-              return (
-                <Button
-                  key={status}
-                  type="button"
-                  variant="outline"
-                  disabled={isViewOnly}
-                  onClick={() => {
-                    setProgressStatus(status);
-                    markDirty();
-                  }}
-                  className={`cursor-pointer border-2 ${isSelected ? "border-primary text-primary bg-primary/5" : "border-[#E1E4E7] text-foreground"} ${isViewOnly ? "opacity-60 cursor-not-allowed" : ""}`}
-                >
-                  {labelMap[status]}
-                </Button>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 심사완료 뷰어모드 안내 배너 */}
-      {isViewOnly && (
-        <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-          <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
-          <div>
-            {application.adminStatus === "담당자검토완료" ? (
-              <>
-                <p className="font-medium text-amber-800">담당자 검토 완료 건입니다</p>
-                <p className="text-[16px] text-amber-700">담당자 검토가 완료되어 수정이 불가능합니다. 조회만 가능합니다.</p>
-              </>
-            ) : (
-              <>
-                <p className="font-medium text-amber-800">심사완료 건입니다</p>
-                <p className="text-[16px] text-amber-700">심사가 완료되어 편집이 불가능합니다. 조회만 가능합니다.</p>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* Section 02. 필지선택 */}
       <Card className="border-0 shadow-none">
         {/* 필지 선택 컨트롤러 */}
@@ -2516,6 +2462,60 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
 
         </CardContent>
       </Card>
+
+      {/* 진행상황 수동 설정 */}
+      <Card className="border-0 shadow-none">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg" style={{ fontSize: '20px' }}>진행상황</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            {(["접수완료", "담당자검토중", "담당자검토완료"] as const).map((status) => {
+              const isSelected = progressStatus === status;
+              const labelMap: Record<string, string> = {
+                접수완료: "접수 완료",
+                담당자검토중: "담당자 검토 중",
+                담당자검토완료: "담당자 검토 완료",
+              };
+              return (
+                <Button
+                  key={status}
+                  type="button"
+                  variant="outline"
+                  disabled={isViewOnly}
+                  onClick={() => {
+                    setProgressStatus(status);
+                    markDirty();
+                  }}
+                  className={`cursor-pointer border-2 ${isSelected ? "border-primary text-primary bg-primary/5" : "border-[#E1E4E7] text-foreground"} ${isViewOnly ? "opacity-60 cursor-not-allowed" : ""}`}
+                >
+                  {labelMap[status]}
+                </Button>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 심사완료 뷰어모드 안내 배너 */}
+      {isViewOnly && (
+        <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
+          <div>
+            {application.adminStatus === "담당자검토완료" ? (
+              <>
+                <p className="font-medium text-amber-800">담당자 검토 완료 건입니다</p>
+                <p className="text-[16px] text-amber-700">담당자 검토가 완료되어 수정이 불가능합니다. 조회만 가능합니다.</p>
+              </>
+            ) : (
+              <>
+                <p className="font-medium text-amber-800">심사완료 건입니다</p>
+                <p className="text-[16px] text-amber-700">심사가 완료되어 편집이 불가능합니다. 조회만 가능합니다.</p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Section 03. 최종 검토 의견 */}
       <Card className="border-0 shadow-none">
