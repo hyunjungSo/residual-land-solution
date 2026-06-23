@@ -707,6 +707,9 @@ function LandInfoSection({
                 </p>
               </div>
             )}
+            {showAppeal && handleAppealSave && (
+              <CommitteeRejectionAppeal key={perParcel?.landId ?? "single"} application={appealApp} onSave={handleAppealSave} />
+            )}
             {application.reviewerComment && (
               <div className="flex border-t border-border">
                 <div className="flex w-36 shrink-0 whitespace-nowrap bg-muted/30 px-4 py-3">
@@ -716,9 +719,6 @@ function LandInfoSection({
                   <p className="text-[15px] text-muted-foreground">{application.reviewerComment}</p>
                 </div>
               </div>
-            )}
-            {showAppeal && handleAppealSave && (
-              <CommitteeRejectionAppeal key={perParcel?.landId ?? "single"} application={appealApp} onSave={handleAppealSave} />
             )}
           </>
         );
@@ -825,24 +825,8 @@ function CommitteeRejectionAppeal({
     detail: React.ReactNode;
   }[] = [
     {
-      key: "한국도로공사",
-      title: "한국도로공사에 신청",
-      badge: "담당자가 연락 드립니다",
-      badgeColor: "bg-emerald-50 text-emerald-700",
-      summary: "한국도로공사 담당자가 직접 연락하여 수용 신청 절차를 안내해 드립니다.",
-      detail: (
-        <ul className="space-y-1 text-[15px] text-slate-600">
-          <li>· 선택 후 담당자가 등록된 연락처로 순차 연락 드립니다</li>
-          <li>· 담당자 안내에 따라 서류(토지대장, 등기사항전부증명서, 현황사진 등) 준비</li>
-          <li>· 내부 검토 및 현장 확인 후 매수 여부·보상금 서면 통보</li>
-          <li>· 결과에 이의가 있을 경우 중토위 재결 신청 가능</li>
-          <li className="text-slate-400 text-[13px]">※ 문의: 한국도로공사 고객센터 ☎ 1588-2504</li>
-        </ul>
-      ),
-    },
-    {
       key: "중토위",
-      title: "중앙토지수용위원회에 신청",
+      title: "중앙토지수용위원회에 직접 수용 신청",
       badge: "민원인 직접 신청",
       badgeColor: "bg-blue-50 text-blue-700",
       summary: "민원인이 직접 중앙토지수용위원회(중토위)에 수용 재결을 신청하는 방법입니다.",
@@ -853,6 +837,22 @@ function CommitteeRejectionAppeal({
           <li>· 사업 시행자(한국도로공사) 경유 또는 중토위에 직접 제출 가능</li>
           <li>· 심리·재결 후 보상금 확정 / 불복 시 행정소송 가능</li>
           <li className="text-slate-400 text-[13px]">※ 문의: 중앙토지수용위원회 ☎ 1670-4655</li>
+        </ul>
+      ),
+    },
+    {
+      key: "한국도로공사",
+      title: "한국도로공사에 이의 신청",
+      badge: "담당자가 연락 드립니다",
+      badgeColor: "bg-emerald-50 text-emerald-700",
+      summary: "한국도로공사 담당자가 직접 연락하여 수용 신청 절차를 안내해 드립니다.",
+      detail: (
+        <ul className="space-y-1 text-[15px] text-slate-600">
+          <li>· 선택 후 담당자가 등록된 연락처로 순차 연락 드립니다</li>
+          <li>· 담당자 안내에 따라 서류(토지대장, 등기사항전부증명서, 현황사진 등) 준비</li>
+          <li>· 내부 검토 및 현장 확인 후 매수 여부·보상금 서면 통보</li>
+          <li>· 결과에 이의가 있을 경우 중토위 재결 신청 가능</li>
+          <li className="text-slate-400 text-[13px]">※ 문의: 한국도로공사 고객센터 ☎ 1588-2504</li>
         </ul>
       ),
     },
@@ -878,11 +878,7 @@ function CommitteeRejectionAppeal({
         </div>
         <div className="flex items-center gap-2 rounded-md bg-primary/5 border border-primary/20 px-3 py-2">
           <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
-          <p className="text-[15px] text-primary font-medium">
-            {selected === "중토위"
-              ? "선택이 완료되었습니다."
-              : "선택이 완료되었습니다. 담당자에게 전달되었습니다."}
-          </p>
+          <p className="text-[15px] text-primary font-medium">선택이 완료되었습니다. 선택하신 절차에 따라 안내를 도와드리겠습니다.</p>
         </div>
       </div>
     );
@@ -898,7 +894,7 @@ function CommitteeRejectionAppeal({
             <AlertDialogDescription className="space-y-1">
               <span className="block">
                 <span className="font-semibold text-foreground">
-                  {pendingChoice === "한국도로공사" ? "한국도로공사에 신청" : "중앙토지수용위원회에 신청"}
+                  {pendingChoice === "한국도로공사" ? "한국도로공사에 이의 신청" : "중앙토지수용위원회에 직접 수용 신청"}
                 </span>
                 을 선택하셨습니다.
               </span>
@@ -914,21 +910,11 @@ function CommitteeRejectionAppeal({
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="border-t border-border px-4 py-4 space-y-3">
-        <div className="space-y-3">
-          <p className="text-[15px] font-semibold text-foreground">수용 신청 방법 선택</p>
-          <div className="rounded-md bg-slate-50 border border-slate-200 px-4 py-3 space-y-1.5">
-            <p className="text-[15px] font-medium text-slate-700">수용 신청(수용재결신청)이란?</p>
-            <p className="text-[15px] text-slate-600 leading-relaxed">
-              공익사업(도로 건설, 재개발 등)을 위해 사업시행자가 토지 소유자와 보상 협의를
-              하지 못했을 때, 관할 토지수용위원회에 토지와 물건의 수용 및 보상금 산정을
-              공식적으로 재결해 달라고 요구하는 법적 절차입니다.
-            </p>
-            <p className="text-[15px] text-slate-500 leading-relaxed">
-              아래 두 가지 방법 중 하나를 선택하여 진행하실 수 있습니다.
-              각 절차를 충분히 확인하신 후 선택해 주세요. 선택 후에는 변경이 불가합니다.
-            </p>
-          </div>
+      <div className="border-t border-border px-4 py-4 space-y-4">
+        <div className="space-y-2">
+          <p className="text-[16px] font-bold text-foreground">심의 결과 안내</p>
+          <p className="text-[15px] text-slate-700">귀하의 잔여지 매수 청구가 최종 기각되었습니다.</p>
+          <p className="text-[15px] text-slate-600">결과에 이의가 있으신 경우, 아래 중 원하시는 절차를 선택해 주세요.</p>
         </div>
         <div className="flex flex-col gap-3">
           {options.map((opt) => (
@@ -955,6 +941,7 @@ function CommitteeRejectionAppeal({
             </button>
           ))}
         </div>
+        <p className="text-[14px] text-slate-500">선택하신 절차에 따라 안내를 도와드리겠습니다.</p>
       </div>
     </>
   );
