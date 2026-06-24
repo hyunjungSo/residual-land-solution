@@ -212,10 +212,15 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
       const matchesProjectUnit = projectUnitFilter === "all" || app.businessUnit === "강진광주";
       // AI 불일치 필터 (시뮬레이션: 접수번호가 특정 패턴일 때 불일치로 간주)
       const matchesAiMismatch = !aiMismatchFilter || (app.adminStatus === "심사완료" && app.applicationNumber.endsWith("2"));
-      const appAppealChoice =
-        app.landJudgmentsForReview?.find(j => j.citizenAppealChoice)?.citizenAppealChoice
-        ?? app.citizenAppealChoice
-        ?? null;
+      const isCommitteeRejected =
+        app.isCommitteeCase === true &&
+        (app.finalJudgment === "기각" ||
+          app.landJudgmentsForReview?.some(j => j.judgment === "기각" && j.citizenAppealChoice));
+      const appAppealChoice = isCommitteeRejected
+        ? (app.landJudgmentsForReview?.find(j => j.citizenAppealChoice)?.citizenAppealChoice
+            ?? app.citizenAppealChoice
+            ?? null)
+        : null;
       const matchesAppeal = appealFilter === "all" || appAppealChoice === appealFilter;
       return matchesSearch && matchesStatus && matchesProjectUnit && matchesAiMismatch && matchesAppeal;
       })
@@ -660,7 +665,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
                 { value: "all", label: "전체" },
                 { value: "접수완료", label: "접수 완료" },
                 { value: "담당자검토중", label: "담당자 검토 중" },
-                { value: "담당자검토완료", label: "담당자 검토 완료" },
+                { value: "담당자검토완료", label: "민원 종결처리" },
               ]}
             />
             <RadioFilterGroup
@@ -757,6 +762,11 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
                     <TableCell className="w-[140px] text-center">
                       <div className="flex justify-center">
                         {(() => {
+                          const isAppCommitteeRejected =
+                            app.isCommitteeCase === true &&
+                            (app.finalJudgment === "기각" ||
+                              app.landJudgmentsForReview?.some(j => j.judgment === "기각" && j.citizenAppealChoice));
+                          if (!isAppCommitteeRejected) return <span className="text-muted-foreground text-[15px]">-</span>;
                           const choices = app.landJudgmentsForReview
                             ?.map(j => j.citizenAppealChoice)
                             .filter(Boolean) as ("중토위" | "한국도로공사")[] | undefined;

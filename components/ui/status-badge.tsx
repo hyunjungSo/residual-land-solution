@@ -21,9 +21,9 @@ const adminStatusConfig: Record<AdminStatus, {
     variant: "outline-blue",
   },
   담당자검토완료: {
-    label: "담당자 검토 완료",
+    label: "민원 종결처리",
     icon: CheckCircle2,
-    variant: "outline-blue",
+    variant: "outline-green",
   },
   심의위원회회부: {
     label: "심의위원회 회부",
@@ -41,7 +41,7 @@ const adminStatusConfig: Record<AdminStatus, {
     variant: "outline-purple",
   },
   심사완료: {
-    label: "담당자 검토 완료",
+    label: "민원 종결처리",
     icon: CheckCircle2,
     variant: "outline-green",
   },

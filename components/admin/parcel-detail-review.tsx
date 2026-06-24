@@ -91,13 +91,6 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
     });
   };
 
-  // 담당자 직접 선택 (manual-select) 상태
-  const initialManualJudgment: AIJudgmentResult | null =
-    parcel.aiResult?.analysisSource === "manual-select"
-      ? parcel.aiResult.provisionalJudgment
-      : (parcel.analysisHistory?.slice().reverse().find(h => h.aiResult?.analysisSource === "manual-select")?.aiResult?.provisionalJudgment ?? null);
-  const [manualJudgment, setManualJudgment] = useState<AIJudgmentResult | null>(initialManualJudgment);
-
   // 분석 상태
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   
@@ -189,36 +182,6 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
     setMemo("");
   };
 
-  // 담당자 직접 판단 저장
-  const handleManualJudgmentSave = (judgment: AIJudgmentResult) => {
-    const newAiResult: AIAnalysisResult = {
-      landTypePath: parcel.landInfo.landType as LandType,
-      criteriaChecks: [],
-      provisionalJudgment: judgment,
-      originalShapeIndex: parcel.aiResult?.originalShapeIndex ?? 0,
-      remainingShapeIndex: parcel.aiResult?.remainingShapeIndex ?? 0,
-      shapeIndexChange: 0,
-      isBlindLand: false,
-      accessRoadLost: false,
-      waterChannelLost: false,
-      farmMachineDifficulty: false,
-      judgmentRationale: {
-        summary: "담당자 직접 판단",
-        legalBasis: "",
-        appliedCriteria: [],
-        detailedExplanation: "",
-      },
-      analysisSource: "manual-select",
-    };
-    setManualJudgment(judgment);
-    // analysisHistory는 건드리지 않고 aiResult만 업데이트
-    onUpdate({
-      ...parcel,
-      aiResult: newAiResult,
-    });
-    toast({ title: "담당자 검토 결과가 저장되었습니다.", duration: 3000 });
-  };
-
   return (
     <div className="space-y-6">
       {/* 필지상세 타이틀 */}
@@ -239,8 +202,8 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
             <span className="text-lg font-semibold text-foreground">{parcel.landInfo.address}</span>
             {/* 편입 유형이 확정된 경우(부분 편입)에만 신청상세 보기 버튼 노출 */}
             {parcel.residualStatus === "잔여지 인정" && parcel.citizenActivity?.applicationSubmitted && (
-              <Badge 
-                className="bg-transparent text-emerald-700 hover:bg-transparent cursor-pointer"
+              <Badge
+                className="bg-transparent text-emerald-700 hover:bg-transparent cursor-pointer text-[15px]"
                 onClick={handleNavigateToApplication}
               >
                 신청상세 보기
@@ -412,40 +375,6 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
 
         {/* 오른쪽: 담당자 검토 + AI 분析결과 */}
         <div className="space-y-5">
-
-        {/* 담당자 검토 카드 */}
-        <Card className="border-0 shadow-none">
-          <CardHeader>
-            <CardTitle>담당자 매수 가능성 판독</CardTitle>
-            <CardDescription>현장 확인 후 매수 가능성을 직접 선택하세요.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex gap-3">
-              <button
-                onClick={() => handleManualJudgmentSave("매수 가능성 높음")}
-                className={cn(
-                  "flex-1 rounded-lg border-2 py-4 text-[16px] font-semibold transition-all",
-                  manualJudgment === "매수 가능성 높음"
-                    ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-                    : "border-muted-foreground/20 text-muted-foreground hover:border-emerald-300 hover:bg-emerald-50/50 hover:text-emerald-600"
-                )}
-              >
-                매수가능성 높음
-              </button>
-              <button
-                onClick={() => handleManualJudgmentSave("매수 가능성 낮음")}
-                className={cn(
-                  "flex-1 rounded-lg border-2 py-4 text-[16px] font-semibold transition-all",
-                  manualJudgment === "매수 가능성 낮음"
-                    ? "border-rose-500 bg-rose-50 text-rose-700"
-                    : "border-muted-foreground/20 text-muted-foreground hover:border-rose-300 hover:bg-rose-50/50 hover:text-rose-600"
-                )}
-              >
-                매수가능성 낮음
-              </button>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* AI 분析결과 검토 카드 */}
         <Card className="border-0 shadow-none">
@@ -762,7 +691,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                     <div className="rounded-lg border overflow-hidden">
                                       <div className="flex items-center justify-between px-3 py-2 bg-muted/40">
                                         <div className="flex items-center gap-2">
-                                          <span className="flex items-center justify-center w-7 h-7 rounded-full bg-foreground/10 text-foreground text-[14px] font-bold leading-none">1</span>
+                                          <span className="flex items-center justify-center w-7 h-7 rounded-full bg-foreground/10 text-foreground text-[15px] font-bold leading-none">1</span>
                                           <span className="text-[16px] font-semibold">잔여지 발생여부</span>
                                         </div>
                                         <span className={cn("text-[16px] font-semibold px-2.5 py-1 rounded-full", isMet1 ? `${JUDGMENT_COLORS.충족.bgLight} ${JUDGMENT_COLORS.충족.textDark}` : `${JUDGMENT_COLORS.미충족.bgLight} ${JUDGMENT_COLORS.미충족.textDark}`)}>
@@ -803,7 +732,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                     <div className="rounded-lg border overflow-hidden">
                                       <div className="flex items-center justify-between px-3 py-2 bg-muted/40">
                                         <div className="flex items-center gap-2">
-                                          <span className="flex items-center justify-center w-7 h-7 rounded-full bg-foreground/10 text-foreground text-[14px] font-bold leading-none">2</span>
+                                          <span className="flex items-center justify-center w-7 h-7 rounded-full bg-foreground/10 text-foreground text-[15px] font-bold leading-none">2</span>
                                           <span className="text-[16px] font-semibold">단독필지 여부 (일단의 토지 여부)</span>
                                         </div>
                                         <span className={cn("text-[16px] font-semibold px-2.5 py-1 rounded-full", isMet2 ? `${JUDGMENT_COLORS.충족.bgLight} ${JUDGMENT_COLORS.충족.textDark}` : `${JUDGMENT_COLORS.미충족.bgLight} ${JUDGMENT_COLORS.미충족.textDark}`)}>
@@ -838,7 +767,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                     <div className="rounded-lg border overflow-hidden">
                                       <div className="flex items-center justify-between px-3 py-2 bg-muted/40">
                                         <div className="flex items-center gap-2">
-                                          <span className="flex items-center justify-center w-7 h-7 rounded-full bg-foreground/10 text-foreground text-[14px] font-bold leading-none">3</span>
+                                          <span className="flex items-center justify-center w-7 h-7 rounded-full bg-foreground/10 text-foreground text-[15px] font-bold leading-none">3</span>
                                           <span className="text-[16px] font-semibold">소규모 토지 여부</span>
                                         </div>
                                         <span className={cn("text-[16px] font-semibold px-2.5 py-1 rounded-full", isMet3 ? `${JUDGMENT_COLORS.충족.bgLight} ${JUDGMENT_COLORS.충족.textDark}` : `${JUDGMENT_COLORS.미충족.bgLight} ${JUDGMENT_COLORS.미충족.textDark}`)}>
@@ -873,7 +802,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                     <div className="rounded-lg border overflow-hidden">
                                       <div className="flex items-center justify-between px-3 py-2 bg-muted/40">
                                         <div className="flex items-center gap-2">
-                                          <span className="flex items-center justify-center w-7 h-7 rounded-full bg-foreground/10 text-foreground text-[14px] font-bold leading-none">5</span>
+                                          <span className="flex items-center justify-center w-7 h-7 rounded-full bg-foreground/10 text-foreground text-[15px] font-bold leading-none">5</span>
                                           <span className="text-[16px] font-semibold">면적미달 여부</span>
                                         </div>
                                         <span className={cn("text-[16px] font-semibold px-2.5 py-1 rounded-full", isMet5 ? `${JUDGMENT_COLORS.충족.bgLight} ${JUDGMENT_COLORS.충족.textDark}` : `${JUDGMENT_COLORS.미충족.bgLight} ${JUDGMENT_COLORS.미충족.textDark}`)}>
@@ -902,7 +831,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                     <div className="rounded-lg border overflow-hidden">
                                       <div className="flex items-center justify-between px-3 py-2 bg-muted/40">
                                         <div className="flex items-center gap-2">
-                                          <span className="flex items-center justify-center w-7 h-7 rounded-full bg-foreground/10 text-foreground text-[14px] font-bold leading-none">6</span>
+                                          <span className="flex items-center justify-center w-7 h-7 rounded-full bg-foreground/10 text-foreground text-[15px] font-bold leading-none">6</span>
                                           <span className="text-[16px] font-semibold">접근도로 상실 여부</span>
                                         </div>
                                         <span className={cn("text-[16px] font-semibold px-2.5 py-1 rounded-full", isMet6 ? `${JUDGMENT_COLORS.충족.bgLight} ${JUDGMENT_COLORS.충족.textDark}` : `${JUDGMENT_COLORS.미충족.bgLight} ${JUDGMENT_COLORS.미충족.textDark}`)}>
@@ -940,7 +869,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                     <div className="rounded-lg border overflow-hidden">
                                       <div className="flex items-center justify-between px-3 py-2 bg-muted/40">
                                         <div className="flex items-center gap-2">
-                                          <span className="flex items-center justify-center w-7 h-7 rounded-full bg-foreground/10 text-foreground text-[14px] font-bold leading-none">7</span>
+                                          <span className="flex items-center justify-center w-7 h-7 rounded-full bg-foreground/10 text-foreground text-[15px] font-bold leading-none">7</span>
                                           <span className="text-[16px] font-semibold">잔여지 형상에 따른 폭</span>
                                         </div>
                                         <span className={cn("text-[16px] font-semibold px-2.5 py-1 rounded-full", isMet7 ? `${JUDGMENT_COLORS.충족.bgLight} ${JUDGMENT_COLORS.충족.textDark}` : `${JUDGMENT_COLORS.미충족.bgLight} ${JUDGMENT_COLORS.미충족.textDark}`)}>
@@ -1032,8 +961,8 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                               <div className="space-y-2">
                                 {tips.map((tip, idx) => (
                                   <div key={idx} className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
-                                    <p className="text-[14px] font-semibold text-amber-800">⚠ {tip.message}</p>
-                                    <p className="text-[14px] text-amber-700 mt-1.5 flex items-start gap-1.5">
+                                    <p className="text-[15px] font-semibold text-amber-800">⚠ {tip.message}</p>
+                                    <p className="text-[15px] text-amber-700 mt-1.5 flex items-start gap-1.5">
                                       <Lightbulb className="h-3.5 w-3.5 mt-0.5 shrink-0 text-amber-500" />
                                       <span><span className="font-medium">업무 TIP:</span> {tip.tip}</span>
                                     </p>

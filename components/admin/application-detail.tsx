@@ -2475,7 +2475,7 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
               const labelMap: Record<string, string> = {
                 접수완료: "접수 완료",
                 담당자검토중: "담당자 검토 중",
-                담당자검토완료: "담당자 검토 완료",
+                담당자검토완료: "민원 종결처리",
               };
               return (
                 <Button
@@ -2504,8 +2504,8 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
           <div>
             {application.adminStatus === "담당자검토완료" ? (
               <>
-                <p className="font-medium text-amber-800">담당자 검토 완료 건입니다</p>
-                <p className="text-[16px] text-amber-700">담당자 검토가 완료되어 수정이 불가능합니다. 조회만 가능합니다.</p>
+                <p className="font-medium text-amber-800">민원 종결처리 건입니다</p>
+                <p className="text-[16px] text-amber-700">민원 종결처리되어 수정이 불가능합니다. 조회만 가능합니다.</p>
               </>
             ) : (
               <>
@@ -2897,7 +2897,7 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
             <AlertDialogTitle>검토 완료 저장</AlertDialogTitle>
             <AlertDialogDescription className="space-y-1">
               <span className="block">저장 후에는 수정이 불가합니다.</span>
-              <span className="block text-muted-foreground">담당자 검토 완료로 저장하시겠습니까?</span>
+              <span className="block text-muted-foreground">민원 종결처리로 저장하시겠습니까?</span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

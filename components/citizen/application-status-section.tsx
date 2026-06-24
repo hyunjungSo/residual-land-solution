@@ -831,13 +831,51 @@ function CommitteeRejectionAppeal({
       badgeColor: "bg-blue-50 text-blue-700",
       summary: "민원인이 직접 중앙토지수용위원회(중토위)에 수용 재결을 신청하는 방법입니다.",
       detail: (
-        <ul className="space-y-1 text-[15px] text-slate-600">
-          <li>· 보상협의 요청일로부터 <span className="font-medium text-slate-800">30일 이내</span> 재결 신청서 제출</li>
-          <li>· 준비 서류: 등기사항전부증명서, 보상협의 결렬 확인서, 신분증 사본</li>
-          <li>· 사업 시행자(한국도로공사) 경유 또는 중토위에 직접 제출 가능</li>
-          <li>· 심리·재결 후 보상금 확정 / 불복 시 행정소송 가능</li>
-          <li className="text-slate-400 text-[13px]">※ 문의: 중앙토지수용위원회 ☎ 1670-4655</li>
-        </ul>
+        <div className="space-y-3">
+          <ul className="space-y-1 text-[15px] text-slate-600">
+            <li>· 보상협의 요청일로부터 <span className="font-medium text-slate-800">30일 이내</span> 재결 신청서 제출</li>
+            <li>· 준비 서류: 등기사항전부증명서, 보상협의 결렬 확인서, 신분증 사본</li>
+            <li>· 사업 시행자(한국도로공사) 경유 또는 중토위에 직접 제출 가능</li>
+            <li>· 심리·재결 후 보상금 확정 / 불복 시 행정소송 가능</li>
+            <li className="text-slate-400 text-[13px]">※ 문의: 중앙토지수용위원회 ☎ 1670-4655</li>
+          </ul>
+          <div className="pt-2 border-t border-slate-200 flex items-center justify-between gap-4">
+            <p className="text-[14px] text-slate-600">
+              중토위 신청 시 제출 서류로 활용하실 수 있도록 <span className="font-medium text-slate-800">심의결과서</span>를 다운로드하세요.
+            </p>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                const content = [
+                  "■ 잔여지 매수청구 심의결과서",
+                  "",
+                  `신청번호: ${application.applicationNumber}`,
+                  `신청인: ${application.applicantName}`,
+                  `신청일: ${application.appliedAt ? new Date(application.appliedAt).toLocaleDateString("ko-KR") : "-"}`,
+                  "",
+                  "■ 심의 결과",
+                  "심의위원회 검토 결과: 기각",
+                  "",
+                  "귀하의 잔여지 매수청구 건에 대해 심의위원회에서 검토한 결과,",
+                  "위와 같이 결정되었음을 통보합니다.",
+                  "",
+                  "※ 본 심의결과서는 중앙토지수용위원회 수용 신청 시 제출 서류로 활용하실 수 있습니다.",
+                ].join("\n");
+                const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `심의결과서_${application.applicationNumber}.txt`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="inline-flex shrink-0 items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-[14px] font-medium text-white hover:bg-blue-700 active:bg-blue-800 transition-colors"
+            >
+              <Download className="h-4 w-4 shrink-0" />
+              심의결과서 다운로드
+            </button>
+          </div>
+        </div>
       ),
     },
     {
