@@ -266,55 +266,12 @@ function LandInfoSection({
     <div className={`overflow-hidden rounded-lg border transition-colors duration-300 ${isEditMode ? "border-primary/50 bg-primary/5" : "border-border"}`}>
       <div className="flex items-center justify-between border-b border-border bg-muted/50 px-4 py-2.5">
         <h4 className="font-semibold text-foreground">심사 대상 필지</h4>
-        <div className="flex items-center gap-2">
-          {isMultipleLands && (
-            <span className={`flex items-center gap-1 rounded px-2 py-0.5 text-[15px] font-medium ${PARCEL_COUNT_COLORS.bg} ${PARCEL_COUNT_COLORS.text}`}>
-              <Layers className="h-3 w-3" />
-              {allLands.length}필지
-            </span>
-          )}
-          {(() => {
-            const st = application.adminStatus;
-            const isCom = application.isCommitteeCase;
-            const isComplete = st === "심사완료";
-            const isCommitteeStage = st === "심의위원회회부" || st === "심의위원회검토중" || st === "심의위원회검토완료";
-            const perParcel = application.landJudgmentsForReview?.[safeIndex];
-            const fj = perParcel?.judgment ?? application.finalJudgment;
-
-            if (!isCommitteeStage && !(isComplete && fj)) return null;
-
-            let badgeLabel = "";
-            let badgeCls = "";
-
-            if (st === "심의위원회회부") {
-              badgeLabel = "심의위원회 회부";
-              badgeCls = "bg-amber-500 text-white";
-            } else if (st === "심의위원회검토중") {
-              badgeLabel = "심의 검토 중";
-              badgeCls = "bg-amber-500 text-white";
-            } else if ((st === "심의위원회검토완료" || (isComplete && isCom)) && fj === "매수") {
-              badgeLabel = "최종: 매수";
-              badgeCls = "bg-emerald-600 text-white";
-            } else if ((st === "심의위원회검토완료" || (isComplete && isCom)) && fj === "기각") {
-              badgeLabel = "최종: 기각";
-              badgeCls = "bg-rose-600 text-white";
-            } else if (isComplete && fj === "매수") {
-              badgeLabel = "최종: 매수";
-              badgeCls = "bg-emerald-600 text-white";
-            } else if (isComplete && fj === "기각") {
-              badgeLabel = "최종: 기각";
-              badgeCls = "bg-rose-600 text-white";
-            }
-
-            if (!badgeLabel) return null;
-
-            return (
-              <span className={`inline-flex items-center rounded-md px-3 py-1 text-[13px] font-bold ${badgeCls}`}>
-                {badgeLabel}
-              </span>
-            );
-          })()}
-        </div>
+        {isMultipleLands && (
+          <span className={`flex items-center gap-1 rounded px-2 py-0.5 text-[15px] font-medium ${PARCEL_COUNT_COLORS.bg} ${PARCEL_COUNT_COLORS.text}`}>
+            <Layers className="h-3 w-3" />
+            {allLands.length}필지
+          </span>
+        )}
       </div>
       
       {/* 복수 필지일 경우 셀렉트박스로 표시 */}
@@ -343,6 +300,139 @@ function LandInfoSection({
         </div>
       )}
       
+      {/* 최종 판정 항목 (심의위원회 회부 이후 또는 심사완료 시 표시) */}
+      {(() => {
+        const st = application.adminStatus;
+        const isCom = application.isCommitteeCase;
+        const isComplete = st === "심사완료";
+        const isCommitteeStage = st === "심의위원회회부" || st === "심의위원회검토중" || st === "심의위원회검토완료";
+
+        // 복수필지 per-parcel 판정 우선, 없으면 전체 finalJudgment 사용
+        const perParcel = application.landJudgmentsForReview?.[selectedLandIndex];
+        const fj: string | undefined = perParcel?.judgment ?? application.finalJudgment;
+
+        if (!isCommitteeStage && !(isComplete && fj)) return null;
+
+        let label = "";
+        let icon: React.ReactNode = null;
+        let textColor = "";
+
+        if (st === "심의위원회회부") {
+          label = "심의위원회 회부";
+          icon = <Clock className="h-5 w-5 text-amber-500" />;
+          textColor = "text-amber-700";
+        } else if (st === "심의위원회검토중") {
+          label = "심의 위원회 회부(검토 중)";
+          icon = <PlayCircle className="h-5 w-5 text-amber-500" />;
+          textColor = "text-amber-700";
+        } else if (st === "심의위원회검토완료") {
+          if (fj === "매수") {
+            label = "심의 위원회 회부(검토 완료 - 매수)";
+            icon = <CheckCircle2 className="h-5 w-5 text-success" />;
+            textColor = "text-success";
+          } else if (fj === "기각") {
+            label = "심의 위원회 회부(검토 완료 - 기각)";
+            icon = <AlertTriangle className="h-5 w-5 text-destructive" />;
+            textColor = "text-destructive";
+          }
+        } else if (isComplete && isCom && fj === "매수") {
+          label = "심의 위원회 회부(검토 완료 - 매수)";
+          icon = <CheckCircle2 className="h-5 w-5 text-success" />;
+          textColor = "text-success";
+        } else if (isComplete && isCom && fj === "기각") {
+          label = "심의 위원회 회부(검토 완료 - 기각)";
+          icon = <AlertTriangle className="h-5 w-5 text-destructive" />;
+          textColor = "text-destructive";
+        } else if (isComplete && fj === "매수") {
+          label = "매수";
+          icon = <CheckCircle2 className="h-5 w-5 text-success" />;
+          textColor = "text-success";
+        } else if (isComplete && fj === "기각") {
+          label = "기각";
+          icon = <AlertTriangle className="h-5 w-5 text-destructive" />;
+          textColor = "text-destructive";
+        } else if (isComplete && fj === "심의위원회 이관") {
+          label = "심의위원회 회부";
+          icon = <Clock className="h-5 w-5 text-amber-500" />;
+          textColor = "text-amber-700";
+        }
+
+        if (!label) return null;
+
+        // 심의결과서 다운로드 표시 여부 (기각 + 위원회 케이스)
+        const showDownload = fj === "기각" && isCom &&
+          (st === "심의위원회검토완료" || isComplete);
+
+        return (
+          <div className="bg-slate-50 border-b-2 border-slate-300">
+            <div className="flex">
+              <div className="flex w-36 shrink-0 whitespace-nowrap items-center bg-slate-100 px-4 py-4">
+                <span className="text-[15px] font-semibold text-slate-700">최종 판정</span>
+              </div>
+              <div className="flex flex-1 items-center justify-between gap-3 px-4 py-4">
+                <div className="flex items-center gap-3">
+                  {icon}
+                  <span className={`text-base font-bold ${textColor}`}>{label}</span>
+                </div>
+                {showDownload && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const content = [
+                        "■ 잔여지 매수청구 심의결과서",
+                        "",
+                        `신청번호: ${application.applicationNumber}`,
+                        `신청인: ${application.applicantName}`,
+                        `신청일: ${application.appliedAt ? new Date(application.appliedAt).toLocaleDateString("ko-KR") : "-"}`,
+                        "",
+                        "■ 심의 결과",
+                        "심의위원회 검토 결과: 기각",
+                        "",
+                        "귀하의 잔여지 매수청구 건에 대해 심의위원회에서 검토한 결과,",
+                        "위와 같이 결정되었음을 통보합니다.",
+                        "",
+                        "※ 본 심의결과서는 중앙토지수용위원회 수용 신청 시 제출 서류로 활용하실 수 있습니다.",
+                      ].join("\n");
+                      const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `심의결과서_${application.applicationNumber}.txt`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                    className="inline-flex shrink-0 items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-[14px] font-medium text-white hover:bg-blue-700 active:bg-blue-800 transition-colors"
+                  >
+                    <Download className="h-4 w-4 shrink-0" />
+                    심의결과서 다운로드
+                  </button>
+                )}
+              </div>
+            </div>
+            {(st === "심의위원회회부" || st === "심의위원회검토중") && (
+              <div className="flex items-center gap-2 border-t border-slate-200 bg-amber-50 px-4 py-3">
+                <Info className="h-4 w-4 shrink-0 text-amber-500" />
+                <p className="text-[14px] text-amber-700">
+                  {st === "심의위원회회부"
+                    ? "심의위원회 검토가 곧 진행 될 예정입니다."
+                    : "심의위원회에서 검토가 진행 중입니다. 검토가 완료되면 결과를 안내드리겠습니다."}
+                </p>
+              </div>
+            )}
+            {application.reviewerComment && (
+              <div className="flex border-t border-slate-200">
+                <div className="flex w-36 shrink-0 whitespace-nowrap bg-slate-100 px-4 py-3">
+                  <span className="text-[15px] font-medium text-slate-700">검토 의견</span>
+                </div>
+                <div className="flex flex-1 px-4 py-3">
+                  <p className="text-[15px] text-muted-foreground">{application.reviewerComment}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       {/* 필지 주소 행 */}
       <div className="flex border-b border-border">
         <div className="flex w-36 shrink-0 whitespace-nowrap items-center bg-muted/30 px-4 py-3">
@@ -653,139 +743,6 @@ function LandInfoSection({
         </div>
       </div>
 
-      {/* 최종 판정 항목 (심의위원회 회부 이후 또는 심사완료 시 표시) */}
-      {(() => {
-        const st = application.adminStatus;
-        const isCom = application.isCommitteeCase;
-        const isComplete = st === "심사완료";
-        const isCommitteeStage = st === "심의위원회회부" || st === "심의위원회검토중" || st === "심의위원회검토완료";
-
-        // 복수필지 per-parcel 판정 우선, 없으면 전체 finalJudgment 사용
-        const perParcel = application.landJudgmentsForReview?.[selectedLandIndex];
-        const fj: string | undefined = perParcel?.judgment ?? application.finalJudgment;
-
-        if (!isCommitteeStage && !(isComplete && fj)) return null;
-
-        let label = "";
-        let icon: React.ReactNode = null;
-        let textColor = "";
-
-        if (st === "심의위원회회부") {
-          label = "심의위원회 회부";
-          icon = <Clock className="h-5 w-5 text-amber-500" />;
-          textColor = "text-amber-700";
-        } else if (st === "심의위원회검토중") {
-          label = "심의 위원회 회부(검토 중)";
-          icon = <PlayCircle className="h-5 w-5 text-amber-500" />;
-          textColor = "text-amber-700";
-        } else if (st === "심의위원회검토완료") {
-          if (fj === "매수") {
-            label = "심의 위원회 회부(검토 완료 - 매수)";
-            icon = <CheckCircle2 className="h-5 w-5 text-success" />;
-            textColor = "text-success";
-          } else if (fj === "기각") {
-            label = "심의 위원회 회부(검토 완료 - 기각)";
-            icon = <AlertTriangle className="h-5 w-5 text-destructive" />;
-            textColor = "text-destructive";
-          }
-          // finalJudgment 없으면 표시 안 함 (판정 미입력 상태)
-        } else if (isComplete && isCom && fj === "매수") {
-          label = "심의 위원회 회부(검토 완료 - 매수)";
-          icon = <CheckCircle2 className="h-5 w-5 text-success" />;
-          textColor = "text-success";
-        } else if (isComplete && isCom && fj === "기각") {
-          label = "심의 위원회 회부(검토 완료 - 기각)";
-          icon = <AlertTriangle className="h-5 w-5 text-destructive" />;
-          textColor = "text-destructive";
-        } else if (isComplete && fj === "매수") {
-          label = "매수";
-          icon = <CheckCircle2 className="h-5 w-5 text-success" />;
-          textColor = "text-success";
-        } else if (isComplete && fj === "기각") {
-          label = "기각";
-          icon = <AlertTriangle className="h-5 w-5 text-destructive" />;
-          textColor = "text-destructive";
-        } else if (isComplete && fj === "심의위원회 이관") {
-          label = "심의위원회 회부";
-          icon = <Clock className="h-5 w-5 text-amber-500" />;
-          textColor = "text-amber-700";
-        }
-
-        if (!label) return null;
-
-        // 심의결과서 다운로드 표시 여부 (기각 + 위원회 케이스)
-        const showDownload = fj === "기각" && isCom &&
-          (st === "심의위원회검토완료" || isComplete);
-
-        return (
-          <div className="border-t-2 border-slate-300 bg-slate-50">
-            <div className="flex">
-              <div className="flex w-36 shrink-0 whitespace-nowrap items-center bg-slate-100 px-4 py-4">
-                <span className="text-[15px] font-semibold text-slate-700">최종 판정</span>
-              </div>
-              <div className="flex flex-1 items-center justify-between gap-3 px-4 py-4">
-                <div className="flex items-center gap-3">
-                  {icon}
-                  <span className={`text-base font-bold ${textColor}`}>{label}</span>
-                </div>
-                {showDownload && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const content = [
-                        "■ 잔여지 매수청구 심의결과서",
-                        "",
-                        `신청번호: ${application.applicationNumber}`,
-                        `신청인: ${application.applicantName}`,
-                        `신청일: ${application.appliedAt ? new Date(application.appliedAt).toLocaleDateString("ko-KR") : "-"}`,
-                        "",
-                        "■ 심의 결과",
-                        "심의위원회 검토 결과: 기각",
-                        "",
-                        "귀하의 잔여지 매수청구 건에 대해 심의위원회에서 검토한 결과,",
-                        "위와 같이 결정되었음을 통보합니다.",
-                        "",
-                        "※ 본 심의결과서는 중앙토지수용위원회 수용 신청 시 제출 서류로 활용하실 수 있습니다.",
-                      ].join("\n");
-                      const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement("a");
-                      a.href = url;
-                      a.download = `심의결과서_${application.applicationNumber}.txt`;
-                      a.click();
-                      URL.revokeObjectURL(url);
-                    }}
-                    className="inline-flex shrink-0 items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-[14px] font-medium text-white hover:bg-blue-700 active:bg-blue-800 transition-colors"
-                  >
-                    <Download className="h-4 w-4 shrink-0" />
-                    심의결과서 다운로드
-                  </button>
-                )}
-              </div>
-            </div>
-            {(st === "심의위원회회부" || st === "심의위원회검토중") && (
-              <div className="flex items-center gap-2 border-t border-slate-200 bg-amber-50 px-4 py-3">
-                <Info className="h-4 w-4 shrink-0 text-amber-500" />
-                <p className="text-[14px] text-amber-700">
-                  {st === "심의위원회회부"
-                    ? "심의위원회 검토가 곧 진행 될 예정입니다."
-                    : "심의위원회에서 검토가 진행 중입니다. 검토가 완료되면 결과를 안내드리겠습니다."}
-                </p>
-              </div>
-            )}
-            {application.reviewerComment && (
-              <div className="flex border-t border-slate-200">
-                <div className="flex w-36 shrink-0 whitespace-nowrap bg-slate-100 px-4 py-3">
-                  <span className="text-[15px] font-medium text-slate-700">검토 의견</span>
-                </div>
-                <div className="flex flex-1 px-4 py-3">
-                  <p className="text-[15px] text-muted-foreground">{application.reviewerComment}</p>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      })()}
 
       {/* 파일 뷰어 다이얼로그 - 풀페이지 */}
       <Dialog open={fileViewerOpen} onOpenChange={setFileViewerOpen}>
