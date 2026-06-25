@@ -2392,31 +2392,6 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
                     </div>
                   )}
 
-                  {/* 민원인 수용 신청 방법 — 심의위원회 기각 건에서 민원인이 선택한 경우 노출 */}
-                  {(() => {
-                    const isCommitteeRejected =
-                      application.isCommitteeCase === true && (
-                        // 단일필지: finalJudgment 기준
-                        (application.finalJudgment === "기각" && !application.landJudgmentsForReview?.length) ||
-                        // 복수필지: 현재 선택된 필지의 judgment 기준
-                        (application.landJudgmentsForReview?.[selectedLandIndex]?.judgment === "기각")
-                      );
-                    if (!isCommitteeRejected) return null;
-                    const perParcelChoice = application.landJudgmentsForReview?.[selectedLandIndex]?.citizenAppealChoice;
-                    const choice = perParcelChoice ?? application.citizenAppealChoice;
-                    if (!choice) return null;
-                    const choiceLabel = choice === "중토위" ? "중앙토지수용위원회에 신청" : "한국도로공사에 신청";
-                    return (
-                      <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-2">
-                        <p className="text-[15px] font-medium text-slate-700">민원인 수용 신청 방법</p>
-                        <div className="flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                          <span className="text-[15px] font-semibold text-primary">{choiceLabel}</span>
-                        </div>
-                      </div>
-                    );
-                  })()}
-
                   {/* 검토 의견 */}
                   <div className="space-y-5">
                     <Label className="text-[16px] font-medium">검토 의견 <span className="font-normal text-muted-foreground">(선택)</span></Label>

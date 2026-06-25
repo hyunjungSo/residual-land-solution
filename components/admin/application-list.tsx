@@ -63,7 +63,6 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
   const [dateCriteriaType, setDateCriteriaType] = useState<"appliedAt" | "statusUpdatedAt">("appliedAt");
   const [selectedYear, setSelectedYear] = useState<number | null>(currentYear);
   const [aiMismatchFilter] = useState(false);
-  const [appealFilter, setAppealFilter] = useState<"all" | "중토위" | "한국도로공사">("all");
   const [customDateRange, setCustomDateRange] = useState<DateRange>({ from: undefined, to: undefined });
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [, startTransition] = useTransition();
@@ -212,24 +211,14 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
       const matchesProjectUnit = projectUnitFilter === "all" || app.businessUnit === "강진광주";
       // AI 불일치 필터 (시뮬레이션: 접수번호가 특정 패턴일 때 불일치로 간주)
       const matchesAiMismatch = !aiMismatchFilter || (app.adminStatus === "심사완료" && app.applicationNumber.endsWith("2"));
-      const isCommitteeRejected =
-        app.isCommitteeCase === true &&
-        (app.finalJudgment === "기각" ||
-          app.landJudgmentsForReview?.some(j => j.judgment === "기각" && j.citizenAppealChoice));
-      const appAppealChoice = isCommitteeRejected
-        ? (app.landJudgmentsForReview?.find(j => j.citizenAppealChoice)?.citizenAppealChoice
-            ?? app.citizenAppealChoice
-            ?? null)
-        : null;
-      const matchesAppeal = appealFilter === "all" || appAppealChoice === appealFilter;
-      return matchesSearch && matchesStatus && matchesProjectUnit && matchesAiMismatch && matchesAppeal;
+      return matchesSearch && matchesStatus && matchesProjectUnit && matchesAiMismatch;
       })
       .sort((a, b) => {
         const dateA = new Date(a.appliedAt).getTime();
         const dateB = new Date(b.appliedAt).getTime();
         return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
       });
-    }, [periodFilteredApplications, searchQuery, statusFilter, projectUnitFilter, sortOrder, aiMismatchFilter, appealFilter]);
+    }, [periodFilteredApplications, searchQuery, statusFilter, projectUnitFilter, sortOrder, aiMismatchFilter]);
 
   // 페이지네이션 계산
   const totalPages = Math.ceil(filteredApplications.length / itemsPerPage);
@@ -241,7 +230,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
   // 필터 변경 시 페이지 리셋
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, statusFilter, projectUnitFilter, aiMismatchFilter, appealFilter, periodFilter, selectedYear, dateCriteriaType]);
+  }, [searchQuery, statusFilter, projectUnitFilter, aiMismatchFilter, periodFilter, selectedYear, dateCriteriaType]);
 
   // 상태별 통계 (기간 필터 적용)
   const stats = useMemo(() => {
@@ -668,17 +657,6 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
                 { value: "담당자검토완료", label: "민원 종결처리" },
               ]}
             />
-            <RadioFilterGroup
-              label="수용신청 방법"
-              name="appeal-filter"
-              value={appealFilter}
-              onChange={(v) => setAppealFilter(v as "all" | "중토위" | "한국도로공사")}
-              options={[
-                { value: "all", label: "전체" },
-                { value: "중토위", label: "중토위 신청" },
-                { value: "한국도로공사", label: "도로공사 신청" },
-              ]}
-            />
           </div>
 
           {/* 테이블 (데스크톱) */}
@@ -700,7 +678,6 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
                   <TableHead className="w-[240px] text-center">대상 지번</TableHead>
                   <TableHead className="w-[130px] text-center">진행상황</TableHead>
                   <TableHead className="w-[120px] text-center">심사결과</TableHead>
-                  <TableHead className="w-[140px] text-center">수용신청 방법</TableHead>
                   <TableHead className="w-[48px]"></TableHead>
                 </TableRow>
               </TableHeader>
@@ -757,31 +734,6 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
                         ) : (
                           <span className="text-muted-foreground">-</span>
                         )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="w-[140px] text-center">
-                      <div className="flex justify-center">
-                        {(() => {
-                          const isAppCommitteeRejected =
-                            app.isCommitteeCase === true &&
-                            (app.finalJudgment === "기각" ||
-                              app.landJudgmentsForReview?.some(j => j.judgment === "기각" && j.citizenAppealChoice));
-                          if (!isAppCommitteeRejected) return <span className="text-muted-foreground text-[15px]">-</span>;
-                          const choices = app.landJudgmentsForReview
-                            ?.map(j => j.citizenAppealChoice)
-                            .filter(Boolean) as ("중토위" | "한국도로공사")[] | undefined;
-                          const primary = choices?.length ? choices[0] : (app.citizenAppealChoice ?? null);
-                          if (!primary) return <span className="text-muted-foreground text-[15px]">-</span>;
-                          return (
-                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[13px] font-medium ${
-                              primary === "중토위"
-                                ? "bg-blue-50 text-blue-700"
-                                : "bg-emerald-50 text-emerald-700"
-                            }`}>
-                              {primary === "중토위" ? "중토위 신청" : "도로공사 신청"}
-                            </span>
-                          );
-                        })()}
                       </div>
                     </TableCell>
                     <TableCell className="w-[48px] text-center">

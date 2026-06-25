@@ -8,7 +8,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { dummyApplications, landCategories } from "@/lib/dummy-data";
 import { formatDateTime } from "@/lib/format";
 import type { Application, AdminStatus } from "@/lib/types";
@@ -613,7 +612,6 @@ function LandInfoSection({
         // 복수필지 per-parcel 판정 우선, 없으면 전체 finalJudgment 사용
         const perParcel = application.landJudgmentsForReview?.[selectedLandIndex];
         const fj: string | undefined = perParcel?.judgment ?? application.finalJudgment;
-        const appealChoice = perParcel ? perParcel.citizenAppealChoice : application.citizenAppealChoice;
 
         if (!isCommitteeStage && !(isComplete && fj)) return null;
 
@@ -664,27 +662,9 @@ function LandInfoSection({
 
         if (!label) return null;
 
-        // 기각 + 수용신청 옵션 표시 여부
-        const showAppeal = fj === "기각" && onSave &&
-          ((isComplete && (isCom || application.finalJudgment === "심의위원회 이관")) || st === "심의위원회검토완료");
-
-        // CommitteeRejectionAppeal에 전달할 application (per-parcel이면 해당 필지의 선택값 주입)
-        const appealApp = perParcel
-          ? { ...application, citizenAppealChoice: appealChoice ?? null }
-          : application;
-
-        const handleAppealSave = onSave
-          ? (updated: Application) => {
-              if (perParcel && application.landJudgmentsForReview) {
-                const updatedJudgments = application.landJudgmentsForReview.map((j, i) =>
-                  i === selectedLandIndex ? { ...j, citizenAppealChoice: updated.citizenAppealChoice } : j
-                );
-                onSave({ ...updated, landJudgmentsForReview: updatedJudgments });
-              } else {
-                onSave(updated);
-              }
-            }
-          : undefined;
+        // 심의결과서 다운로드 표시 여부 (기각 + 위원회 케이스)
+        const showDownload = fj === "기각" && isCom &&
+          (st === "심의위원회검토완료" || isComplete);
 
         return (
           <>
@@ -692,9 +672,44 @@ function LandInfoSection({
               <div className="flex w-36 shrink-0 whitespace-nowrap items-center bg-muted/30 px-4 py-4">
                 <span className="text-[15px] font-medium">최종 판정</span>
               </div>
-              <div className="flex flex-1 items-center gap-3 px-4 py-4">
-                {icon}
-                <span className={`text-base font-semibold ${textColor}`}>{label}</span>
+              <div className="flex flex-1 items-center justify-between gap-3 px-4 py-4">
+                <div className="flex items-center gap-3">
+                  {icon}
+                  <span className={`text-base font-semibold ${textColor}`}>{label}</span>
+                </div>
+                {showDownload && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const content = [
+                        "■ 잔여지 매수청구 심의결과서",
+                        "",
+                        `신청번호: ${application.applicationNumber}`,
+                        `신청인: ${application.applicantName}`,
+                        `신청일: ${application.appliedAt ? new Date(application.appliedAt).toLocaleDateString("ko-KR") : "-"}`,
+                        "",
+                        "■ 심의 결과",
+                        "심의위원회 검토 결과: 기각",
+                        "",
+                        "귀하의 잔여지 매수청구 건에 대해 심의위원회에서 검토한 결과,",
+                        "위와 같이 결정되었음을 통보합니다.",
+                        "",
+                        "※ 본 심의결과서는 중앙토지수용위원회 수용 신청 시 제출 서류로 활용하실 수 있습니다.",
+                      ].join("\n");
+                      const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `심의결과서_${application.applicationNumber}.txt`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                    className="inline-flex shrink-0 items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-[14px] font-medium text-white hover:bg-blue-700 active:bg-blue-800 transition-colors"
+                  >
+                    <Download className="h-4 w-4 shrink-0" />
+                    심의결과서 다운로드
+                  </button>
+                )}
               </div>
             </div>
             {(st === "심의위원회회부" || st === "심의위원회검토중") && (
@@ -706,9 +721,6 @@ function LandInfoSection({
                     : "심의위원회에서 검토가 진행 중입니다. 검토가 완료되면 결과를 안내드리겠습니다."}
                 </p>
               </div>
-            )}
-            {showAppeal && handleAppealSave && (
-              <CommitteeRejectionAppeal key={perParcel?.landId ?? "single"} application={appealApp} onSave={handleAppealSave} />
             )}
             {application.reviewerComment && (
               <div className="flex border-t border-border">
@@ -790,201 +802,6 @@ function LandInfoSection({
 import { RationaleCard } from "@/components/ui/rationale-card";
 
 // 심의위원회 기각 후 민원인 수용 신청 선택 컴포넌트
-function CommitteeRejectionAppeal({
-  application,
-  onSave,
-}: {
-  application: Application;
-  onSave: (updatedApp: Application) => void;
-}) {
-  const [selected, setSelected] = useState<"중토위" | "한국도로공사" | null>(
-    application.citizenAppealChoice ?? null
-  );
-  const [pendingChoice, setPendingChoice] = useState<"중토위" | "한국도로공사" | null>(null);
-  const isLocked = selected !== null; // 한 번 선택하면 번복 불가
-
-  const handleSelect = (choice: "중토위" | "한국도로공사") => {
-    if (isLocked) return;
-    setSelected(choice);
-    onSave({ ...application, citizenAppealChoice: choice });
-  };
-
-  const handleConfirm = () => {
-    if (pendingChoice) {
-      handleSelect(pendingChoice);
-      setPendingChoice(null);
-    }
-  };
-
-  const options: {
-    key: "중토위" | "한국도로공사";
-    title: string;
-    badge: string;
-    badgeColor: string;
-    summary: string;
-    detail: React.ReactNode;
-  }[] = [
-    {
-      key: "중토위",
-      title: "중앙토지수용위원회에 직접 수용 신청",
-      badge: "민원인 직접 신청",
-      badgeColor: "bg-blue-50 text-blue-700",
-      summary: "민원인이 직접 중앙토지수용위원회(중토위)에 수용 재결을 신청하는 방법입니다.",
-      detail: (
-        <div className="space-y-3">
-          <ul className="space-y-1 text-[15px] text-slate-600">
-            <li>· 보상협의 요청일로부터 <span className="font-medium text-slate-800">30일 이내</span> 재결 신청서 제출</li>
-            <li>· 준비 서류: 등기사항전부증명서, 보상협의 결렬 확인서, 신분증 사본</li>
-            <li>· 사업 시행자(한국도로공사) 경유 또는 중토위에 직접 제출 가능</li>
-            <li>· 심리·재결 후 보상금 확정 / 불복 시 행정소송 가능</li>
-            <li className="text-slate-400 text-[13px]">※ 문의: 중앙토지수용위원회 ☎ 1670-4655</li>
-          </ul>
-          <div className="pt-2 border-t border-slate-200 flex items-center justify-between gap-4">
-            <p className="text-[14px] text-slate-600">
-              중토위 신청 시 제출 서류로 활용하실 수 있도록 <span className="font-medium text-slate-800">심의결과서</span>를 다운로드하세요.
-            </p>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                const content = [
-                  "■ 잔여지 매수청구 심의결과서",
-                  "",
-                  `신청번호: ${application.applicationNumber}`,
-                  `신청인: ${application.applicantName}`,
-                  `신청일: ${application.appliedAt ? new Date(application.appliedAt).toLocaleDateString("ko-KR") : "-"}`,
-                  "",
-                  "■ 심의 결과",
-                  "심의위원회 검토 결과: 기각",
-                  "",
-                  "귀하의 잔여지 매수청구 건에 대해 심의위원회에서 검토한 결과,",
-                  "위와 같이 결정되었음을 통보합니다.",
-                  "",
-                  "※ 본 심의결과서는 중앙토지수용위원회 수용 신청 시 제출 서류로 활용하실 수 있습니다.",
-                ].join("\n");
-                const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = `심의결과서_${application.applicationNumber}.txt`;
-                a.click();
-                URL.revokeObjectURL(url);
-              }}
-              className="inline-flex shrink-0 items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-[14px] font-medium text-white hover:bg-blue-700 active:bg-blue-800 transition-colors"
-            >
-              <Download className="h-4 w-4 shrink-0" />
-              심의결과서 다운로드
-            </button>
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: "한국도로공사",
-      title: "한국도로공사에 이의 신청",
-      badge: "담당자가 연락 드립니다",
-      badgeColor: "bg-emerald-50 text-emerald-700",
-      summary: "한국도로공사 담당자가 직접 연락하여 수용 신청 절차를 안내해 드립니다.",
-      detail: (
-        <ul className="space-y-1 text-[15px] text-slate-600">
-          <li>· 선택 후 담당자가 등록된 연락처로 순차 연락 드립니다</li>
-          <li>· 담당자 안내에 따라 서류(토지대장, 등기사항전부증명서, 현황사진 등) 준비</li>
-          <li>· 내부 검토 및 현장 확인 후 매수 여부·보상금 서면 통보</li>
-          <li>· 결과에 이의가 있을 경우 중토위 재결 신청 가능</li>
-          <li className="text-slate-400 text-[13px]">※ 문의: 한국도로공사 고객센터 ☎ 1588-2504</li>
-        </ul>
-      ),
-    },
-  ];
-
-  // 선택 완료 후: 선택한 옵션만 표시
-  if (isLocked) {
-    const chosen = options.find((o) => o.key === selected)!;
-    return (
-      <div className="border-t border-border px-4 py-4 space-y-3">
-        <p className="text-[15px] font-semibold text-foreground">수용 신청 방법</p>
-        <div className="rounded-lg border-2 border-primary bg-primary/5 p-4 space-y-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[15px] font-semibold text-foreground">{chosen.title}</span>
-            <span className={`rounded-full px-2 py-0.5 text-[13px] font-medium ${chosen.badgeColor}`}>
-              {chosen.badge}
-            </span>
-          </div>
-          <p className="text-[15px] text-muted-foreground">{chosen.summary}</p>
-          <div className="rounded-md bg-slate-50 border border-slate-100 px-3 py-2.5">
-            {chosen.detail}
-          </div>
-        </div>
-        <div className="flex items-center gap-2 rounded-md bg-primary/5 border border-primary/20 px-3 py-2">
-          <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
-          <p className="text-[15px] text-primary font-medium">선택이 완료되었습니다. 선택하신 절차에 따라 안내를 도와드리겠습니다.</p>
-        </div>
-      </div>
-    );
-  }
-
-  // 선택 전: 두 옵션 카드 모두 표시
-  return (
-    <>
-      <AlertDialog open={pendingChoice !== null} onOpenChange={(open) => { if (!open) setPendingChoice(null); }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>수용 신청 방법 확정</AlertDialogTitle>
-            <AlertDialogDescription className="space-y-1">
-              <span className="block">
-                <span className="font-semibold text-foreground">
-                  {pendingChoice === "한국도로공사" ? "한국도로공사에 이의 신청" : "중앙토지수용위원회에 직접 수용 신청"}
-                </span>
-                을 선택하셨습니다.
-              </span>
-              <span className="block text-muted-foreground">
-                한 번 선택하면 이후 변경이 불가합니다. 신중하게 확인 후 확정해 주세요.
-              </span>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setPendingChoice(null)}>재확인</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirm}>확정</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <div className="border-t border-border px-4 py-4 space-y-4">
-        <div className="space-y-2">
-          <p className="text-[16px] font-bold text-foreground">심의 결과 안내</p>
-          <p className="text-[15px] text-slate-700">귀하의 잔여지 매수 청구가 최종 기각되었습니다.</p>
-          <p className="text-[15px] text-slate-600">결과에 이의가 있으신 경우, 아래 중 원하시는 절차를 선택해 주세요.</p>
-        </div>
-        <div className="flex flex-col gap-3">
-          {options.map((opt) => (
-            <button
-              key={opt.key}
-              onClick={() => setPendingChoice(opt.key)}
-              className="w-full text-left rounded-lg border-2 border-slate-200 bg-white p-4 transition-all hover:border-slate-300 hover:bg-slate-50"
-            >
-              <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-slate-300" />
-                <div className="flex-1 space-y-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-[15px] font-semibold text-foreground">{opt.title}</span>
-                    <span className={`rounded-full px-2 py-0.5 text-[13px] font-medium ${opt.badgeColor}`}>
-                      {opt.badge}
-                    </span>
-                  </div>
-                  <p className="text-[15px] text-muted-foreground">{opt.summary}</p>
-                  <div className="rounded-md bg-slate-50 border border-slate-100 px-3 py-2.5">
-                    {opt.detail}
-                  </div>
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
-        <p className="text-[14px] text-slate-500">선택하신 절차에 따라 안내를 도와드리겠습니다.</p>
-      </div>
-    </>
-  );
-}
-
 // 신청 목록/상세 공통: 실제 상태를 3단계 시민 표시 상태로 변환
 function toListStatus(status: AdminStatus): AdminStatus {
   if (status === "접수완료") return "접수완료";
