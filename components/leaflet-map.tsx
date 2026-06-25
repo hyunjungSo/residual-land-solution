@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Layers, Plus, Minus, Info, Locate, Ruler, X, Triangle, Route } from "lucide-react";
+import { Layers, Plus, Minus, Info, Locate, Ruler, X, Triangle, Route, LandPlot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -71,13 +71,14 @@ interface LeafletMapProps {
   zoom?: number;
   selectedRegion?: string;
   onParcelClick?: (parcelId: string) => void;
-  onParcelHover?: (parcelId: string | null) => void; // 호버 이벤트
+  onParcelHover?: (parcelId: string | null) => void;
   parcels?: ParcelData[];
   selectedParcelId?: string;
-  selectedParcelIds?: Set<string>; // 복수 선택 지원
-  hoveredParcelId?: string | null; // 호버된 필지 ID
-  focusedParcelId?: string | null; // 포커스할 필지 ID (지도 중심 이동)
-  zoomControlsPosition?: "left" | "sidebar-right"; // 줌 컨트롤 위치
+  selectedParcelIds?: Set<string>;
+  hoveredParcelId?: string | null;
+  focusedParcelId?: string | null;
+  zoomControlsPosition?: "left" | "sidebar-right";
+  sameOwnerParcels?: Array<{ id: string; address: string; coordinates: Array<{ lat: number; lng: number }> }>;
 }
 
 type BaseMapType = "normal" | "satellite";
@@ -94,6 +95,7 @@ export function LeafletMap({
   hoveredParcelId,
   focusedParcelId,
   zoomControlsPosition = "left",
+  sameOwnerParcels = [],
 }: LeafletMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -102,7 +104,9 @@ export function LeafletMap({
   const satelliteTileRef = useRef<L.TileLayer | null>(null);
   const landSupplyLayerRef = useRef<L.LayerGroup | null>(null);
   const roadAreaLayerRef = useRef<L.LayerGroup | null>(null);
+  const sameOwnerLayerRef = useRef<L.LayerGroup | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
+  const [showSameOwner, setShowSameOwner] = useState(false);
   const [currentZoom, setCurrentZoom] = useState(zoom);
   const [baseMap, setBaseMap] = useState<BaseMapType>("normal");
   const [layers, setLayers] = useState({
@@ -178,7 +182,11 @@ export function LeafletMap({
       // 도로구역 레이어 그룹 생성 (기본 활성화)
       const roadAreaLayer = L.layerGroup().addTo(map);
       roadAreaLayerRef.current = roadAreaLayer;
-      
+
+      // 동일 소유자 레이어 그룹 생성
+      const sameOwnerLayer = L.layerGroup();
+      sameOwnerLayerRef.current = sameOwnerLayer;
+
       // 거리 측정 레이어 그룹 생성
       const measureLayer = L.layerGroup().addTo(map);
       measureLayerRef.current = measureLayer;
@@ -468,7 +476,7 @@ export function LeafletMap({
         html: `<div style="
           background: transparent;
           color: #333;
-          font-size: 12px;
+          font-size: 14px;
           font-weight: 500;
           white-space: nowrap;
           text-shadow: 1px 1px 1px white, -1px -1px 1px white, 1px -1px 1px white, -1px 1px 1px white;
@@ -517,6 +525,56 @@ export function LeafletMap({
       }
     }
   }, [parcels, selectedParcelId, selectedParcelIdsKey, parcelsOwnedKey, hoveredParcelId, onParcelClick, onParcelHover, isMapReady]);
+
+  // 동일 소유자 필지 렌더링
+  useEffect(() => {
+    if (!mapInstanceRef.current || !sameOwnerLayerRef.current || !isMapReady) return;
+    const L = (window as typeof window & { L: typeof import("leaflet") }).L;
+    const layer = sameOwnerLayerRef.current;
+    const map = mapInstanceRef.current;
+
+    layer.clearLayers();
+
+    if (!showSameOwner || sameOwnerParcels.length === 0) {
+      layer.remove();
+      return;
+    }
+
+    layer.addTo(map);
+
+    sameOwnerParcels.forEach((parcel) => {
+      if (!parcel.coordinates || parcel.coordinates.length < 3) return;
+      const validCoords = parcel.coordinates.filter(
+        (c) => c && isFinite(c.lat) && isFinite(c.lng) && Math.abs(c.lat) <= 90 && Math.abs(c.lng) <= 180
+      );
+      if (validCoords.length < 3) return;
+
+      const latlngs = validCoords.map((c) => [c.lat, c.lng] as [number, number]);
+      const polygon = L.polygon(latlngs, {
+        color: "#f97316",
+        weight: 2,
+        fillColor: "#f97316",
+        fillOpacity: 0.08,
+        dashArray: "6, 4",
+      });
+
+      const addressParts = parcel.address.split(" ");
+      const jibun = addressParts[addressParts.length - 1];
+      const bounds = polygon.getBounds();
+      const centerPt = bounds.getCenter();
+      const labelMarker = L.marker(centerPt, {
+        icon: L.divIcon({
+          className: "",
+          html: `<div style="font-size:11px;font-weight:600;color:#c2410c;white-space:nowrap;text-shadow:0 0 3px #fff,0 0 3px #fff;">${jibun}</div>`,
+          iconAnchor: [0, 0],
+        }),
+        interactive: false,
+      });
+
+      polygon.addTo(layer);
+      labelMarker.addTo(layer);
+    });
+  }, [sameOwnerParcels, showSameOwner, isMapReady]);
 
   // 줌 컨트롤
   const handleZoomIn = () => {
@@ -676,7 +734,7 @@ export function LeafletMap({
               border: 2px solid ${NAVER_PINK};
               border-radius: 4px;
               padding: 2px 6px;
-              font-size: 12px;
+              font-size: 14px;
               font-weight: bold;
               color: ${NAVER_PINK};
               white-space: nowrap;
@@ -743,109 +801,114 @@ export function LeafletMap({
       )}
 
       {/* 지도 컨트롤 - 배경지도/거리측정/레이어 */}
-      <div className="absolute right-0 top-3 z-[1000] flex flex-col gap-1.5 pr-3">
-        {/* 배경지도 타입 선택 - 네이버지도 스타일 */}
-        <div className="flex gap-1.5 bg-white rounded-lg p-1.5 shadow">
+      <div className="absolute right-3 top-3 z-[1000] flex flex-col gap-2">
+        {/* 배경지도 타입 선택 */}
+        <div className="flex gap-2 bg-white rounded-xl p-2 shadow-md">
           <button
             onClick={() => setBaseMap("normal")}
-            className={`relative flex flex-col items-center rounded-md overflow-hidden transition-all ${
-              baseMap === "normal" 
-                ? "ring-2 ring-blue-500" 
+            className={`flex flex-col items-center rounded-lg overflow-hidden transition-all ${
+              baseMap === "normal"
+                ? "ring-2 ring-blue-500"
                 : "ring-1 ring-gray-200 hover:ring-gray-300"
             }`}
           >
-            <div className="relative w-[60px] h-[42px] overflow-hidden bg-[#f0ede8]">
-              {/* 지도 썸네일 - 도로와 건물 표현 */}
+            <div className="relative w-[56px] h-[40px] overflow-hidden bg-[#f0ede8]">
               <div className="absolute inset-0">
-                <div className="absolute top-2 left-2 right-2 h-[3px] bg-[#ffd54f] rounded-full" />
-                <div className="absolute top-4 left-1 w-[20px] h-[2px] bg-white" />
-                <div className="absolute bottom-3 left-3 w-[15px] h-[12px] bg-[#d4e8d4] rounded-sm" />
-                <div className="absolute bottom-2 right-2 w-[18px] h-[8px] bg-[#c5daf0] rounded-sm" />
-                <div className="absolute top-[18px] left-[50%] w-[2px] h-[20px] bg-white transform -translate-x-1/2" />
-              </div>
-              {/* 상단 아이콘 */}
-              <div className="absolute top-0.5 left-1/2 transform -translate-x-1/2">
-                <div className="bg-white rounded-sm p-0.5 shadow-sm">
-                  <svg className="w-2.5 h-2.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                  </svg>
-                </div>
+                <div className="absolute top-3 left-2 right-2 h-[3px] bg-[#ffd54f] rounded-full" />
+                <div className="absolute top-6 left-2 w-[24px] h-[2px] bg-white" />
+                <div className="absolute bottom-4 left-4 w-[18px] h-[14px] bg-[#d4e8d4] rounded-sm" />
+                <div className="absolute bottom-3 right-3 w-[22px] h-[10px] bg-[#c5daf0] rounded-sm" />
+                <div className="absolute top-[22px] left-[52%] w-[2px] h-[26px] bg-white transform -translate-x-1/2" />
               </div>
             </div>
-            <span className={`text-[11px] font-medium py-1 ${baseMap === "normal" ? "text-blue-600" : "text-gray-600"}`}>
-              일반지도
+            <span className={`w-full text-center text-[14px] font-medium py-1.5 ${baseMap === "normal" ? "text-blue-600" : "text-gray-600"}`}>
+              지도
             </span>
           </button>
+
           <button
             onClick={() => setBaseMap("satellite")}
-            className={`relative flex flex-col items-center rounded-md overflow-hidden transition-all ${
-              baseMap === "satellite" 
-                ? "ring-2 ring-blue-500" 
+            className={`flex flex-col items-center rounded-lg overflow-hidden transition-all ${
+              baseMap === "satellite"
+                ? "ring-2 ring-blue-500"
                 : "ring-1 ring-gray-200 hover:ring-gray-300"
             }`}
           >
-            <div className="relative w-[60px] h-[42px] overflow-hidden">
-              {/* 위성 썸네일 */}
+            <div className="relative w-[56px] h-[40px] overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-[#1a3d1a] via-[#2d5a2d] to-[#1a4a2a]">
                 <div className="absolute top-1 left-1 right-1 h-[2px] bg-[#3a3a3a]/40" />
-                <div className="absolute top-3 left-2 w-[12px] h-[8px] bg-[#4a5a4a] rounded-sm" />
-                <div className="absolute bottom-2 right-1 w-[20px] h-[10px] bg-[#3a4a3a] rounded-sm" />
+                <div className="absolute top-3 left-2 w-[14px] h-[10px] bg-[#4a5a4a] rounded-sm" />
+                <div className="absolute bottom-3 right-2 w-[24px] h-[12px] bg-[#3a4a3a] rounded-sm" />
                 <div className="absolute top-[50%] left-0 right-0 h-[1px] bg-[#5a5a5a]/30" />
               </div>
             </div>
-            <span className={`text-[11px] font-medium py-1 ${baseMap === "satellite" ? "text-blue-600" : "text-gray-600"}`}>
-              위성지도
+            <span className={`w-full text-center text-[14px] font-medium py-1.5 ${baseMap === "satellite" ? "text-blue-600" : "text-gray-600"}`}>
+              항공사진
             </span>
           </button>
         </div>
-        
-        {/* 지도 도구 버튼들 - 세로 스택 */}
-        <div className="flex flex-col gap-1 items-end">
+
+        {/* 지도 도구 버튼들 - 가로 pill 스타일 */}
+        <div className="flex flex-col gap-1.5">
+          {/* 동일소유자 토지 */}
+          {sameOwnerParcels.length > 0 && (
+            <button
+              onClick={() => setShowSameOwner((prev) => !prev)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-xl bg-white shadow-sm border transition-all ${
+                showSameOwner
+                  ? "border-teal-600 ring-1 ring-teal-600"
+                  : "border-gray-200 hover:border-gray-300"
+              }`}
+            >
+              <LandPlot className={`h-[18px] w-[18px] shrink-0 ${showSameOwner ? "text-teal-600" : "text-gray-500"}`} strokeWidth={1.5} />
+              <span className={`text-[14px] font-medium whitespace-nowrap ${showSameOwner ? "text-teal-600" : "text-gray-600"}`}>동일소유자 토지</span>
+            </button>
+          )}
+
           {/* 국토수급 */}
           <button
             onClick={() => setLayers((prev) => ({ ...prev, landSupplyDemand: !prev.landSupplyDemand }))}
-            className={`flex flex-col items-center justify-center w-[52px] h-12 rounded-md shadow transition-colors ${
-              layers.landSupplyDemand 
-                ? "bg-white ring-2 ring-primary" 
-                : "bg-white hover:bg-gray-100"
+            className={`flex items-center gap-2 px-3 py-2 rounded-xl bg-white shadow-sm border transition-all ${
+              layers.landSupplyDemand
+                ? "border-teal-600 ring-1 ring-teal-600"
+                : "border-gray-200 hover:border-gray-300"
             }`}
           >
-            <Layers className={`h-4 w-4 mb-0.5 ${layers.landSupplyDemand ? "text-primary" : "text-gray-700"}`} strokeWidth={1.5} />
-            <span className={`text-[10px] font-medium ${layers.landSupplyDemand ? "text-primary" : "text-gray-700"}`}>국토수급</span>
+            <Layers className={`h-[18px] w-[18px] shrink-0 ${layers.landSupplyDemand ? "text-teal-600" : "text-gray-500"}`} strokeWidth={1.5} />
+            <span className={`text-[14px] font-medium ${layers.landSupplyDemand ? "text-teal-600" : "text-gray-600"}`}>국토수급</span>
           </button>
-          
+
           {/* 도로구역 */}
           <button
             onClick={() => setLayers((prev) => ({ ...prev, roadArea: !prev.roadArea }))}
-            className={`flex flex-col items-center justify-center w-[52px] h-12 rounded-md shadow transition-colors ${
-              layers.roadArea 
-                ? "bg-white ring-2 ring-primary" 
-                : "bg-white hover:bg-gray-100"
+            className={`flex items-center gap-2 px-3 py-2 rounded-xl bg-white shadow-sm border transition-all ${
+              layers.roadArea
+                ? "border-teal-600 ring-1 ring-teal-600"
+                : "border-gray-200 hover:border-gray-300"
             }`}
           >
-            <Route className={`h-4 w-4 mb-0.5 ${layers.roadArea ? "text-primary" : "text-gray-700"}`} strokeWidth={1.5} />
-            <span className={`text-[10px] font-medium ${layers.roadArea ? "text-primary" : "text-gray-700"}`}>도로구역</span>
+            <Route className={`h-[18px] w-[18px] shrink-0 ${layers.roadArea ? "text-teal-600" : "text-gray-500"}`} strokeWidth={1.5} />
+            <span className={`text-[14px] font-medium ${layers.roadArea ? "text-teal-600" : "text-gray-600"}`}>도로구역</span>
           </button>
-          
+
           {/* 거리측정 */}
           <button
             onClick={toggleMeasureMode}
-            className={`flex flex-col items-center justify-center w-[52px] h-12 rounded-md shadow transition-colors ${
-              measureMode 
-                ? "bg-white ring-2 ring-primary" 
-                : "bg-white hover:bg-gray-100"
+            className={`flex items-center gap-2 px-3 py-2 rounded-xl bg-white shadow-sm border transition-all ${
+              measureMode
+                ? "border-teal-600 ring-1 ring-teal-600"
+                : "border-gray-200 hover:border-gray-300"
             }`}
           >
-            <Ruler className={`h-4 w-4 mb-0.5 ${measureMode ? "text-primary" : "text-gray-700"}`} strokeWidth={1.5} />
-            <span className={`text-[10px] font-medium ${measureMode ? "text-primary" : "text-gray-700"}`}>거리측정</span>
+            <Ruler className={`h-[18px] w-[18px] shrink-0 ${measureMode ? "text-teal-600" : "text-gray-500"}`} strokeWidth={1.5} />
+            <span className={`text-[14px] font-medium ${measureMode ? "text-teal-600" : "text-gray-600"}`}>거리측정</span>
           </button>
-          
+
           {/* 각도측정 */}
           <button
             onClick={() => {
               setAngleMeasureMode(!angleMeasureMode);
               if (!angleMeasureMode) {
-                // 각도 측정 모드 시작 시 거리 측정 모드 끄기
                 setMeasureMode(false);
                 setMeasurePoints([]);
                 setTotalDistance(0);
@@ -853,17 +916,18 @@ export function LeafletMap({
               setAnglePoints([]);
               setMeasuredAngle(null);
             }}
-            className={`flex flex-col items-center justify-center w-[52px] h-12 rounded-md shadow transition-colors ${
-              angleMeasureMode 
-                ? "bg-white ring-2 ring-primary" 
-                : "bg-white hover:bg-gray-100"
+            className={`flex items-center gap-2 px-3 py-2 rounded-xl bg-white shadow-sm border transition-all ${
+              angleMeasureMode
+                ? "border-teal-600 ring-1 ring-teal-600"
+                : "border-gray-200 hover:border-gray-300"
             }`}
           >
-            <Triangle className={`h-4 w-4 mb-0.5 ${angleMeasureMode ? "text-primary" : "text-gray-700"}`} strokeWidth={1.5} />
-            <span className={`text-[10px] font-medium ${angleMeasureMode ? "text-primary" : "text-gray-700"}`}>각도측정</span>
+            <Triangle className={`h-[18px] w-[18px] shrink-0 ${angleMeasureMode ? "text-teal-600" : "text-gray-500"}`} strokeWidth={1.5} />
+            <span className={`text-[14px] font-medium ${angleMeasureMode ? "text-teal-600" : "text-gray-600"}`}>각도측정</span>
           </button>
         </div>
       </div>
+
 
       {/* 줌 컨트롤 */}
       <div className="absolute bottom-12 right-3 z-[1000] flex flex-col gap-1">

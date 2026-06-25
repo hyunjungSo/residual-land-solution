@@ -177,7 +177,7 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "w-8 h-8 rounded-sm border-2 text-[15px] font-bold transition-colors select-none",
+        "w-10 h-10 rounded-sm border-2 text-[16px] font-bold transition-colors select-none",
         active
           ? value === "O" ? "bg-blue-500 border-blue-500 text-white" : "bg-red-500 border-red-500 text-white"
           : "border-gray-300 text-gray-300 bg-white hover:border-gray-400",
@@ -198,7 +198,7 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
       <div className="flex items-center justify-between py-3 print:hidden">
         <div>
           <span className="text-lg font-bold text-gray-900">심의서 작성</span>
-          <span className="ml-3 text-[15px] text-muted-foreground">접수번호: {application.applicationNumber ?? "-"}</span>
+          <span className="ml-3 text-[16px] text-muted-foreground">접수번호: {application.applicationNumber ?? "-"}</span>
         </div>
         <div className="flex gap-2">
           {isEditing && (
@@ -246,7 +246,7 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
                     value={documentMeta.sectionNumber}
                     onChange={(e) => setDocumentMeta((p) => ({ ...p, sectionNumber: e.target.value }))}
                     placeholder="공구"
-                    className="w-28 rounded border border-gray-300 bg-white px-1.5 py-0.5 text-center text-xl font-bold focus:border-gray-500 focus:outline-none"
+                    className="w-28 rounded border border-gray-300 bg-white px-2 py-1 text-center text-xl font-bold focus:border-gray-500 focus:outline-none"
                   />
                 ) : (
                   <span className="inline-block min-w-[5rem] border-b border-foreground text-center">{documentMeta.sectionNumber || "     "}</span>
@@ -257,7 +257,7 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
                     value={documentMeta.reviewNumber}
                     onChange={(e) => setDocumentMeta((p) => ({ ...p, reviewNumber: e.target.value }))}
                     placeholder="제n차"
-                    className="w-24 rounded border border-gray-300 bg-white px-1.5 py-0.5 text-center text-xl font-bold focus:border-gray-500 focus:outline-none"
+                    className="w-24 rounded border border-gray-300 bg-white px-2 py-1 text-center text-xl font-bold focus:border-gray-500 focus:outline-none"
                   />
                 ) : (
                   <span className="inline-block min-w-[4rem] border-b border-foreground text-center">{documentMeta.reviewNumber || "    "}</span>
@@ -267,14 +267,14 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
             </div>
 
             {/* 사업명 / 작성자 */}
-            <div className="mb-3 flex items-center justify-between text-[15px]">
+            <div className="mb-3 flex items-center justify-between text-[16px]">
               <div>
                 <span className="font-medium">○ 사업명 : </span>
                 {isEditing ? (
                   <input
                     value={documentMeta.projectName}
                     onChange={(e) => setDocumentMeta((p) => ({ ...p, projectName: e.target.value }))}
-                    className="w-72 rounded border border-gray-300 bg-white px-1.5 py-0.5 text-[15px] focus:border-gray-500 focus:outline-none"
+                    className="w-72 rounded border border-gray-300 bg-white px-2 py-1 text-[16px] focus:border-gray-500 focus:outline-none"
                   />
                 ) : (
                   <span>{documentMeta.projectName}</span>
@@ -286,7 +286,7 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
                   <input
                     value={documentMeta.author}
                     onChange={(e) => setDocumentMeta((p) => ({ ...p, author: e.target.value }))}
-                    className="w-28 rounded border border-gray-300 bg-white px-1.5 py-0.5 text-center text-[15px] focus:border-gray-500 focus:outline-none"
+                    className="w-28 rounded border border-gray-300 bg-white px-2 py-1 text-center text-[16px] focus:border-gray-500 focus:outline-none"
                   />
                 ) : (
                   <span className="font-medium">{documentMeta.author}</span>
@@ -296,7 +296,7 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
 
             {/* 메인 테이블 */}
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-gray-800 text-[15px]" style={{ tableLayout: "fixed" }}>
+              <table className="w-full border-collapse border border-gray-800 text-[16px]" style={{ tableLayout: "fixed" }}>
                 <colgroup>
                   <col style={{ width: "80px" }} />
                   <col style={{ width: "104px" }} />
@@ -313,25 +313,25 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
                 <thead>
                   <tr>
                     <th colSpan={10} className="border border-gray-800 bg-gray-100 px-2 py-1.5 text-center font-semibold">대 상 토 지</th>
-                    <th rowSpan={3} className="border border-gray-800 border-b-0 bg-gray-100 px-2 py-1.5 text-center font-semibold text-[15px]">
+                    <th rowSpan={3} className="border border-gray-800 border-b-0 bg-gray-100 px-2 py-1.5 text-center font-semibold text-[16px]">
                       현지상황 및 검토의견
                     </th>
                   </tr>
                   <tr>
-                    <th rowSpan={2} className="border border-gray-800 bg-gray-100 px-1 py-1 text-center font-medium text-[14px]">소재지<br />(소유자)</th>
-                    <th rowSpan={2} className="border border-gray-800 bg-gray-100 px-1 py-1 text-center font-medium text-[14px]">원지번</th>
-                    <th rowSpan={2} className="border border-gray-800 bg-gray-100 px-1 py-1 text-center font-medium text-[14px]">지목</th>
-                    <th rowSpan={2} className="border border-gray-800 bg-gray-100 px-1 py-1 text-center font-medium text-[14px]">면적(m²)</th>
-                    <th colSpan={2} className="border border-gray-800 bg-gray-100 px-1 py-1 text-center font-medium text-[14px]">편입토지</th>
-                    <th colSpan={4} className="border border-gray-800 bg-gray-100 px-1 py-1 text-center font-medium text-[14px]">잔여토지</th>
+                    <th rowSpan={2} className="border border-gray-800 bg-gray-100 px-1 py-1.5 text-center font-medium text-[15px]">소재지<br />(소유자)</th>
+                    <th rowSpan={2} className="border border-gray-800 bg-gray-100 px-1 py-1.5 text-center font-medium text-[15px]">원지번</th>
+                    <th rowSpan={2} className="border border-gray-800 bg-gray-100 px-1 py-1.5 text-center font-medium text-[15px]">지목</th>
+                    <th rowSpan={2} className="border border-gray-800 bg-gray-100 px-1 py-1.5 text-center font-medium text-[15px]">면적(m²)</th>
+                    <th colSpan={2} className="border border-gray-800 bg-gray-100 px-1 py-1.5 text-center font-medium text-[15px]">편입토지</th>
+                    <th colSpan={4} className="border border-gray-800 bg-gray-100 px-1 py-1.5 text-center font-medium text-[15px]">잔여토지</th>
                   </tr>
                   <tr>
-                    <th className="border border-gray-800 bg-gray-100 px-1 py-1 text-center font-medium text-[14px]">지번</th>
-                    <th className="border border-gray-800 bg-gray-100 px-1 py-1 text-center font-medium text-[14px]">면적(m²)</th>
-                    <th className="border border-gray-800 bg-gray-100 px-1 py-1 text-center font-medium text-[14px]">지번</th>
-                    <th className="border border-gray-800 bg-gray-100 px-1 py-1 text-center font-medium text-[14px]">면적(m²)</th>
-                    <th className="border border-gray-800 bg-gray-100 px-1 py-1 text-center font-medium text-[14px]">잔여비율</th>
-                    <th className="border border-gray-800 bg-blue-50 px-1 py-2 text-center font-semibold text-[14px] text-blue-700">매수여부</th>
+                    <th className="border border-gray-800 bg-gray-100 px-1 py-1.5 text-center font-medium text-[15px]">지번</th>
+                    <th className="border border-gray-800 bg-gray-100 px-1 py-1.5 text-center font-medium text-[15px]">면적(m²)</th>
+                    <th className="border border-gray-800 bg-gray-100 px-1 py-1.5 text-center font-medium text-[15px]">지번</th>
+                    <th className="border border-gray-800 bg-gray-100 px-1 py-1.5 text-center font-medium text-[15px]">면적(m²)</th>
+                    <th className="border border-gray-800 bg-gray-100 px-1 py-1.5 text-center font-medium text-[15px]">잔여비율</th>
+                    <th className="border border-gray-800 bg-blue-50 px-1 py-2 text-center font-semibold text-[15px] text-blue-700">매수여부</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -339,27 +339,27 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
                   {landParcels.map((parcel, idx) => (
                     <tr key={idx}>
                       {idx === 0 && (
-                        <td rowSpan={landParcels.length} className="border border-gray-800 px-2 py-2 text-center text-[14px] align-middle">
+                        <td rowSpan={landParcels.length} className="border border-gray-800 px-2 py-2 text-center text-[15px] align-middle">
                           <div>{ownerInfo.address}</div>
-                          <div className="text-gray-500 text-[13px] mt-0.5">({ownerInfo.ownerName})</div>
+                          <div className="text-gray-500 text-[14px] mt-0.5">({ownerInfo.ownerName})</div>
                         </td>
                       )}
-                      <td className="border border-gray-800 px-1 py-1.5 text-center">{parcel.originalLotNumber}</td>
-                      <td className="border border-gray-800 px-1 py-1.5 text-center">{parcel.landCategory}</td>
-                      <td className="border border-gray-800 px-1 py-1.5 text-center">{parcel.originalArea.toLocaleString()}</td>
-                      <td className="border border-gray-800 px-1 py-1.5 text-center">{parcel.includedLotNumber}</td>
-                      <td className="border border-gray-800 px-1 py-1.5 text-center">{parcel.includedArea.toLocaleString()}</td>
-                      <td className="border border-gray-800 px-1 py-1.5 text-center">{parcel.remainingLotNumber}</td>
-                      <td className="border border-gray-800 px-1 py-1.5 text-center">{parcel.remainingArea.toLocaleString()}</td>
-                      <td className="border border-gray-800 px-1 py-1.5 text-center">{parcel.remainingRatio.toFixed(2)}%</td>
-                      <td className="border border-gray-800 px-1 py-1.5 text-center">
+                      <td className="border border-gray-800 px-1 py-2 text-center">{parcel.originalLotNumber}</td>
+                      <td className="border border-gray-800 px-1 py-2 text-center">{parcel.landCategory}</td>
+                      <td className="border border-gray-800 px-1 py-2 text-center">{parcel.originalArea.toLocaleString()}</td>
+                      <td className="border border-gray-800 px-1 py-2 text-center">{parcel.includedLotNumber}</td>
+                      <td className="border border-gray-800 px-1 py-2 text-center">{parcel.includedArea.toLocaleString()}</td>
+                      <td className="border border-gray-800 px-1 py-2 text-center">{parcel.remainingLotNumber}</td>
+                      <td className="border border-gray-800 px-1 py-2 text-center">{parcel.remainingArea.toLocaleString()}</td>
+                      <td className="border border-gray-800 px-1 py-2 text-center">{parcel.remainingRatio.toFixed(2)}%</td>
+                      <td className="border border-gray-800 px-1 py-2 text-center">
                         {isEditing ? (
                           <div className="flex gap-1 justify-center">
                             <OXButton active={parcel.purchaseDecision === "O"} value="O" onClick={() => handlePurchaseDecision(idx, "O")} />
                             <OXButton active={parcel.purchaseDecision === "X"} value="X" onClick={() => handlePurchaseDecision(idx, "X")} />
                           </div>
                         ) : (
-                          <span className={cn("text-[15px] font-bold", parcel.purchaseDecision === "O" ? "text-blue-600" : parcel.purchaseDecision === "X" ? "text-red-600" : "text-gray-400")}>
+                          <span className={cn("text-[16px] font-bold", parcel.purchaseDecision === "O" ? "text-blue-600" : parcel.purchaseDecision === "X" ? "text-red-600" : "text-gray-400")}>
                             {parcel.purchaseDecision || "-"}
                           </span>
                         )}
@@ -370,10 +370,10 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
                             <Textarea
                               value={fieldConditionReview}
                               onChange={(e) => setFieldConditionReview(e.target.value)}
-                              className="h-full min-h-[200px] cursor-text resize-none rounded-none border-0 text-[15px] leading-relaxed focus-visible:ring-0 focus-visible:ring-offset-0"
+                              className="h-full min-h-[200px] cursor-text resize-none rounded-none border-0 text-[16px] leading-relaxed focus-visible:ring-0 focus-visible:ring-offset-0"
                             />
                           ) : (
-                            <div className="p-2 text-[15px] leading-relaxed text-foreground">
+                            <div className="p-2 text-[16px] leading-relaxed text-foreground">
                               {fieldConditionReview.split("\n").map((line, i) => (
                                 <p key={i} style={{ minHeight: "1.5em" }}>{line || "\u00a0"}</p>
                               ))}
@@ -394,30 +394,30 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
                         </colgroup>
                         <tbody style={{ height: "100%" }}>
                           <tr style={{ height: "100%" }}>
-                            <td className="border-r border-gray-800 bg-gray-100 px-1 py-2 text-center font-medium text-[14px] align-middle">
+                            <td className="border-r border-gray-800 bg-gray-100 px-1 py-2 text-center font-medium text-[15px] align-middle">
                               <div style={{ writingMode: "vertical-lr", letterSpacing: "0.3em", margin: "0 auto" }}>소유자의견</div>
                             </td>
-                            <td className="p-2 align-top text-[14px]" style={{ height: "100%" }}>
+                            <td className="p-2 align-top text-[15px]" style={{ height: "100%" }}>
                               {isEditing ? (
                                 <textarea
                                   value={ownerOpinion}
                                   onChange={(e) => setOwnerOpinion(e.target.value)}
-                                  className="w-full h-full resize-none rounded border border-gray-300 bg-white p-1 text-[14px] leading-relaxed focus:border-gray-500 focus:outline-none"
+                                  className="w-full h-full resize-none rounded border border-gray-300 bg-white p-1 text-[15px] leading-relaxed focus:border-gray-500 focus:outline-none"
                                 />
                               ) : (
-                                <div className="whitespace-pre-wrap leading-relaxed text-[14px]">{ownerOpinion}</div>
+                                <div className="whitespace-pre-wrap leading-relaxed text-[15px]">{ownerOpinion}</div>
                               )}
                             </td>
                           </tr>
                         </tbody>
                       </table>
                     </td>
-                    <td colSpan={7} className="border border-gray-800 bg-gray-100 px-2 py-1 text-center text-[14px]">
+                    <td colSpan={7} className="border border-gray-800 bg-gray-100 px-2 py-2 text-center text-[15px]">
                       <div className="flex items-center justify-center gap-2">
                         <span className="font-semibold">심의위원회결정</span>
-                        <span className="text-gray-500 text-[13px]">(매수시 O, 매수불가시 X표시)</span>
+                        <span className="text-gray-500 text-[14px]">(매수시 O, 매수불가시 X표시)</span>
                         {isEditing && (
-                          <Button variant="outline" size="sm" onClick={addMember} className="h-6 gap-1 px-2 text-[12px] print:hidden">
+                          <Button variant="outline" size="sm" onClick={addMember} className="h-7 gap-1 px-2 text-[14px] print:hidden">
                             <Plus className="h-3 w-3" />항목 추가
                           </Button>
                         )}
@@ -432,15 +432,15 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
                         <tbody>
                           {/* 구분 row */}
                           <tr>
-                            <td className="border-b border-r border-gray-800 bg-gray-100 px-2 py-1 text-center font-medium text-[14px]" style={{ width: "48px" }}>구분</td>
+                            <td className="border-b border-r border-gray-800 bg-gray-100 px-2 py-1.5 text-center font-medium text-[15px]" style={{ width: "48px" }}>구분</td>
                             {committeeMembers.map((member, idx) => (
-                              <td key={idx} className="border-b border-r border-gray-800 bg-gray-100 px-1 py-1 text-center text-[14px]">
+                              <td key={idx} className="border-b border-r border-gray-800 bg-gray-100 px-1 py-1.5 text-center text-[15px]">
                                 {isEditing ? (
                                   <div className="flex items-center justify-center gap-0.5">
                                     <input
                                       value={member.role}
                                       onChange={(e) => handleMemberRole(idx, e.target.value)}
-                                      className="w-full min-w-0 rounded border border-gray-300 bg-white px-1 py-0.5 text-center text-[13px] focus:border-gray-500 focus:outline-none"
+                                      className="w-full min-w-0 rounded border border-gray-300 bg-white px-1 py-1 text-center text-[14px] focus:border-gray-500 focus:outline-none"
                                     />
                                     <button onClick={() => removeMember(idx)} className="flex-shrink-0 text-gray-400 hover:text-red-500 print:hidden">
                                       <X className="h-3 w-3" />
@@ -451,11 +451,11 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
                                 )}
                               </td>
                             ))}
-                            <td className="border-b border-gray-800 bg-gray-100 px-1 py-1 text-center font-semibold text-[14px]">최종결정</td>
+                            <td className="border-b border-gray-800 bg-gray-100 px-1 py-1 text-center font-semibold text-[15px]">최종결정</td>
                           </tr>
                           {/* O, X row */}
                           <tr>
-                            <td className="border-b border-r border-gray-800 bg-gray-100 px-2 py-4 text-center font-medium text-[14px]" style={{ width: "48px" }}>O, X</td>
+                            <td className="border-b border-r border-gray-800 bg-gray-100 px-2 py-4 text-center font-medium text-[15px]" style={{ width: "48px" }}>O, X</td>
                             {committeeMembers.map((_, idx) => (
                               <td key={idx} className="border-b border-r border-gray-800 px-1 py-4 text-center" />
                             ))}
@@ -463,7 +463,7 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
                           </tr>
                           {/* 서명 row */}
                           <tr>
-                            <td className="border-r border-gray-800 bg-gray-100 px-2 py-3 text-center font-medium text-[14px]" style={{ width: "48px" }}>서명</td>
+                            <td className="border-r border-gray-800 bg-gray-100 px-2 py-3 text-center font-medium text-[15px]" style={{ width: "48px" }}>서명</td>
                             {committeeMembers.map((_, idx) => (
                               <td key={idx} className="border-r border-gray-800 px-1 py-3 text-center" />
                             ))}
@@ -481,7 +481,7 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
             <div className="mt-4 grid grid-cols-2 gap-4">
               {/* 지적도 */}
               <div className="relative border border-gray-800">
-                <div className="border-b border-gray-800 bg-gray-100 px-2 py-1 text-center text-[15px] font-medium">지적도</div>
+                <div className="border-b border-gray-800 bg-gray-100 px-2 py-1 text-center text-[16px] font-medium">지적도</div>
                 <div className="h-[280px] overflow-hidden pointer-events-none select-none">
                   <LandMap landInfo={application.landInfo} showOverlay={true} interactive={false} />
                 </div>
@@ -489,7 +489,7 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
 
               {/* 항공사진 */}
               <div className="relative border border-gray-800">
-                <div className="border-b border-gray-800 bg-gray-100 px-2 py-1 text-center text-[15px] font-medium">항공사진</div>
+                <div className="border-b border-gray-800 bg-gray-100 px-2 py-1 text-center text-[16px] font-medium">항공사진</div>
                 <div className="relative h-[280px] overflow-hidden">
                   {aerialPhotoImage ? (
                     <>
@@ -505,11 +505,11 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
                     </>
                   ) : (
                     <div className="flex h-full w-full flex-col items-center justify-center bg-gray-50">
-                      <p className="mb-4 text-[15px] text-gray-400">
+                      <p className="mb-4 text-[16px] text-gray-400">
                         {isEditing ? "파일을 끌어다 놓거나 파일 선택 버튼을 클릭하세요." : "항공사진 미등록"}
                       </p>
                       {isEditing && (
-                        <label className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-gray-800 px-5 py-2 text-[15px] font-medium text-white hover:bg-gray-700">
+                        <label className="inline-flex cursor-pointer items-center gap-2 rounded-md bg-gray-800 px-5 py-2 text-[16px] font-medium text-white hover:bg-gray-700">
                           <Upload className="h-4 w-4" />파일선택
                           <input type="file" accept="image/*" className="hidden" onChange={(e) => {
                             const file = e.target.files?.[0];

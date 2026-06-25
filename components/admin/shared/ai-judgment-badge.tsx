@@ -13,9 +13,9 @@ export function AIJudgmentBadge({ judgment, size = "md" }: AIJudgmentBadgeProps)
   const isHigh = judgment === "매수 가능성 높음" || judgment === "수용가능";
   
   const sizeClasses = {
-    sm: "text-xs px-1.5 py-0.5",
-    md: "text-xs px-2 py-1",
-    lg: "text-[15px] px-3 py-1.5"
+    sm: "text-xs px-2 py-1",
+    md: "text-xs px-2.5 py-1.5",
+    lg: "text-[16px] px-3 py-2"
   };
   
   const displayText = judgment === "수용가능" ? "높음" 

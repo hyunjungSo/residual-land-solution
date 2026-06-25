@@ -47,6 +47,10 @@ const badgeVariants = cva(
         'outline-blue': 'border-0 bg-[#e6f4ff] text-[#0091fd]',
         // 심사완료: Green (완료 상태 강조)
         'outline-green': 'border-0 bg-green-50 text-green-600',
+        // 심의위원회: Purple (심의 단계 강조)
+        'outline-purple': 'border-0 bg-purple-50 text-purple-600',
+        // 주의: Amber (경고 단계 강조)
+        'outline-amber': 'border-0 bg-amber-50 text-amber-600',
         
         // === 진행상황 Outline 스타일 (레거시 - 호환성 유지) ===
         // 접수완료: Slate Gray (#64748b)

@@ -30,7 +30,7 @@ export function DisadvantageItems({
     return (
       <div className={`flex flex-wrap gap-2 ${className}`}>
         {items.map((item, idx) => (
-          <div key={idx} className="flex items-center gap-1.5 text-[15px]">
+          <div key={idx} className="flex items-center gap-1.5 text-[16px]">
             <span className="text-muted-foreground">{item.label}</span>
             <Badge variant={item.value ? "destructive" : "outline"} className="text-xs">
               {item.value ? "해당" : "미해당"}
@@ -43,10 +43,10 @@ export function DisadvantageItems({
 
   return (
     <div className={className}>
-      {title && <h5 className="text-[15px] font-semibold mb-2">{title}</h5>}
+      {title && <h5 className="text-[16px] font-semibold mb-2">{title}</h5>}
       <div className="grid grid-cols-2 gap-2">
         {items.map((item, idx) => (
-          <div key={idx} className="flex items-center justify-between text-[15px]">
+          <div key={idx} className="flex items-center justify-between text-[16px]">
             <span className="text-muted-foreground">{item.label}</span>
             <Badge variant={item.value ? "destructive" : "outline"}>
               {item.value ? "해당" : "미해당"}

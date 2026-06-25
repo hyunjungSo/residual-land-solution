@@ -564,7 +564,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
         reason: `[${selectedItems.length}건 일괄 신청]\n${selectedItems.map(item => item.parcel.address).join('\n')}\n\n${applicationForm.reason}`,
         attachments: [],
         status: "검토중",
-        adminStatus: "신청접수",
+        adminStatus: "접수완료",
         appliedAt: new Date().toISOString(),
         aiResult: aiResultData,
       };
@@ -729,7 +729,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                 {/* 스텝 원형 + 라벨 */}
                 <div className="flex flex-col items-center">
                   <div 
-                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
+                    className={`w-10 h-10 rounded-full flex items-center justify-center text-[15px] font-bold transition-all ${
                       index < currentStepIndex
                         ? "bg-[#2E8B57] text-white"
                         : index === currentStepIndex
@@ -743,7 +743,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                       <s.icon className="w-5 h-5" />
                     )}
                   </div>
-                  <span className={`mt-2 text-xs font-medium whitespace-nowrap ${
+                  <span className={`mt-2 text-[14px] font-medium whitespace-nowrap ${
                     index <= currentStepIndex ? "text-[#2E8B57]" : "text-gray-400"
                   }`}>
                     {s.label}
@@ -765,7 +765,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
           {/* 질문 진행 상황 (질문 단계일 때만) */}
           {step === "questions" && (
             <div className="mt-6 bg-gray-50 rounded-lg p-4">
-              <div className="flex items-center justify-between text-sm mb-2">
+              <div className="flex items-center justify-between text-[15px] mb-2">
                 <span className="text-gray-600 font-medium">질문 {currentQuestion + 1} / {activeQuestions.length}</span>
                 <span className="text-[#2E8B57] font-medium">{Math.round(((currentQuestion + 1) / activeQuestions.length) * 100)}%</span>
               </div>
@@ -804,7 +804,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
           </div>
 
           {/* 잔여지 개수 표시 */}
-          <div className="text-sm text-gray-500">
+          <div className="text-[15px] text-gray-500">
             <span>총 {filteredParcels.length}개의 잔여지</span>
           </div>
 
@@ -845,25 +845,25 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                       <div className="flex-1 min-w-0">
                         {/* 상단: 프로젝트명(좌), 신청완료/목록담김(우) */}
                         <div className="flex items-center justify-between gap-2 mb-2">
-                          <span className="text-xs text-gray-600 truncate max-w-[180px]">
+                          <span className="text-[14px] text-gray-600 truncate max-w-[180px]">
                             {parcel.projectName}
                           </span>
                           {isApplied ? (
-                            <span className="text-xs px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded font-medium flex-shrink-0">
+                            <span className="text-[14px] px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded font-medium flex-shrink-0">
                               신청완료
                             </span>
                           ) : isInCart ? (
-                            <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded font-medium flex-shrink-0">
+                            <span className="text-[14px] px-2 py-0.5 bg-blue-100 text-blue-700 rounded font-medium flex-shrink-0">
                               목록담김
                             </span>
                           ) : null}
                         </div>
                         {/* 중단: 주소 */}
-                        <h3 className={`font-medium text-sm mb-2 line-clamp-2 ${isApplied ? "text-gray-500" : "text-gray-900"}`}>
+                        <h3 className={`font-medium text-[15px] mb-2 line-clamp-2 ${isApplied ? "text-gray-500" : "text-gray-900"}`}>
                           {parcel.address}
                         </h3>
                         {/* 하단: 잔여 면적 + 지목 배지 */}
-                        <div className="flex items-center gap-3 text-xs text-gray-500">
+                        <div className="flex items-center gap-3 text-[14px] text-gray-500">
                           <span>잔여 {parcel.remainingArea}m<sup>2</sup></span>
                           <span className="w-px h-2 bg-gray-200"></span>
                           <span className="text-gray-500">
@@ -882,7 +882,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
             <div className="text-center py-12 text-gray-500">
               <Search className="w-12 h-12 mx-auto mb-4 text-gray-300" />
               <p className="font-medium">검색 결과가 없습니다</p>
-              <p className="text-sm mt-1">다른 검색어로 시도해 보세요</p>
+              <p className="text-[15px] mt-1">다른 검색어로 시도해 보세요</p>
             </div>
           )}
 
@@ -1014,7 +1014,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
               </p>
             </div>
           ) : aiResult && (
-            <div className={`space-y-6 transition-opacity duration-300 ${isTransitioning ? "opacity-0" : "opacity-100"}`}>
+            <div className={`space-y-5 transition-opacity duration-300 ${isTransitioning ? "opacity-0" : "opacity-100"}`}>
               {/* 뒤로가기 */}
               <button
                 onClick={handleBack}
@@ -1024,147 +1024,136 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                 <span>이전</span>
               </button>
 
-              <div className="text-center mb-4">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  AI 분석 결과
-                </h2>
-                <p className="text-gray-500">
-                  입력하신 정보를 바탕으로 분석한 결과입니다
-                </p>
-              </div>
-
-              {/* AI 분석 활용 안내 */}
-              <div className="flex items-start gap-3 rounded-lg bg-amber-50 border border-amber-200 border-l-4 border-l-amber-400 px-4 py-3.5">
-                <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-                <p className="text-sm font-medium text-amber-900 leading-relaxed">
-                  ※ 본 분석 결과는 AI를 활용한 기초 판정으로, 담당자의 실제 현장 심사 및 관련 법규 검토 결과와는 다를 수 있으며, 신청 참고용으로 법적 효력을 가지지 않습니다.
-                </p>
-              </div>
-
-              {/* 통합된 분석 결과 카드 */}
+              {/* ① 핵심 결과 히어로 카드 */}
               {selectedParcel && (
-                <Card className="p-6 border border-gray-200">
-                  {/* 토지 정보 헤더 */}
-                  <div className="mb-4 pb-4 border-b border-gray-100">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-gray-900">분석 대상 토지</h3>
-                      <Badge className={`px-2 py-1 text-sm font-medium ${
-                        aiResult.judgment === "매수 가능성 높음"
-                          ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
-                          : "bg-rose-100 text-rose-700 border border-rose-200"
-                      }`}>
-                        {aiResult.judgment === "매수 가능성 높음" ? (
-                          <Check className="w-4 h-4 mr-1 inline" />
-                        ) : (
-                          <XCircle className="w-4 h-4 mr-1 inline" />
-                        )}
-                        {aiResult.judgment}
-                      </Badge>
-                    </div>
-                    <p className="text-gray-700 font-medium">{selectedParcel.address}</p>
-                    <p className="text-sm text-gray-500 mt-1">
-                      잔여 면적: {selectedParcel.remainingArea}m<sup>2</sup> | {selectedParcel.landCategory} | {selectedParcel.roadContact}
-                    </p>
+                <div className={`rounded-2xl p-7 text-center ${
+                  aiResult.judgment === "매수 가능성 높음"
+                    ? "bg-emerald-50 border-2 border-emerald-300"
+                    : "bg-rose-50 border-2 border-rose-300"
+                }`}>
+                  <div className={`w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center ${
+                    aiResult.judgment === "매수 가능성 높음" ? "bg-emerald-100" : "bg-rose-100"
+                  }`}>
+                    {aiResult.judgment === "매수 가능성 높음" ? (
+                      <Check className="w-9 h-9 text-emerald-600" />
+                    ) : (
+                      <XCircle className="w-9 h-9 text-rose-500" />
+                    )}
                   </div>
+                  <p className="text-[15px] font-medium text-gray-500 mb-1">{selectedParcel.address}</p>
+                  <h2 className={`text-2xl font-bold mb-3 ${
+                    aiResult.judgment === "매수 가능성 높음" ? "text-emerald-700" : "text-rose-600"
+                  }`}>
+                    {aiResult.judgment === "매수 가능성 높음"
+                      ? "매수 가능성이 높습니다"
+                      : "매수 가능성이 낮습니다"}
+                  </h2>
+                  <p className="text-base text-gray-600 leading-relaxed">
+                    신청자가 입력하신 정보가 사실이라면,<br />
+                    <span className={`font-semibold ${
+                      aiResult.judgment === "매수 가능성 높음" ? "text-emerald-700" : "text-rose-600"
+                    }`}>
+                      {aiResult.judgment === "매수 가능성 높음"
+                        ? "이 토지는 잔여지 매수 요건을 충족할 가능성이 높습니다."
+                        : "이 토지는 현재 조건으로는 잔여지 매수 요건을 충족하기 어렵습니다."}
+                    </span>
+                  </p>
+                </div>
+              )}
 
-                  {/* 상세 분석 정보 */}
-                  <div className="mb-4 space-y-3">
-                    <h4 className="text-base font-semibold text-gray-700 mb-2">분석 세부 내용</h4>
-                    
-                    {/* 토지 유형 및 면적 기준 */}
+              {/* ② AI 판독 안내 배너 */}
+              <div className="flex items-start gap-3 rounded-xl bg-amber-50 border border-amber-200 px-4 py-4">
+                <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="text-[15px] font-semibold text-amber-900">이 결과는 AI 예비 판독 결과입니다</p>
+                  <p className="text-[15px] text-amber-800 leading-relaxed">
+                    담당자가 실제 현장을 직접 확인한 후 결과가 달라질 수 있습니다.<br />
+                    본 결과는 신청 전 참고용이며, 법적 효력을 가지지 않습니다.
+                  </p>
+                </div>
+              </div>
+
+              {/* ③ 상세 근거 (접기/펼치기) */}
+              {selectedParcel && (
+                <details className="group rounded-xl border border-gray-200 bg-white overflow-hidden">
+                  <summary className="flex items-center justify-between px-5 py-4 cursor-pointer select-none list-none hover:bg-gray-50 transition-colors">
+                    <span className="text-base font-medium text-gray-700">AI 판독 상세 근거 보기</span>
+                    <ChevronDown className="w-5 h-5 text-gray-400 transition-transform group-open:rotate-180" />
+                  </summary>
+                  <div className="px-5 pb-5 space-y-4 border-t border-gray-100 pt-4">
                     <div className="grid grid-cols-2 gap-3">
                       <div className="bg-gray-50 rounded-lg p-3">
-                        <p className="text-xs text-gray-500 mb-1">토지 유형</p>
-                        <p className="text-base font-medium text-gray-900">{selectedParcel.landCategory}</p>
+                        <p className="text-[14px] text-gray-500 mb-1">토지 유형</p>
+                        <p className="text-[15px] font-medium text-gray-900">{selectedParcel.landCategory}</p>
                       </div>
                       <div className="bg-gray-50 rounded-lg p-3">
-                        <p className="text-xs text-gray-500 mb-1">잔여 면적</p>
-                        <p className="text-base font-medium text-gray-900">{selectedParcel.remainingArea}m<sup>2</sup></p>
+                        <p className="text-[14px] text-gray-500 mb-1">잔여 면적</p>
+                        <p className="text-[15px] font-medium text-gray-900">{selectedParcel.remainingArea}m²</p>
                       </div>
                     </div>
-
-                    {/* 면적 기준 충족 여부 */}
                     <div className={`rounded-lg p-3 border ${
-                      aiResult.judgment === "매수 가능성 높음" 
-                        ? "bg-emerald-50 border-emerald-200" 
+                      aiResult.judgment === "매수 가능성 높음"
+                        ? "bg-emerald-50 border-emerald-200"
                         : "bg-gray-50 border-gray-200"
                     }`}>
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-xs text-gray-500 mb-1">면적 기준 충족 여부</p>
-                          <p className="text-base text-gray-700">
+                          <p className="text-[14px] text-gray-500 mb-1">면적 기준</p>
+                          <p className="text-[15px] text-gray-700">
                             {selectedParcel.landCategory === "대" ? "택지 기준: 90m² 이하" :
                              selectedParcel.landCategory === "전" || selectedParcel.landCategory === "답" ? "농지 기준: 330m² 이하" :
                              selectedParcel.landCategory === "임" ? "산지 기준: 330m² 이하" : "기준: 330m² 이하"}
                           </p>
                         </div>
                         {aiResult.judgment === "매수 가능성 높음" ? (
-                          <Badge className="bg-emerald-100 text-emerald-700 text-xs">충족</Badge>
+                          <Badge className="bg-emerald-100 text-emerald-700 text-[14px]">충족</Badge>
                         ) : (
-                          <Badge className="bg-gray-100 text-gray-600 text-xs">미충족</Badge>
+                          <Badge className="bg-gray-100 text-gray-600 text-[14px]">미충족</Badge>
                         )}
                       </div>
                     </div>
-
-                    {/* 물리적 조건 검토 */}
-                    <div className="space-y-2">
-                      <p className="text-xs text-gray-500">물리적 조건 검토</p>
+                    <div>
+                      <p className="text-[14px] text-gray-500 mb-2">물리적 조건 검토</p>
                       <div className="grid grid-cols-2 gap-2">
-                        <div className={`rounded-lg p-2 border text-xs ${
-                          answers.roadStatusChange === "yes" 
-                            ? "bg-emerald-50 border-emerald-200 text-emerald-700" 
-                            : "bg-gray-50 border-gray-200 text-gray-600"
+                        <div className={`rounded-lg p-2 border text-[14px] ${
+                          answers.roadStatusChange === "yes"
+                            ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                            : "bg-gray-50 border-gray-200 text-gray-500"
                         }`}>
                           <div className="flex items-center gap-1">
-                            {answers.roadStatusChange === "yes" ? (
-                              <Check className="w-3 h-3" />
-                            ) : (
-                              <XCircle className="w-3 h-3" />
-                            )}
+                            {answers.roadStatusChange === "yes" ? <Check className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
                             <span>도로 변경으로 건축 불가</span>
                           </div>
                         </div>
-                        <div className={`rounded-lg p-2 border text-xs ${
-                          answers.shapeChange === "yes" 
-                            ? "bg-emerald-50 border-emerald-200 text-emerald-700" 
-                            : "bg-gray-50 border-gray-200 text-gray-600"
+                        <div className={`rounded-lg p-2 border text-[14px] ${
+                          answers.shapeChange === "yes"
+                            ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                            : "bg-gray-50 border-gray-200 text-gray-500"
                         }`}>
                           <div className="flex items-center gap-1">
-                            {answers.shapeChange === "yes" ? (
-                              <Check className="w-3 h-3" />
-                            ) : (
-                              <XCircle className="w-3 h-3" />
-                            )}
+                            {answers.shapeChange === "yes" ? <Check className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
                             <span>형상 부정형 변경</span>
                           </div>
                         </div>
                         {(selectedParcel.landCategory === "전" || selectedParcel.landCategory === "답") && (
                           <>
-                            <div className={`rounded-lg p-2 border text-xs ${
-                              answers.waterChannelLost === "yes" 
-                                ? "bg-emerald-50 border-emerald-200 text-emerald-700" 
-                                : "bg-gray-50 border-gray-200 text-gray-600"
+                            <div className={`rounded-lg p-2 border text-[14px] ${
+                              answers.waterChannelLost === "yes"
+                                ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                                : "bg-gray-50 border-gray-200 text-gray-500"
                             }`}>
                               <div className="flex items-center gap-1">
-                                {answers.waterChannelLost === "yes" ? (
-                                  <Check className="w-3 h-3" />
-                                ) : (
-                                  <XCircle className="w-3 h-3" />
-                                )}
+                                {answers.waterChannelLost === "yes" ? <Check className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
                                 <span>물길(수로) 상실</span>
                               </div>
                             </div>
-                            <div className={`rounded-lg p-2 border text-xs ${
-                              answers.farmMachineDifficulty === "yes" 
-                                ? "bg-emerald-50 border-emerald-200 text-emerald-700" 
-                                : "bg-gray-50 border-gray-200 text-gray-600"
+                            <div className={`rounded-lg p-2 border text-[14px] ${
+                              answers.farmMachineDifficulty === "yes"
+                                ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                                : "bg-gray-50 border-gray-200 text-gray-500"
                             }`}>
                               <div className="flex items-center gap-1">
-                                {answers.farmMachineDifficulty === "yes" ? (
-                                  <Check className="w-3 h-3" />
-                                ) : (
-                                  <XCircle className="w-3 h-3" />
-                                )}
+                                {answers.farmMachineDifficulty === "yes" ? <Check className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
                                 <span>농기계 사용 어려움</span>
                               </div>
                             </div>
@@ -1172,35 +1161,9 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                         )}
                       </div>
                     </div>
-                  </div>
 
-                  {/* AI 종합 의견 */}
-                  {aiResult.judgment === "매수 가능성 높음" ? (
-                    <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-100">
-                      <div className="flex items-start gap-3">
-                        <Sparkles className="w-5 h-5 mt-0.5 flex-shrink-0 text-emerald-600" />
-                        <div>
-                          <p className="text-base font-medium text-gray-700 mb-1">AI 종합 의견</p>
-                          <p className="text-gray-600 text-base leading-relaxed">
-                            {aiResult.reasoning}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="p-4 rounded-lg bg-rose-50 border border-rose-100">
-                      <div className="flex items-start gap-3">
-                        <Sparkles className="w-5 h-5 mt-0.5 flex-shrink-0 text-rose-600" />
-                        <div>
-                          <p className="text-base font-medium text-gray-700 mb-1">AI 종합 의견</p>
-                          <p className="text-gray-600 text-base leading-relaxed">
-                            {aiResult.reasoning}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </Card>
+                  </div>
+                </details>
               )}
 
               <div className="flex gap-3 pt-2">
@@ -1400,21 +1363,21 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <span className="text-xs font-medium text-gray-500 bg-white px-2 py-0.5 rounded">
+                                <span className="text-[14px] font-medium text-gray-500 bg-white px-2 py-0.5 rounded">
                                   필지 {index + 1}
                                 </span>
-                                <p className="text-sm font-medium text-gray-900 truncate max-w-[300px]">
+                                <p className="text-[15px] font-medium text-gray-900 truncate max-w-[300px]">
                                   {item.parcel.address}
                                 </p>
                               </div>
                               <div className="flex items-center gap-2">
-                                <Badge className={`text-xs text-white ${isPositive ? "bg-emerald-500" : "bg-rose-500"}`}>
+                                <Badge className={`text-[14px] text-white ${isPositive ? "bg-emerald-500" : "bg-rose-500"}`}>
                                   {isPositive ? "매수 가능" : "매수 불가"}
                                 </Badge>
                                 <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                               </div>
                             </div>
-                            <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                            <div className="flex items-center gap-2 mt-1 text-[14px] text-gray-500">
                               <span>잔여: {item.parcel.remainingArea}m<sup>2</sup></span>
                               <span className="w-px h-2 bg-gray-300"></span>
                               <span>{item.parcel.landCategory}</span>
@@ -1428,7 +1391,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                             <div className="p-4 space-y-4 border-t border-gray-200">
                               {/* AI 자동 입력 안내 */}
                               <div className="bg-blue-50 border border-blue-200 rounded-lg p-2.5">
-                                <p className="text-xs text-blue-700">
+                                <p className="text-[14px] text-blue-700">
                                   💡 해당 항목들은 AI 분석 결과로 자동 입력되어 있으며, 필요시 수정 가능합니다.
                                 </p>
                               </div>
@@ -1446,14 +1409,14 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                                           : ci
                                       ));
                                     }}
-                                    className="w-full h-12 px-3 py-2 rounded-md border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2E8B57] focus:border-transparent"
+                                    className="w-full h-12 px-3 py-2 rounded-md border border-gray-200 bg-white text-[15px] focus:outline-none focus:ring-2 focus:ring-[#2E8B57] focus:border-transparent"
                                   >
                                     <option value="택지">대(택지)</option>
                                     <option value="농지">답(논)</option>
                                     <option value="산지">임(산지)</option>
                                     <option value="기타">그 밖의 토지</option>
                                   </select>
-                                  <p className="text-xs text-gray-500 mt-1">AI 판단: {item.parcel.landCategory}({landType})</p>
+                                  <p className="text-[14px] text-gray-500 mt-1">AI 판단: {item.parcel.landCategory}({landType})</p>
                                 </div>
                                 <div className="flex-1">
                                   <FormLabel className="text-gray-600 mb-1.5 block">공부상 지목</FormLabel>
@@ -1468,7 +1431,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                               {/* 확인 항목 - 체크박스 가로 배치 */}
                               <div>
                                 <FormLabel className="text-gray-900 mb-1 block">확인 항목</FormLabel>
-                                <p className="text-xs text-gray-500 mb-3">AI가 자동 판독할 수 없는 사항입니다. 해당되는 경우 체크해 주세요.</p>
+                                <p className="text-[14px] text-gray-500 mb-3">AI가 자동 판독할 수 없는 사항입니다. 해당되는 경우 체크해 주세요.</p>
                                 <div className="flex flex-wrap gap-6">
                                   <label className="flex items-center gap-2 cursor-pointer">
                                     <input
@@ -1483,7 +1446,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                                       }}
                                       className="w-5 h-5 rounded border-gray-300 text-[#2E8B57] focus:ring-[#2E8B57]"
                                     />
-                                    <span className="text-sm text-gray-700">접면도로 상실</span>
+                                    <span className="text-[15px] text-gray-700">접면도로 상실</span>
                                   </label>
                                   <label className="flex items-center gap-2 cursor-pointer">
                                     <input
@@ -1498,7 +1461,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                                       }}
                                       className="w-5 h-5 rounded border-gray-300 text-[#2E8B57] focus:ring-[#2E8B57]"
                                     />
-                                    <span className="text-sm text-gray-700">관개수로 상실</span>
+                                    <span className="text-[15px] text-gray-700">관개수로 상실</span>
                                   </label>
                                   <label className="flex items-center gap-2 cursor-pointer">
                                     <input
@@ -1513,7 +1476,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                                       }}
                                       className="w-5 h-5 rounded border-gray-300 text-[#2E8B57] focus:ring-[#2E8B57]"
                                     />
-                                    <span className="text-sm text-gray-700">농기계 사용 어려움</span>
+                                    <span className="text-[15px] text-gray-700">농기계 사용 어려움</span>
                                   </label>
                                 </div>
                               </div>
@@ -1555,15 +1518,15 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                                   />
                                   <label htmlFor={`file-upload-${item.id}`} className="cursor-pointer">
                                     <FileText className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-                                    <p className="text-sm text-gray-600">클릭하여 파일 업로드</p>
-                                    <p className="text-xs text-gray-400 mt-1">토지대장, 등기부등본 등</p>
+                                    <p className="text-[15px] text-gray-600">클릭하여 파일 업로드</p>
+                                    <p className="text-[14px] text-gray-400 mt-1">토지대장, 등기부등본 등</p>
                                   </label>
                                 </div>
                                 {/* 업로드된 파일 목록 */}
                                 {item.attachments && item.attachments.length > 0 && (
                                   <div className="mt-2 space-y-1">
                                     {item.attachments.map((file, fileIndex) => (
-                                      <div key={fileIndex} className="flex items-center justify-between bg-gray-50 p-2 rounded text-sm">
+                                      <div key={fileIndex} className="flex items-center justify-between bg-gray-50 p-2 rounded text-[15px]">
                                         <span className="truncate flex-1">{file.name}</span>
                                         <button
                                           type="button"
@@ -1599,14 +1562,14 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                       disabled
                       className="bg-gray-50"
                     />
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-[15px] text-gray-500 mt-1">
                       잔여 면적: {selectedParcel?.remainingArea}m<sup>2</sup> | {selectedParcel?.landCategory} | {selectedParcel?.roadContact}
                     </p>
                   </div>
                   
                   {/* AI 자동 입력 안내 */}
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-2.5">
-                    <p className="text-xs text-blue-700">
+                    <p className="text-[14px] text-blue-700">
                       💡 해당 항목들은 AI 분석 결과로 자동 입력되어 있으며, 필요시 수정 가능합니다.
                     </p>
                   </div>
@@ -1618,14 +1581,14 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                       <select
                         value={answers.landType || "택지"}
                         onChange={(e) => setAnswers(prev => ({ ...prev, landType: e.target.value }))}
-                        className="w-full h-12 px-3 py-2 rounded-md border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2E8B57] focus:border-transparent"
+                        className="w-full h-12 px-3 py-2 rounded-md border border-gray-200 bg-white text-[15px] focus:outline-none focus:ring-2 focus:ring-[#2E8B57] focus:border-transparent"
                       >
                         <option value="택지">대(택지)</option>
                         <option value="농지">답(논)</option>
                         <option value="산지">임(산지)</option>
                         <option value="기타">그 밖의 토지</option>
                       </select>
-                      <p className="text-xs text-gray-500 mt-1">AI 판단: {selectedParcel?.landCategory}({answers.landType || "택지"})</p>
+                      <p className="text-[14px] text-gray-500 mt-1">AI 판단: {selectedParcel?.landCategory}({answers.landType || "택지"})</p>
                     </div>
                     <div className="flex-1">
                       <FormLabel className="text-gray-600 mb-1.5 block">공부상 지목</FormLabel>
@@ -1640,7 +1603,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                   {/* 확인 항목 - 체크박스 가로 배치 */}
                   <div>
                     <FormLabel className="text-gray-900 mb-1 block">확인 항목</FormLabel>
-                    <p className="text-xs text-gray-500 mb-3">AI가 자동 판독할 수 없는 사항입니다. 해당되는 경우 체크해 주세요.</p>
+                    <p className="text-[14px] text-gray-500 mb-3">AI가 자동 판독할 수 없는 사항입니다. 해당되는 경우 체크해 주세요.</p>
                     <div className="flex flex-wrap gap-6">
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -1649,7 +1612,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                           onChange={(e) => setAnswers(prev => ({ ...prev, roadLoss: e.target.checked ? "yes" : "no" }))}
                           className="w-5 h-5 rounded border-gray-300 text-[#2E8B57] focus:ring-[#2E8B57]"
                         />
-                        <span className="text-sm text-gray-700">접면도로 상실</span>
+                        <span className="text-[15px] text-gray-700">접면도로 상실</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -1658,7 +1621,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                           onChange={(e) => setAnswers(prev => ({ ...prev, waterChannelLost: e.target.checked ? "yes" : "no" }))}
                           className="w-5 h-5 rounded border-gray-300 text-[#2E8B57] focus:ring-[#2E8B57]"
                         />
-                        <span className="text-sm text-gray-700">관개수로 상실</span>
+                        <span className="text-[15px] text-gray-700">관개수로 상실</span>
                       </label>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -1667,7 +1630,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                           onChange={(e) => setAnswers(prev => ({ ...prev, farmMachineDifficulty: e.target.checked ? "yes" : "no" }))}
                           className="w-5 h-5 rounded border-gray-300 text-[#2E8B57] focus:ring-[#2E8B57]"
                         />
-                        <span className="text-sm text-gray-700">농기계 사용 어려움</span>
+                        <span className="text-[15px] text-gray-700">농기계 사용 어려움</span>
                       </label>
                     </div>
                   </div>
@@ -1699,14 +1662,14 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                       />
                       <label htmlFor="file-upload-single" className="cursor-pointer">
                         <FileText className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-                        <p className="text-sm text-gray-600">클릭하여 파일 업로드</p>
-                        <p className="text-xs text-gray-400 mt-1">토지대장, 등기부등본 등</p>
+                        <p className="text-[15px] text-gray-600">클릭하여 파일 업로드</p>
+                        <p className="text-[14px] text-gray-400 mt-1">토지대장, 등기부등본 등</p>
                       </label>
                     </div>
                     {applicationForm.attachments.length > 0 && (
                       <div className="mt-2 space-y-1">
                         {applicationForm.attachments.map((file, fileIndex) => (
-                          <div key={fileIndex} className="flex items-center justify-between bg-gray-50 p-2 rounded text-sm">
+                          <div key={fileIndex} className="flex items-center justify-between bg-gray-50 p-2 rounded text-[15px]">
                             <span className="truncate flex-1">{file.name}</span>
                             <button
                               type="button"
@@ -1774,7 +1737,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
       >
         <ClipboardList className="h-5 w-5" />
         <span className="font-medium">매수신청 목록</span>
-        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-sm font-bold text-[#2E8B57]">
+        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-[15px] font-bold text-[#2E8B57]">
           {cartItems.length}
         </span>
       </button>
@@ -1826,7 +1789,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
               <div className="flex h-full flex-col items-center justify-center text-gray-400">
                 <ShoppingCart className="mb-2 h-12 w-12 opacity-30" />
                 <p>신청 목록이 비어 있습니다</p>
-                <p className="mt-1 text-sm">분석 완료 후 담아주세요</p>
+                <p className="mt-1 text-[15px]">분석 완료 후 담아주세요</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -1875,11 +1838,11 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                             )}
                             <div className="flex items-center gap-2">
                               <span className={`font-medium ${isProjectDisabled ? "text-gray-400" : "text-gray-900"}`}>{projectName}</span>
-                              <Badge variant="outline" className={`text-xs ${isProjectDisabled ? "border-gray-200 text-gray-400" : ""}`}>{items.length}건</Badge>
+                              <Badge variant="outline" className={`text-[14px] ${isProjectDisabled ? "border-gray-200 text-gray-400" : ""}`}>{items.length}건</Badge>
                             </div>
                           </div>
                           {!isProjectDisabled && items.length > 1 && (
-                            <span className="text-xs text-gray-500">
+                            <span className="text-[14px] text-gray-500">
                               {allProjectSelected ? "전체 선택됨" : "일괄 선택 가능"}
                             </span>
                           )}
@@ -1918,15 +1881,15 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                                     className="mt-0.5 h-5 w-5 shrink-0"
                                   />
                                   <div className="flex-1 min-w-0">
-                                    <p className={`text-sm font-medium line-clamp-2 ${isProjectDisabled ? "text-gray-400" : "text-gray-900"}`}>
+                                    <p className={`text-[15px] font-medium line-clamp-2 ${isProjectDisabled ? "text-gray-400" : "text-gray-900"}`}>
                                       {item.parcel.address}
                                     </p>
-                                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                                    <div className="mt-1 flex flex-wrap items-center gap-2 text-[14px] text-gray-500">
                                       <span>잔여: {item.parcel.remainingArea}m<sup>2</sup></span>
                                       <span>|</span>
                                       <span>{item.parcel.landCategory}</span>
                                       <Badge 
-                                        className={`text-xs text-white ${isPositive ? "bg-emerald-500" : "bg-rose-500"}`}
+                                        className={`text-[14px] text-white ${isPositive ? "bg-emerald-500" : "bg-rose-500"}`}
                                       >
                                         {isPositive ? "매수 가능성 높음" : "매수 가능성 낮음"}
                                       </Badge>
@@ -1950,7 +1913,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                 
                 {/* 안내 메시지 */}
                 {selectedCartItems.size > 0 && (
-                  <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded-lg">
+                  <p className="text-[14px] text-amber-600 bg-amber-50 p-2 rounded-lg">
                     복수 필지 신청은 같은 사업단 내에서만 가능합니다.
                   </p>
                 )}

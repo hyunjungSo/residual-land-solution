@@ -274,7 +274,7 @@ export function ParcelPreRegistration({ businessUnit, onRegisterComplete }: Parc
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[15px] text-muted-foreground">전체 등록 필지</p>
+                <p className="text-[16px] text-muted-foreground">전체 등록 필지</p>
                 <p className="text-3xl font-bold">{registeredParcels.length}</p>
               </div>
               <FileText className="h-10 w-10 text-primary/20" />
@@ -285,7 +285,7 @@ export function ParcelPreRegistration({ businessUnit, onRegisterComplete }: Parc
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[15px] text-muted-foreground">매수 가능성 높음 필지</p>
+                <p className="text-[16px] text-muted-foreground">매수 가능성 높음 필지</p>
                 <p className="text-3xl font-bold text-green-600">
                   {registeredParcels.filter(p => p.aiResult.provisionalJudgment === "매수 가능성 높음").length}
                 </p>
@@ -298,7 +298,7 @@ export function ParcelPreRegistration({ businessUnit, onRegisterComplete }: Parc
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[15px] text-muted-foreground">매수 가능성 낮음 필지</p>
+                <p className="text-[16px] text-muted-foreground">매수 가능성 낮음 필지</p>
                 <p className="text-3xl font-bold text-red-600">
                   {registeredParcels.filter(p => p.aiResult.provisionalJudgment === "매수 가능성 낮음").length}
                 </p>
@@ -465,7 +465,7 @@ export function ParcelPreRegistration({ businessUnit, onRegisterComplete }: Parc
                   <MapPin className="h-5 w-5 text-primary" />
                   {selectedParcel.address}
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-5 text-[15px]">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-5 text-[16px]">
                   <div>
                     <span className="text-muted-foreground">토지유형</span>
                     <p className="font-medium">{selectedParcel.landType}</p>
@@ -623,7 +623,7 @@ export function ParcelPreRegistration({ businessUnit, onRegisterComplete }: Parc
                   <MapPin className="h-4 w-4 text-primary" />
                   {selectedParcel.address}
                 </div>
-                <div className="grid grid-cols-3 gap-5 text-[15px]">
+                <div className="grid grid-cols-3 gap-5 text-[16px]">
                   <div>
                     <span className="text-muted-foreground">토지유형</span>
                     <p className="font-medium">{selectedParcel.landType}</p>
@@ -661,7 +661,7 @@ export function ParcelPreRegistration({ businessUnit, onRegisterComplete }: Parc
                         )}
                         <div>
                           <p className="font-medium">{check.criteriaName}</p>
-                          <p className="text-[15px] text-muted-foreground">{check.criteriaDescription}</p>
+                          <p className="text-[16px] text-muted-foreground">{check.criteriaDescription}</p>
                         </div>
                       </div>
                       <Badge variant={check.isMet ? "default" : "secondary"}>
@@ -679,7 +679,7 @@ export function ParcelPreRegistration({ businessUnit, onRegisterComplete }: Parc
                   <p className="font-medium text-blue-900">
                     {analysisResult.judgmentRationale.summary}
                   </p>
-                  <div className="text-[15px] text-blue-800">
+                  <div className="text-[16px] text-blue-800">
                     <p className="mb-2">
                       <strong>법적 근거:</strong> {analysisResult.judgmentRationale.legalBasis}
                     </p>

@@ -192,6 +192,7 @@ export interface LandJudgmentForReview {
   remainingRatio: number;
   judgment: string;
   purchaseDecision: "O" | "X" | "-";
+  citizenAppealChoice?: "중토위" | "한국도로공사" | null;
 }
 
 // AI 분석 결과

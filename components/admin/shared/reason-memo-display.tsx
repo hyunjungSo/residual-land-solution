@@ -20,7 +20,7 @@ export function ReasonMemoDisplay({
 
   if (variant === "inline") {
     return (
-      <div className={`text-[15px] space-y-1 ${className}`}>
+      <div className={`text-[16px] space-y-1 ${className}`}>
         {changeReason && (
           <p>
             <strong>변경 사유:</strong> {changeReason}
@@ -43,7 +43,7 @@ export function ReasonMemoDisplay({
             변경 사유
           </label>
           <div 
-            className="rounded-lg min-h-[80px] overflow-y-auto text-[15px] whitespace-pre-wrap break-words" 
+            className="rounded-lg min-h-[80px] overflow-y-auto text-[16px] whitespace-pre-wrap break-words" 
             style={{ backgroundColor: "rgb(251, 251, 251)", padding: "8px" }}
           >
             {changeReason}
@@ -56,7 +56,7 @@ export function ReasonMemoDisplay({
             메모
           </label>
           <div 
-            className="rounded-lg min-h-[80px] overflow-y-auto text-[15px] whitespace-pre-wrap break-words" 
+            className="rounded-lg min-h-[80px] overflow-y-auto text-[16px] whitespace-pre-wrap break-words" 
             style={{ backgroundColor: "rgb(251, 251, 251)", padding: "8px" }}
           >
             {memo}

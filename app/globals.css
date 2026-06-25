@@ -206,9 +206,9 @@
   
   /* KRDS Typography Scale */
   html {
-    font-size: 16px; /* Base 16px */
+    font-size: 16px; /* Base 16px — rem 기반 헤딩 32/24/20/18px 확보 */
   }
-  
+
   body {
     @apply bg-background text-foreground;
     font-size: 1rem; /* 16px - Body1 */
@@ -256,34 +256,36 @@
     opacity: 1;
   }
   
-  /* KRDS Text Styles - 중장년층 접근성 강화 */
+  /* KRDS Text Styles - 중장년층 접근성 강화 (위계 유지)
+   * 위계: 캡션(13) < 보조본문(15) < 본문(16) < 소제목(18) < 제목(20/24/32)
+   */
   .text-xs {
-    font-size: 0.875rem !important; /* 14px - Caption */
+    font-size: 14px !important; /* 보조 레이블·캡션·배지 — Tailwind 기본 12px+1 */
     line-height: 1.5;
   }
-  
+
   .text-sm {
-    font-size: 0.9375rem; /* 15px - Body2 */
+    font-size: 15px; /* 보조 본문 — Tailwind 기본 14px+1 */
     line-height: 1.5;
   }
-  
+
   .text-base {
-    font-size: 1rem; /* 16px - Body1 */
+    font-size: 16px; /* 본문 표준 */
     line-height: 1.5;
   }
-  
+
   .text-lg {
-    font-size: 1.125rem; /* 18px */
+    font-size: 18px; /* 소제목 */
     line-height: 1.45;
   }
-  
+
   .text-xl {
-    font-size: 1.25rem; /* 20px */
+    font-size: 20px;
     line-height: 1.4;
   }
-  
+
   .text-2xl {
-    font-size: 1.5rem; /* 24px */
+    font-size: 24px;
     line-height: 1.35;
   }
   

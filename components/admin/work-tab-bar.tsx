@@ -224,7 +224,7 @@ export function WorkTabBar({ tabs, activeTabId, onTabSelect, onTabClose, onTabRe
               }
             }}
             className={cn(
-              "group relative flex h-9 flex-1 min-w-0 max-w-[240px] select-none items-center gap-2 rounded-t-[10px] px-3 text-[15px]",
+              "group relative flex h-10 flex-1 min-w-0 max-w-[260px] select-none items-center gap-2 rounded-t-[10px] px-3 text-[16px]",
               isDragging ? "cursor-grabbing" : "cursor-default transition-colors",
               isActive
                 ? "z-10 bg-[rgb(243,246,249)] font-semibold text-[#00875a] shadow-[0_-1px_4px_rgba(0,0,0,0.08)]"
@@ -245,7 +245,7 @@ export function WorkTabBar({ tabs, activeTabId, onTabSelect, onTabClose, onTabRe
                 className="flex items-center justify-center rounded-full p-0.5 text-[#828080] transition-colors hover:bg-gray-200 hover:text-gray-700"
                 aria-label={`${tab.label} 탭 닫기`}
               >
-                <X className="h-3.5 w-3.5" />
+                <X className="h-4 w-4" />
               </button>
             )}
           </div>
