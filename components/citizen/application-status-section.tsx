@@ -310,14 +310,23 @@ function LandInfoSection({
         // 복수필지 per-parcel 판정 우선, 없으면 전체 finalJudgment 사용
         const perParcel = application.landJudgmentsForReview?.[selectedLandIndex];
         const fj: string | undefined = perParcel?.judgment ?? application.finalJudgment;
+        const isManagerComplete = st === "담당자검토완료";
 
-        if (!isCommitteeStage && !(isComplete && fj)) return null;
+        if (!isCommitteeStage && !(isComplete && fj) && !(isManagerComplete && fj)) return null;
 
         let label = "";
         let icon: React.ReactNode = null;
         let textColor = "";
 
-        if (st === "심의위원회회부") {
+        if (isManagerComplete && fj === "매수") {
+          label = "매수";
+          icon = <CheckCircle2 className="h-5 w-5 text-success" />;
+          textColor = "text-success";
+        } else if (isManagerComplete && fj === "기각") {
+          label = "기각";
+          icon = <AlertTriangle className="h-5 w-5 text-destructive" />;
+          textColor = "text-destructive";
+        } else if (st === "심의위원회회부") {
           label = "심의위원회 회부";
           icon = <Clock className="h-5 w-5 text-amber-500" />;
           textColor = "text-amber-700";
@@ -499,7 +508,7 @@ function LandInfoSection({
                         </span>
                       );
                     })()}
-                    <span className="text-[12px] text-slate-400">(참고용 데이터)</span>
+                    <span className="text-[12px] text-slate-400">AI 예측 결과로, 최종 판정은 담당자 확인 후 결정됩니다.</span>
                   </div>
                   {landAIResult.judgmentRationale && (
                     <ChevronDown className="size-5 text-muted-foreground transition-transform duration-200 [[data-state=open]_&]:rotate-180" />

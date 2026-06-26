@@ -3054,6 +3054,8 @@ export const dummyApplications: Application[] = [
     attachments: ["토지대장_용인시_포곡읍_200-1.pdf", "지적도_용인시_포곡읍_200-1.pdf", "현장사진_20260501.jpg"],
     status: "처리완료",
     adminStatus: "담당자검토완료",
+    finalJudgment: "매수",
+    reviewerComment: "현장 확인 결과 200-1(전)은 세장형 변형으로 농기계 진입·회전 곤란, 200-2(답)는 관개수로 절단으로 논농사 불가 확인. 2필지 모두 매수 기준 충족으로 매수 판정.",
     appliedAt: ONE_WEEK_AGO,
     // 민원인 AI 분석 결과 - 농지 2필지 개별 분석
     aiResult: {
@@ -3592,6 +3594,8 @@ export const dummyApplications: Application[] = [
     attachments: ["토지대장.pdf", "지적도.pdf"],
     status: "검토중",
     adminStatus: "담당자검토완료",
+    finalJudgment: "매수",
+    reviewerComment: "현장 확인 결과 잔여 대지가 삼각형으로 변형되어 건축 가능 면적 확보 불가. 도로 접면 유지되나 형상 불량으로 건축 허가 곤란 판단. 매수 기준 충족으로 매수 판정.",
     appliedAt: THREE_DAYS_AGO,
     aiResult: generateAIResult(dummyLandInfoList[0]),
     adminName: "홍길동",
