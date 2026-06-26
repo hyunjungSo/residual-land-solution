@@ -495,19 +495,9 @@ function LandInfoSection({
                 </div>
                 <div className="flex flex-1 items-center justify-between px-4 py-3">
                   <div className="flex items-center gap-2">
-                    {(() => {
-                      const j = getCitizenJudgmentLabel(landAIResult.provisionalJudgment);
-                      const cls = j === "매수 가능성 높음"
-                        ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
-                        : j === "매수 가능성 낮음"
-                        ? "bg-rose-50 border border-rose-200 text-rose-700"
-                        : "bg-amber-50 border border-amber-200 text-amber-700";
-                      return (
-                        <span className={`inline-flex items-center rounded px-2 py-0.5 text-[13px] font-medium ${cls}`}>
-                          {j}
-                        </span>
-                      );
-                    })()}
+                    <span className="text-[15px] text-muted-foreground">
+                      {getCitizenJudgmentLabel(landAIResult.provisionalJudgment)}
+                    </span>
                     <span className="text-[12px] text-slate-400">AI 예측 결과로, 최종 판정은 담당자 확인 후 결정됩니다.</span>
                   </div>
                   {landAIResult.judgmentRationale && (
