@@ -34,8 +34,6 @@ import {
   Bookmark,
   MapPin,
   LayoutGrid,
-  Bell,
-  Lightbulb,
 } from "lucide-react";
 import type { 
   ProcessedParcel, 
@@ -921,57 +919,6 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                         ) : (
                           <p className="text-[16px] text-muted-foreground py-2">상세 분석 결과가 없습니다.</p>
                         )}
-
-                        {/* 담당자 확인 알림 */}
-                        {aiResult && (() => {
-                          const tips: { message: string; tip: string }[] = [];
-
-                          if (aiResult.accessRoadLost)
-                            tips.push({
-                              message: "접면 도로의 단절이 발생했습니다.",
-                              tip: "도로 편입으로 인해 기존 접면 도로가 사라지면서 해당 토지의 진출입이 막힌 상태입니다. 우회 도로나 인접 사도를 통한 접근이 가능한지, 실제 차량 통행이 가능한 폭원이 확보되는지 현장에서 직접 확인해 보세요.",
-                            });
-
-                          if (aiResult.waterChannelLost)
-                            tips.push({
-                              message: "관개수로가 상실된 것으로 확인됩니다.",
-                              tip: "편입 공사로 인해 기존 농업용 수로가 단절되어 해당 필지의 용수 공급이 어려워진 상태입니다. 인근 수리시설 또는 대체 수로 연결 가능 여부를 확인하고, 영농 지속이 실질적으로 가능한지 판단해 보세요.",
-                            });
-
-                          if (aiResult.farmMachineDifficulty)
-                            tips.push({
-                              message: "농기계 진입·회전이 곤란한 상태입니다.",
-                              tip: "잔여지의 폭이나 형상이 변경되어 트랙터 등 농기계가 진입하거나 회전하기 어려운 구조가 되었습니다. 현장에서 진입로 폭원, 회전 가능 반경 등을 직접 측정하고, 실제 영농 작업이 가능한 상태인지 확인해 보세요.",
-                            });
-
-                          if (aiResult.isBlindLand)
-                            tips.push({
-                              message: "맹지(도로 접근 불가) 상태가 감지되었습니다.",
-                              tip: "편입 이후 잔여지가 어떤 도로와도 접하지 않는 맹지 상태가 된 것으로 판단됩니다. 인근 공도 또는 타인 소유 사도를 통한 통행 가능 여부를 확인하고, 사실상 토지 이용이 불가능한 상태인지 현장에서 검토해 보세요.",
-                            });
-
-                          if (tips.length === 0) return null;
-
-                          return (
-                            <div className="mt-4 pt-4 border-t border-amber-200 space-y-2">
-                              <h5 className="text-[15px] font-semibold flex items-center gap-2 text-amber-700">
-                                <Bell className="h-4 w-4 shrink-0" />
-                                담당자 확인 알림
-                              </h5>
-                              <div className="space-y-2">
-                                {tips.map((tip, idx) => (
-                                  <div key={idx} className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
-                                    <p className="text-[15px] font-semibold text-amber-800">⚠ {tip.message}</p>
-                                    <p className="text-[15px] text-amber-700 mt-1.5 flex items-start gap-1.5">
-                                      <Lightbulb className="h-3.5 w-3.5 mt-0.5 shrink-0 text-amber-500" />
-                                      <span><span className="font-medium">업무 TIP:</span> {tip.tip}</span>
-                                    </p>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          );
-                        })()}
                       </AccordionContent>
                     </AccordionItem>
                   );
