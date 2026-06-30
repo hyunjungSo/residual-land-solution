@@ -1896,7 +1896,7 @@ export const preRegisteredParcels: PreRegisteredParcel[] = [
 ];
 
 // 더미 민원 신청 목록
-export const dummyApplications: Application[] = [
+const _rawDummyApplications: Application[] = [
   // 이순신 - 신청 완료된 필지 (pre-001-2 필지)
   {
     id: "app-sunsin-001",
@@ -2543,7 +2543,7 @@ export const dummyApplications: Application[] = [
     attachments: ["토지대장_501-1.pdf", "토지대장_501-2.pdf", "토지대장_501-3.pdf", "등기부등본.pdf", "농지원부.pdf"],
     status: "처리완료",
     adminStatus: "심사완료",
-    appliedAt: ONE_YEAR_AGO,
+    appliedAt: TODAY,
     aiResult: {
       landTypePath: "농지",
       criteriaChecks: [
@@ -2641,7 +2641,7 @@ export const dummyApplications: Application[] = [
     attachments: ["토지대장_777-1.pdf", "토지대장_777-2.pdf", "토지대장_777-3.pdf", "토지대장_777-4.pdf", "등기부등본.pdf", "건축물대장.pdf"],
     status: "검토중",
     adminStatus: "담당자검토중",
-    appliedAt: TWO_MONTHS_AGO,
+    appliedAt: YESTERDAY,
     aiResult: {
       landTypePath: "택지",
       criteriaChecks: [
@@ -2918,7 +2918,7 @@ export const dummyApplications: Application[] = [
     attachments: ["토지대장_200-1.pdf", "토지대장_200-2.pdf", "토지대장_55-1.pdf", "토지대장_55-2.pdf", "등기부등본.pdf"],
     status: "검토중",
     adminStatus: "담당자검토중",
-    appliedAt: TWO_YEARS_AGO,
+    appliedAt: TWO_DAYS_AGO,
     aiResult: {
       landTypePath: "농지",
       criteriaChecks: [
@@ -3056,7 +3056,7 @@ export const dummyApplications: Application[] = [
     adminStatus: "담당자검토완료",
     finalJudgment: "매수",
     reviewerComment: "현장 확인 결과 200-1(전)은 세장형 변형으로 농기계 진입·회전 곤란, 200-2(답)는 관개수로 절단으로 논농사 불가 확인. 2필지 모두 매수 기준 충족으로 매수 판정.",
-    appliedAt: ONE_WEEK_AGO,
+    appliedAt: THREE_DAYS_AGO,
     // 민원인 AI 분석 결과 - 농지 2필지 개별 분석
     aiResult: {
       provisionalJudgment: "수용가능",
@@ -4333,6 +4333,18 @@ export const dummyApplications: Application[] = [
       })
     ) as Application[];
   })(),
+];
+
+// 불일치 케이스(민원인 신고 vs AI 분석 상이)를 목록 최상단에 배치
+const _mismatchFirstIds = new Set([
+  "app-unified-001",
+  "app-unified-002",
+  "app-mixed-001",
+  "app-unified-to-multiple",
+]);
+export const dummyApplications: Application[] = [
+  ..._rawDummyApplications.filter((a) => _mismatchFirstIds.has(a.id)),
+  ..._rawDummyApplications.filter((a) => !_mismatchFirstIds.has(a.id)),
 ];
 
 // 현재 활용 지목 목록
