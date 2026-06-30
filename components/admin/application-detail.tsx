@@ -2247,8 +2247,94 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
               const citizenResult = landAIResults[land.id] || application.aiResult;
               const aiResult = adminResult || citizenResult;
               
+              // 민원인 신고 vs AI 분석 불일치 항목 계산
+              const citizenFarm = landReview.farmMachineDifficulty === "해당";
+              const citizenRoad = landReview.accessRoadLost;
+              const citizenWater = landReview.waterChannelLost;
+              const aiFarm = aiResult?.farmMachineDifficulty ?? false;
+              const aiRoad = aiResult?.accessRoadLost ?? false;
+              const aiWater = aiResult?.waterChannelLost ?? false;
+
+              type MismatchItem = { title: string; description: string; checkPoint: string; priority: string };
+              const mismatchItems: MismatchItem[] = [];
+
+              if (citizenFarm && !aiFarm)
+                mismatchItems.push({
+                  title: "농기계 진입·회전 곤란",
+                  description: "민원인은 농기계 진입·회전이 곤란하다고 신고했으나, AI 분석에서는 기준 미충족으로 판단했습니다.",
+                  checkPoint: "잔여지 단변 폭과 회전 가능 반경을 현장에서 측정하고, 실제 농기계 작업 가능 여부를 확인하세요.",
+                  priority: "최신 지적도·측량 성과를 먼저 확보한 뒤 현장 실사 또는 드론 촬영 자료와 대조하세요.",
+                });
+              else if (!citizenFarm && aiFarm)
+                mismatchItems.push({
+                  title: "농기계 진입·회전 곤란",
+                  description: "AI가 농기계 진입·회전 곤란으로 분석했으나, 민원인 신고에는 해당 사항이 없습니다.",
+                  checkPoint: "AI가 형상지수 변화를 근거로 곤란 판정을 내렸습니다. 잔여지 형상이 실제로 불리하게 변했는지, 민원인이 현황을 과소 신고했을 가능성을 검토하세요.",
+                  priority: "편입 전후 지적도를 비교하고, 필요 시 농업인 영농 현황을 추가 청취하세요.",
+                });
+
+              if (citizenRoad && !aiRoad)
+                mismatchItems.push({
+                  title: "접면도로 상실",
+                  description: "민원인은 접면도로가 상실되었다고 신고했으나, AI 분석에서는 도로 접근이 가능한 것으로 판단했습니다.",
+                  checkPoint: "편입 후 잔여지와 공도(公道)가 실제로 접하고 있는지 지적도상 경계선과 현장을 대조하세요.",
+                  priority: "도로대장 조회로 공도 접면 여부를 먼저 확인하고, 사도(私道) 경유 접근 가능성도 함께 검토하세요.",
+                });
+              else if (!citizenRoad && aiRoad)
+                mismatchItems.push({
+                  title: "접면도로 상실",
+                  description: "AI가 맹지(접면도로 상실)로 분석했으나, 민원인 신고에는 해당 사항이 없습니다.",
+                  checkPoint: "인접 사도나 우회 접근로가 실제로 존재하는지 지적도·위성사진으로 확인하세요.",
+                  priority: "항공사진으로 인접 통행로 현황을 먼저 파악한 뒤 현장 확인 여부를 결정하세요.",
+                });
+
+              if (citizenWater && !aiWater)
+                mismatchItems.push({
+                  title: "관개수로 상실",
+                  description: "민원인은 관개수로가 상실되었다고 신고했으나, AI 분석에서는 수로 단절이 확인되지 않았습니다.",
+                  checkPoint: "취수구·배수로를 포함한 농업용 수로가 공사로 실제 단절되었는지, 대체 용수원이 확보 가능한지 확인하세요.",
+                  priority: "농어촌공사 수리시설 현황도와 현장 사진을 먼저 비교하세요.",
+                });
+              else if (!citizenWater && aiWater)
+                mismatchItems.push({
+                  title: "관개수로 상실",
+                  description: "AI가 관개수로 상실로 분석했으나, 민원인 신고에는 해당 사항이 없습니다.",
+                  checkPoint: "민원인이 인지하지 못한 수로 영향이 있는지 수리시설 도면을 재확인하고, 인근 농가 의견을 수집하세요.",
+                  priority: "현장 사진 또는 인근 농가 의견을 수집한 뒤 수리시설 도면과 대조하세요.",
+                });
+
               return (
                 <div className="space-y-5">
+
+                  {/* 민원인 신고 vs AI 분석 불일치 가이드 */}
+                  {mismatchItems.length > 0 && (
+                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Info className="h-4 w-4 text-blue-600 shrink-0" />
+                        <h4 className="text-[15px] font-semibold text-blue-800">민원인 신고와 AI 분석이 다른 항목이 있습니다</h4>
+                      </div>
+                      <p className="text-[14px] text-blue-700">
+                        아래 항목은 민원인이 입력한 내용과 AI 분석 결과가 일치하지 않습니다. 판정 전 현장 확인 또는 추가 자료 검토를 권장합니다.
+                      </p>
+                      <div className="space-y-2">
+                        {mismatchItems.map((item, idx) => (
+                          <div key={idx} className="rounded-md bg-white border border-blue-100 px-4 py-3 space-y-2">
+                            <p className="text-[14px] font-semibold text-slate-800">{item.title}</p>
+                            <p className="text-[14px] text-slate-600">{item.description}</p>
+                            <div className="space-y-1 pt-0.5">
+                              <p className="text-[13px] text-slate-600">
+                                <span className="font-medium text-slate-700">확인 포인트 </span>{item.checkPoint}
+                              </p>
+                              <p className="text-[13px] text-slate-600">
+                                <span className="font-medium text-slate-700">우선 처리 </span>{item.priority}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* 1차: 담당자 판정 */}
                   <div className="space-y-3">
                     <Label className="text-[16px] font-medium">담당자 판정</Label>
@@ -2393,8 +2479,30 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
                   )}
 
                   {/* 검토 의견 */}
-                  <div className="space-y-5">
-                    <Label className="text-[16px] font-medium">검토 의견 <span className="font-normal text-muted-foreground">(선택)</span></Label>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <Label className="text-[16px] font-medium">검토 의견 <span className="font-normal text-muted-foreground">(선택)</span></Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={isViewOnly}
+                        onClick={() => {
+                          const template = [
+                            "현장 확인 및 관계 서류 검토 결과, 아래 사유로 매수 기준을 충족하지 않아 기각합니다.",
+                            "",
+                            "• 잔여면적: [    ]㎡로 기준 초과",
+                            "• 형상 변화: 편입 전후 형상 유사, 건축·영농 가능 상태 유지",
+                            "• 기타: [추가 사유 입력]",
+                          ].join("\n");
+                          updateLandReviewData(selectedLandIndex, 'landComment', template);
+                        }}
+                        className="shrink-0 gap-1.5 text-[13px]"
+                      >
+                        <FileText className="h-3.5 w-3.5" />
+                        기각의견 양식 불러오기
+                      </Button>
+                    </div>
                     <Textarea
                       placeholder="해당 필지에 대한 검토 의견을 입력하세요."
                       value={landReview.landComment}
