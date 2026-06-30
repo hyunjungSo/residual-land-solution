@@ -2507,7 +2507,7 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
                       placeholder="해당 필지에 대한 검토 의견을 입력하세요."
                       value={landReview.landComment}
                       onChange={(e) => updateLandReviewData(selectedLandIndex, 'landComment', e.target.value)}
-                      className="min-h-[100px] resize-none"
+                      className="min-h-[200px] resize-none"
                       disabled={isViewOnly}
                     />
                   </div>
