@@ -167,7 +167,7 @@ export function ParcelPreRegistration({ businessUnit, onRegisterComplete }: Parc
     const shapeIndexChange = parcel.remainingShapeIndex - parcel.originalShapeIndex;
     const isIrregularShape = ["삼각형", "역삼각형", "부정형", "자루형", "사다리형", "변형사다리형", "역사다리형"].includes(shape);
     
-    // 매수 기준 판단
+    // 보상 기준 판단
     const areaThreshold = parcel.landType === "택지" ? 90 : parcel.landType === "농지" ? 330 : 200;
     const isAreaMet = parcel.remainingArea <= areaThreshold;
     const isShapeMet = isIrregularShape;
@@ -235,13 +235,13 @@ export function ParcelPreRegistration({ businessUnit, onRegisterComplete }: Parc
       farmMachineDifficulty: checks.farmMachineDifficulty,
       judgmentRationale: {
         summary: canPurchase 
-          ? `${parcel.landType} 잔여지 - 매수 기준 충족으로 「보상 가능성 높음」 판정`
-          : `${parcel.landType} 잔여지 - 매수 기준 미충족으로 「보상 가능성 낮음」 판정`,
+          ? `${parcel.landType} 잔여지 - 보상 기준 충족으로 「보상 가능성 높음」 판정`
+          : `${parcel.landType} 잔여지 - 보상 기준 미충족으로 「보상 가능성 낮음」 판정`,
         legalBasis: "「공익사업을 위한 토지 등의 취득 및 보상에 관한 법률」 제74조",
         appliedCriteria: criteriaChecks.filter(c => c.isMet).map(c => c.criteriaName),
         detailedExplanation: canPurchase
-          ? `본 필지는 잔여지 보상 기준을 충족하여 민원인 신청 시 매수 대상입니다.`
-          : `본 필지는 잔여지 보상 기준을 충족하지 않아 매수 대상에서 제외됩니다.`,
+          ? `본 필지는 잔여지 보상 기준을 충족하여 민원인 신청 시 보상 대상입니다.`
+          : `본 필지는 잔여지 보상 기준을 충족하지 않아 보상 대상에서 제외됩니다.`,
       },
     };
   };
@@ -650,7 +650,7 @@ export function ParcelPreRegistration({ businessUnit, onRegisterComplete }: Parc
 
               {/* 기준 충족 여부 */}
               <div className="space-y-3">
-                <h4 className="font-semibold">매수 기준 검토 결과</h4>
+                <h4 className="font-semibold">보상 기준 검토 결과</h4>
                 <div className="space-y-2">
                   {analysisResult.criteriaChecks.map((check, index) => (
                     <div 

@@ -415,7 +415,7 @@ function simulateAIAnalysis(
 
   const judgmentRationale: JudgmentRationale = generateJudgmentRationale(
     land,
-    provisionalJudgment === "수용가능" ? "매수" : "기각",
+    provisionalJudgment === "수용가능" ? "보상" : "기각",
     metAutoCriteria,
     metCriteriaNames,
     manualCheckItems,
@@ -442,7 +442,7 @@ function simulateAIAnalysis(
 // 중앙토지수용위원회 기준 기반 판단 근거 설명 생성 함수
 function generateJudgmentRationale(
   land: LandInfo,
-  judgment: "매수" | "기각",
+  judgment: "보상" | "기각",
   metCriteriaCount: number,
   metCriteriaNames: string[],
   manualCheckItems: string[],
@@ -450,7 +450,7 @@ function generateJudgmentRationale(
   currentUsage: string, // 현재 활용 지목
   landSubType?: string
 ): JudgmentRationale {
-  const legalBasis = "「공익사업을 위한 토지 등의 취득 및 보상에 관한 법률」 제74조(잔여지의 매수청구 등) 및 동법 시행규칙 제34조(잔여지 등의 매수청구), 중앙토지수용위원회 잔여지 수용 및 가치하락 손실보상 참고기준";
+  const legalBasis = "「공익사업을 위한 토지 등의 취득 및 보상에 관한 법률」 제74조(잔여지의 보상청구 등) 및 동법 시행규칙 제34조(잔여지 등의 보상청구), 중앙토지수용위원회 잔여지 수용 및 가치하락 손실보상 참고기준";
   
   let summary: string;
   let detailedExplanation: string;
@@ -476,7 +476,7 @@ function generateJudgmentRationale(
   const shapeDescription = getShapeDescription(land.remainingShape, land.remainingArea);
   const usageDescription = getUsageDifficultyDescription(land.landType, land.remainingArea, land.remainingShape);
 
-  if (judgment === "매수") {
+  if (judgment === "보상") {
     summary = `${shapeDescription} ${usageDescription} 수용할 수 있는 것으로 판단됩니다.`;
     detailedExplanation = `[중앙토지수용위원회 참고기준에 따른 분석]
 
@@ -504,7 +504,7 @@ ${metCriteriaNames.map((name, i) => `${i + 1}) ${name}`).join("\n")}
 ${summary}`;
   } else {
     // 기각
-    summary = `본 토지는 잔여지 면적 및 형상상 종래 목적대로 사용 가능한 것으로 판단되어 매수청구 대상에 해당하지 않습니다.`;
+    summary = `본 토지는 잔여지 면적 및 형상상 종래 목적대로 사용 가능한 것으로 판단되어 보상청구 대상에 해당하지 않습니다.`;
     detailedExplanation = `[중앙토지수용위원회 참고기준에 따른 분석]
 
 1. 분석 대상 토지
@@ -1552,7 +1552,7 @@ export function LandSearchSection({ onLandSelect, cartItems = [], onAddToCart, o
                       </SelectContent>
                     </Select>
                     <p className="mt-1.5 text-xs text-muted-foreground">
-                      택지 유형에 따라 매수 기준 면적이 달라집니다.
+                      택지 유형에 따라 보상 기준 면적이 달라집니다.
                     </p>
                   </div>
                 )}
@@ -1770,7 +1770,7 @@ export function LandSearchSection({ onLandSelect, cartItems = [], onAddToCart, o
                     <div className="space-y-2">
                       <div className="rounded bg-muted/50 p-2 text-center">
                         <p className="text-sm font-medium text-muted-foreground">
-                          AI 분석 결과 매수 기준에 충족하지 않습니다
+                          AI 분석 결과 보상 기준에 충족하지 않습니다
                         </p>
                       </div>
                       <button

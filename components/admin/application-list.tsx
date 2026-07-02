@@ -249,35 +249,35 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
     const finalCompleted = periodFilteredApplications.filter((a) => a.adminStatus === "심사완료");
     const completedCount = finalCompleted.length;
     
-    // AI 초기 판정: 매수가능/매수불가/추가검토필요 (3가지)
-    const aiPurchasable = Math.round(completedCount * 0.60);    // 매수가능 60%
+    // AI 초기 판정: 보상가능/보상불가/추가검토필요 (3가지)
+    const aiPurchasable = Math.round(completedCount * 0.60);    // 보상가능 60%
     const aiAdditionalReview = Math.max(1, Math.floor(completedCount * 0.08)); // 추가 검토 필요 8%
-    const aiNotPurchasable = completedCount - aiPurchasable - aiAdditionalReview; // 매수불가 32%
+    const aiNotPurchasable = completedCount - aiPurchasable - aiAdditionalReview; // 보상불가 32%
     const aiAnalyzed = completedCount;
     
     // AI 신뢰도 계산 로직:
-    // - AI(매수가능) -> 담당자(매수) = 일치
-    // - AI(매수가능) -> 담당자(기각) = 불일치 (반대 결정)
-    // - AI(매수가능) -> 담당자(이관) = 불일치 (판단 보류)
-    // - AI(매수불가) -> 담당자(기각) = 일치
-    // - AI(매수불가) -> 담당자(이관) = 불일치 (판단 보류)
+    // - AI(보상가능) -> 담당자(보상) = 일치
+    // - AI(보상가능) -> 담당자(기각) = 불일치 (반대 결정)
+    // - AI(보상가능) -> 담당자(이관) = 불일치 (판단 보류)
+    // - AI(보상불가) -> 담당자(기각) = 일치
+    // - AI(보상불가) -> 담당자(이관) = 불일치 (판단 보류)
     
     // 시뮬레이션: 불일치 유형 구분
-    const mismatchOpposite = Math.max(1, Math.floor(completedCount * 0.05)); // 반대 결정: AI(매수가능)->담당자(기각)
+    const mismatchOpposite = Math.max(1, Math.floor(completedCount * 0.05)); // 반대 결정: AI(보상가능)->담당자(기각)
     const mismatchDeferred = Math.max(1, Math.floor(completedCount * 0.05)); // 판단 보류: AI 판정과 무관하게 담당자가 이관
     const aiMismatchCount = mismatchOpposite + mismatchDeferred;
     const aiMatchCount = completedCount - aiMismatchCount;
     const aiReliability = completedCount > 0 ? Math.round((aiMatchCount / completedCount) * 100) : 0;
     
-    // 담당자 최종 심사 통계: 매수/기각/이관 (3가지)
+    // 담당자 최종 심사 통계: 보상/기각/이관 (3가지)
     // 전체 건수 = aiAnalyzed와 동일해야 함
     // 이관 건수 = 판단 보류 건수
     const finalTransfer = mismatchDeferred;
-    // 매수 건수 = AI 매수가능 - 반대결정(기각으로 변경) - 일부 이관
-    const deferredFromPurchasable = Math.floor(mismatchDeferred * 0.6); // 매수가능에서 이관된 건
+    // 보상 건수 = AI 보상가능 - 반대결정(기각으로 변경) - 일부 이관
+    const deferredFromPurchasable = Math.floor(mismatchDeferred * 0.6); // 보상가능에서 이관된 건
     // const deferredFromNotPurchasable = mismatchDeferred - deferredFromPurchasable;
     const finalPurchase = aiPurchasable - mismatchOpposite - deferredFromPurchasable;
-    // 기각 건수 = AI 매수불가 - 이관 + 반대결정(매수가능->기각)
+    // 기각 건수 = AI 보상불가 - 이관 + 반대결정(보상가능->기각)
     // const finalRejectBase = aiNotPurchasable - deferredFromNotPurchasable + mismatchOpposite;
     // 검증: finalPurchase + finalReject + finalTransfer = aiAnalyzed
     // 합이 맞지 않으면 기각 건수를 조정하여 총합이 aiAnalyzed가 되도록 함
@@ -296,10 +296,10 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
       진행중,
       심사완료,
       aiAnalyzed,
-      aiPurchasable,        // AI 초기 판정: 매수가능
+      aiPurchasable,        // AI 초기 판정: 보상가능
       aiAdditionalReview,   // AI 초기 판정: 추가 검토 필요
-      aiNotPurchasable,     // AI 초기 판정: 매수불가
-      finalPurchase,        // 담당자 최종: 매수
+      aiNotPurchasable,     // AI 초기 판정: 보상불가
+      finalPurchase,        // 담당자 최종: 보상
       finalReject,      // 담당자 최종: 기각
       finalTransfer,    // 담당자 최종: 이관
       aiReliability,

@@ -518,7 +518,7 @@ export function OwnerParcelSearch({ onSelectParcel }: OwnerParcelSearchProps) {
                 <div className="flex items-start gap-2">
                   <Info className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
                   <p className="text-amber-800">
-                    위 결과는 AI 분석 기준이며, 실제 매수 여부는 신청 후 담당자 심사를 통해 결정됩니다.
+                    위 결과는 AI 분석 기준이며, 실제 보상 여부는 신청 후 담당자 심사를 통해 결정됩니다.
                     보상 신청을 원하시면 아래 버튼을 눌러 신청서를 작성해주세요.
                   </p>
                 </div>

@@ -13,7 +13,7 @@ interface ApplicationResultSectionProps {
 }
 
 const judgmentConfig = {
-  매수: { label: "매수 결정", variant: "outline" as const, className: "border-success text-success" },
+  보상: { label: "보상 결정", variant: "outline" as const, className: "border-success text-success" },
   기각: { label: "기각", variant: "outline" as const, className: "border-destructive text-destructive" },
   "심의위원회 이관": { label: "심의위원회 이관", variant: "outline" as const, className: "border-warning text-warning" },
 };
@@ -111,7 +111,7 @@ export function ApplicationResultSection({ application, onNewApplication }: Appl
                 1
               </span>
               <span>
-                접수된 신청서는 담당자가 직접 검토하여 매수 기준 충족 여부를 판정합니다.
+                접수된 신청서는 담당자가 직접 검토하여 보상 기준 충족 여부를 판정합니다.
               </span>
             </li>
             <li className="flex gap-3">
@@ -136,10 +136,10 @@ export function ApplicationResultSection({ application, onNewApplication }: Appl
             <h4 className="font-medium text-foreground">판정 결과 안내</h4>
             <ul className="mt-2 space-y-1 text-base text-muted-foreground">
               <li>
-                <strong className="text-primary">매수:</strong> 매수 기준 충족. 보상 절차가 진행됩니다.
+                <strong className="text-primary">보상:</strong> 보상 기준 충족. 보상 절차가 진행됩니다.
               </li>
               <li>
-                <strong className="text-destructive">기각:</strong> 매수 기준 미충족. 사유가 안내됩니다.
+                <strong className="text-destructive">기각:</strong> 보상 기준 미충족. 사유가 안내됩니다.
               </li>
               <li>
                 <strong className="text-amber-500">심의위원회 이관:</strong> 추가 심의가 필요한 경우입니다.

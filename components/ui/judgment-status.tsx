@@ -106,7 +106,7 @@ export function JudgmentOX({
   judgment: JudgmentType | string;
   className?: string;
 }) {
-  const isAccepted = judgment === "수용가능" || judgment === "매수" || judgment === "보상 가능성 높음";
+  const isAccepted = judgment === "수용가능" || judgment === "보상" || judgment === "보상 가능성 높음";
   
   return (
     <span className={cn(

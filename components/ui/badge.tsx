@@ -61,7 +61,7 @@ const badgeVariants = cva(
         'outline-slate-deep': 'border border-slate-700 bg-transparent text-slate-700',
         
         // === 심사결과 Solid 스타일 ===
-        // 매수: Emerald (#10b981)
+        // 보상: Emerald (#10b981)
         'solid-emerald': 'border-transparent bg-emerald-500 text-white',
         // 기각: Rose (#f43f5e)
         'solid-rose': 'border-transparent bg-rose-500 text-white',

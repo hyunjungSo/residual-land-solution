@@ -48,7 +48,7 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
   const [landParcels, setLandParcels] = useState<LandParcel[]>([]);
   const [ownerInfo, setOwnerInfo] = useState({ address: "", ownerName: "" });
   const [aerialPhotoImage, setAerialPhotoImage] = useState<string | null>(null);
-  const [ownerOpinion, setOwnerOpinion] = useState("토지 활용도가 현저히 저하되어, 경제적 가치가 현저히 하락하게 되었으니 매수 요청");
+  const [ownerOpinion, setOwnerOpinion] = useState("토지 활용도가 현저히 저하되어, 경제적 가치가 현저히 하락하게 되었으니 보상 요청");
 
   const [fieldConditionReview, setFieldConditionReview] = useState(
     "o 진출입 여건(교통) : \no 토지 모양 : \no 실제 이용상황 :\no 농기계 진입, 회전 : \no 검토 의견\n - \n\n\n * 잔여지 보상액 : "
@@ -331,7 +331,7 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
                     <th className="border border-gray-800 bg-gray-100 px-1 py-1.5 text-center font-medium text-[15px]">지번</th>
                     <th className="border border-gray-800 bg-gray-100 px-1 py-1.5 text-center font-medium text-[15px]">면적(m²)</th>
                     <th className="border border-gray-800 bg-gray-100 px-1 py-1.5 text-center font-medium text-[15px]">잔여비율</th>
-                    <th className="border border-gray-800 bg-blue-50 px-1 py-2 text-center font-semibold text-[15px] text-blue-700">매수여부</th>
+                    <th className="border border-gray-800 bg-blue-50 px-1 py-2 text-center font-semibold text-[15px] text-blue-700">보상여부</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -415,7 +415,7 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
                     <td colSpan={7} className="border border-gray-800 bg-gray-100 px-2 py-2 text-center text-[15px]">
                       <div className="flex items-center justify-center gap-2">
                         <span className="font-semibold">심의위원회결정</span>
-                        <span className="text-gray-500 text-[14px]">(매수시 O, 매수불가시 X표시)</span>
+                        <span className="text-gray-500 text-[14px]">(보상시 O, 보상불가시 X표시)</span>
                         {isEditing && (
                           <Button variant="outline" size="sm" onClick={addMember} className="h-7 gap-1 px-2 text-[14px] print:hidden">
                             <Plus className="h-3 w-3" />항목 추가

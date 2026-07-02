@@ -3,7 +3,7 @@
 import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 
 // 심사결과 타입 (이관은 목록 등 공간 제약이 있는 곳에서 사용, 심의위원회 이관은 풀네임)
-export type JudgmentType = "매수" | "기각" | "이관" | "심의위원회 이관";
+export type JudgmentType = "보상" | "기각" | "이관" | "심의위원회 이관";
 
 // 필지 정보 인터페이스
 export interface LandInfo {
@@ -13,7 +13,7 @@ export interface LandInfo {
 
 // 심사결과 판정 함수
 export function getJudgment(remainingRatio: number): JudgmentType {
-  if (remainingRatio <= 30) return "매수";
+  if (remainingRatio <= 30) return "보상";
   if (remainingRatio <= 50) return "이관";
   return "기각";
 }
@@ -31,13 +31,13 @@ export const PARCEL_COUNT_COLORS = {
 /**
  * 심사결과 색상 정의 (중앙 관리)
  * 
- * 매수 / 충족 / 수용가능: Emerald (#10b981)
+ * 보상 / 충족 / 수용가능: Emerald (#10b981)
  * 기각 / 미충족 / 수용불가: Rose (#f43f5e)
  * 심의위원회 이관: Amber (#f59e0b)
  */
 export const JUDGMENT_COLORS = {
-  // 매수 / 충족 / 수용가능 - 동일 색상 (Emerald)
-  매수: {
+  // 보상 / 충족 / 수용가능 - 동일 색상 (Emerald)
+  보상: {
     hex: "#10b981",
     bg: "bg-emerald-500",
     bgLight: "bg-emerald-50",
@@ -130,10 +130,10 @@ export const judgmentConfig: Record<JudgmentType, {
   solidClass: string;
   displayLabel?: string; // 공간이 좁은 곳에서 표시할 짧은 레이블
 }> = {
-  매수: { 
-    bgClass: JUDGMENT_COLORS.매수.bg, 
-    textClass: JUDGMENT_COLORS.매수.text,
-    solidClass: `${JUDGMENT_COLORS.매수.bg} text-white`
+  보상: { 
+    bgClass: JUDGMENT_COLORS.보상.bg, 
+    textClass: JUDGMENT_COLORS.보상.text,
+    solidClass: `${JUDGMENT_COLORS.보상.bg} text-white`
   },
   기각: { 
     bgClass: JUDGMENT_COLORS.기각.bg, 
@@ -201,15 +201,15 @@ export function JudgmentSummaryBadge({
   const judgments = lands.map(land => getJudgment(land.remainingRatio));
   
   const judgmentCounts = {
-    매수: judgments.filter(j => j === "매수").length,
+    보상: judgments.filter(j => j === "보상").length,
     기각: judgments.filter(j => j === "기각").length,
     이관: judgments.filter(j => j === "이관").length,
   };
 
   const badges = (
     <div className="flex items-center gap-2 cursor-pointer">
-      {judgmentCounts.매수 > 0 && (
-        <JudgmentBadge type="매수" count={judgmentCounts.매수} />
+      {judgmentCounts.보상 > 0 && (
+        <JudgmentBadge type="보상" count={judgmentCounts.보상} />
       )}
       {judgmentCounts.기각 > 0 && (
         <JudgmentBadge type="기각" count={judgmentCounts.기각} />

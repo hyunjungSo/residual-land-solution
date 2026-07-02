@@ -347,7 +347,7 @@ export function BatchAnalysis({
       "편입면적(㎡)": p.landInfo.includedArea ?? "",
       "잔여비율(%)": p.landInfo.remainingRatio ?? "",
       편입유형: p.residualStatus === "잔여지 인정" ? "잔여지 발생" : !p.residualStatus ? "판독대기" : "-",
-      매수가능성: p.residualStatus !== "잔여지 인정" ? "-" : p.aiResult ? (p.aiResult.provisionalJudgment === "보상 가능성 높음" ? "높음" : "낮음") : "검토필요",
+      보상가능성: p.residualStatus !== "잔여지 인정" ? "-" : p.aiResult ? (p.aiResult.provisionalJudgment === "보상 가능성 높음" ? "높음" : "낮음") : "검토필요",
     }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
@@ -867,7 +867,7 @@ export function BatchAnalysis({
               >
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="inline-flex items-center gap-1 text-[16px] font-medium text-emerald-600 underline decoration-dotted underline-offset-2 cursor-help"><Info className="h-3.5 w-3.5 flex-shrink-0" />매수가능성 높음</span>
+                    <span className="inline-flex items-center gap-1 text-[16px] font-medium text-emerald-600 underline decoration-dotted underline-offset-2 cursor-help"><Info className="h-3.5 w-3.5 flex-shrink-0" />보상가능성 높음</span>
                   </TooltipTrigger>
                   <TooltipContent side="top">AI가 보상 가능성이 높다고 판단한 건수입니다.</TooltipContent>
                 </Tooltip>
@@ -883,7 +883,7 @@ export function BatchAnalysis({
               >
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="inline-flex items-center gap-1 text-[16px] font-medium text-rose-500 underline decoration-dotted underline-offset-2 cursor-help"><Info className="h-3.5 w-3.5 flex-shrink-0" />매수가능성 낮음</span>
+                    <span className="inline-flex items-center gap-1 text-[16px] font-medium text-rose-500 underline decoration-dotted underline-offset-2 cursor-help"><Info className="h-3.5 w-3.5 flex-shrink-0" />보상가능성 낮음</span>
                   </TooltipTrigger>
                   <TooltipContent side="top">AI가 보상 가능성이 낮다고 판단한 건수입니다.</TooltipContent>
                 </Tooltip>
@@ -983,8 +983,8 @@ export function BatchAnalysis({
                   options={[
                     { value: "all", label: "전체" },
                     { value: "pending", label: "검토필요" },
-                    { value: "high", label: "매수가능성 높음" },
-                    { value: "low", label: "매수가능성 낮음" }
+                    { value: "high", label: "보상가능성 높음" },
+                    { value: "low", label: "보상가능성 낮음" }
                   ]}
                 />
               </div>
@@ -1110,8 +1110,8 @@ export function BatchAnalysis({
                           ?? (parcel.aiResult?.analysisSource !== "manual-select" ? parcel.aiResult?.provisionalJudgment : undefined);
                         if (!judgment) return <Badge className="bg-amber-50 text-amber-600 hover:bg-amber-100 border-0">검토필요</Badge>;
                         return isHighPossibility(judgment)
-                          ? <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-0">매수가능성 높음</Badge>
-                          : <Badge className="bg-rose-50 text-rose-600 hover:bg-rose-100 border-0">매수가능성 낮음</Badge>;
+                          ? <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-0">보상가능성 높음</Badge>
+                          : <Badge className="bg-rose-50 text-rose-600 hover:bg-rose-100 border-0">보상가능성 낮음</Badge>;
                       })()}
                     </TableCell>
                   </TableRow>

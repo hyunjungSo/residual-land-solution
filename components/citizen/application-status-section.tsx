@@ -320,8 +320,8 @@ function LandInfoSection({
         let icon: React.ReactNode = null;
         let textColor = "";
 
-        if (isManagerComplete && fj === "매수") {
-          label = "매수";
+        if (isManagerComplete && fj === "보상") {
+          label = "보상";
           icon = <CheckCircle2 className="h-5 w-5 text-success" />;
           textColor = "text-success";
         } else if (isManagerComplete && fj === "기각") {
@@ -337,8 +337,8 @@ function LandInfoSection({
           icon = <PlayCircle className="h-5 w-5 text-amber-500" />;
           textColor = "text-amber-700";
         } else if (st === "심의위원회검토완료") {
-          if (fj === "매수") {
-            label = "심의 위원회 회부(검토 완료 - 매수)";
+          if (fj === "보상") {
+            label = "심의 위원회 회부(검토 완료 - 보상)";
             icon = <CheckCircle2 className="h-5 w-5 text-success" />;
             textColor = "text-success";
           } else if (fj === "기각") {
@@ -346,16 +346,16 @@ function LandInfoSection({
             icon = <AlertTriangle className="h-5 w-5 text-destructive" />;
             textColor = "text-destructive";
           }
-        } else if (isComplete && isCom && fj === "매수") {
-          label = "심의 위원회 회부(검토 완료 - 매수)";
+        } else if (isComplete && isCom && fj === "보상") {
+          label = "심의 위원회 회부(검토 완료 - 보상)";
           icon = <CheckCircle2 className="h-5 w-5 text-success" />;
           textColor = "text-success";
         } else if (isComplete && isCom && fj === "기각") {
           label = "심의 위원회 회부(검토 완료 - 기각)";
           icon = <AlertTriangle className="h-5 w-5 text-destructive" />;
           textColor = "text-destructive";
-        } else if (isComplete && fj === "매수") {
-          label = "매수";
+        } else if (isComplete && fj === "보상") {
+          label = "보상";
           icon = <CheckCircle2 className="h-5 w-5 text-success" />;
           textColor = "text-success";
         } else if (isComplete && fj === "기각") {

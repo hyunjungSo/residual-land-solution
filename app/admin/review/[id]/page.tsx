@@ -70,7 +70,7 @@ export default function ReviewDocumentPage({
 
   // 소유자 의견
   const [ownerOpinion, setOwnerOpinion] = useState(
-    "토지 활용도가 현저히 저하되어, 경제적 가치가 현저히 하락하게 되었으니 매수 요청"
+    "토지 활용도가 현저히 저하되어, 경제적 가치가 현저히 하락하게 되었으니 보상 요청"
   );
 
   // 심의위원회 결정
@@ -243,7 +243,7 @@ export default function ReviewDocumentPage({
     setIsEditing(true);
   };
 
-  // 필지별 매수여부 변경 핸들러
+  // 필지별 보상여부 변경 핸들러
   const handlePurchaseDecisionChange = (index: number, decision: "O" | "X" | "") => {
     setLandParcels((prev) => {
       const updated = prev.map((parcel, i) =>
@@ -431,7 +431,7 @@ export default function ReviewDocumentPage({
                           잔여비율
                         </td>
                         <td className="border border-foreground bg-primary/10 px-2 py-1 text-center text-base font-semibold text-primary">
-                          매수여부
+                          보상여부
                         </td>
                       </tr>
                       {landParcels.map((parcel, index) => (
@@ -483,7 +483,7 @@ export default function ReviewDocumentPage({
                                 </SelectTrigger>
                                 <SelectContent style={{ minWidth: "96px" }}>
                                   <SelectItem value="O" className="whitespace-nowrap font-bold text-primary">
-                                    O (매수)
+                                    O (보상)
                                   </SelectItem>
                                   <SelectItem value="X" className="whitespace-nowrap font-bold text-destructive">
                                     X (기각)
@@ -525,7 +525,7 @@ export default function ReviewDocumentPage({
                           className="border border-foreground bg-muted px-2 py-1 text-center text-base font-medium text-foreground"
                         >
                           심의위원회결정{" "}
-                          <span className="text-muted-foreground">(매수시 O, 기각시 X표시)</span>
+                          <span className="text-muted-foreground">(보상시 O, 기각시 X표시)</span>
                         </td>
                       </tr>
                       <tr>
