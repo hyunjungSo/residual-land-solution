@@ -1,33 +1,30 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { RefreshCw, CheckCircle2, Upload, X, AlertCircle } from "lucide-react";
+import { useState } from "react";
+import {
+  Search,
+  CheckCircle2,
+  AlertTriangle,
+  Settings2,
+  Loader2,
+  Unlink,
+  ChevronRight,
+  Building2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
-
-const EXTERNAL_UNITS = [
-  { id: "ext-001", code: "BU-KR-001", label: "강진광주건설사업단", region: "전남" },
-  { id: "ext-002", code: "BU-KR-002", label: "경남권건설사업단",   region: "경남" },
-  { id: "ext-003", code: "BU-KR-003", label: "호남권건설사업단",   region: "전북" },
-  { id: "ext-004", code: "BU-KR-004", label: "충청권건설사업단",   region: "충남" },
-  { id: "ext-005", code: "BU-KR-005", label: "수도권건설사업단",   region: "경기" },
-];
-
-const FILE_ITEMS = [
-  { key: "aerialPhoto",  label: "항공사진",      accept: ".tif,.tiff",      hint: "GeoTiff / .tif" },
-  { key: "cadastralMap", label: "지적도",         accept: ".shp",            hint: ".shp"           },
-  { key: "roadBoundary", label: "도로사업구역선", accept: ".shp",            hint: ".shp"           },
-  { key: "landRegister", label: "토지조서",       accept: ".xlsx",           hint: ".xlsx"          },
-  { key: "dem",          label: "DEM",            accept: ".img,.tif,.tiff", hint: ".img / GeoTiff" },
-] as const;
-
-type FileKey = (typeof FILE_ITEMS)[number]["key"];
-type UnitData = Record<FileKey, File | null> & { coordinateSystem: string };
-type UnitErrors = Partial<Record<FileKey | "coordinateSystem", string>>;
-type SavedState = { savedAt: string } | null;
 
 export type ConnectedUnit = {
   id: string;
@@ -35,292 +32,466 @@ export type ConnectedUnit = {
   dataFilter: string;
 };
 
+const ALL_UNITS = [
+  { id: "ext-001", code: "BU-KR-001", label: "강진광주건설사업단",   region: "전남" },
+  { id: "ext-002", code: "BU-KR-002", label: "경남권건설사업단",     region: "경남" },
+  { id: "ext-003", code: "BU-KR-003", label: "호남권건설사업단",     region: "전북" },
+  { id: "ext-004", code: "BU-KR-004", label: "충청권건설사업단",     region: "충남" },
+  { id: "ext-005", code: "BU-KR-005", label: "수도권건설사업단",     region: "경기" },
+  { id: "ext-006", code: "BU-KR-006", label: "부산울산건설사업단",   region: "부산" },
+  { id: "ext-007", code: "BU-KR-007", label: "대구경북건설사업단",   region: "대구" },
+  { id: "ext-008", code: "BU-KR-008", label: "강원권건설사업단",     region: "강원" },
+  { id: "ext-009", code: "BU-KR-009", label: "제주건설사업단",       region: "제주" },
+  { id: "ext-010", code: "BU-KR-010", label: "인천항만건설사업단",   region: "인천" },
+  { id: "ext-011", code: "BU-KR-011", label: "경기북부건설사업단",   region: "경기" },
+  { id: "ext-012", code: "BU-KR-012", label: "충북건설사업단",       region: "충북" },
+  { id: "ext-013", code: "BU-KR-013", label: "전남동부건설사업단",   region: "전남" },
+  { id: "ext-014", code: "BU-KR-014", label: "경북북부건설사업단",   region: "경북" },
+  { id: "ext-015", code: "BU-KR-015", label: "서울강남건설사업단",   region: "서울" },
+  { id: "ext-016", code: "BU-KR-016", label: "서울강북건설사업단",   region: "서울" },
+  { id: "ext-017", code: "BU-KR-017", label: "광주전남건설사업단",   region: "광주" },
+  { id: "ext-018", code: "BU-KR-018", label: "대전충청건설사업단",   region: "대전" },
+  { id: "ext-019", code: "BU-KR-019", label: "울산건설사업단",       region: "울산" },
+  { id: "ext-020", code: "BU-KR-020", label: "세종건설사업단",       region: "세종" },
+  { id: "ext-021", code: "BU-KR-021", label: "전북서부건설사업단",   region: "전북" },
+  { id: "ext-022", code: "BU-KR-022", label: "경남서부건설사업단",   region: "경남" },
+];
+
+const FILE_ITEMS = [
+  {
+    key: "aerialPhoto"   as const,
+    label: "항공사진",
+    hint: "GeoTIFF (.tif)",
+    placeholder: "s3://bucket/project/aerial_photo.tif",
+  },
+  {
+    key: "cadastralMap"  as const,
+    label: "지적도",
+    hint: ".shp",
+    placeholder: "nfs://nas-server/gis/cadastral_map.shp",
+  },
+  {
+    key: "roadBoundary"  as const,
+    label: "도로사업구역선",
+    hint: ".shp",
+    placeholder: "s3://bucket/project/road_boundary.shp",
+  },
+  {
+    key: "landRegister"  as const,
+    label: "토지조서",
+    hint: ".xlsx",
+    placeholder: "http://file-server/data/land_register.xlsx",
+  },
+  {
+    key: "dem"           as const,
+    label: "DEM (수치표고모델)",
+    hint: ".img / GeoTIFF",
+    placeholder: "s3://bucket/project/dem.tif",
+  },
+] as const;
+
+type FileKey = (typeof FILE_ITEMS)[number]["key"];
+type FilterTab = "all" | "connected" | "disconnected";
+
+type UnitConfig = {
+  paths: Record<FileKey, string>;
+  coordinateSystem: string;
+};
+
+type SavedUnit = {
+  savedAt: string;
+  config: UnitConfig;
+};
+
+const emptyConfig = (): UnitConfig => ({
+  paths: { aerialPhoto: "", cadastralMap: "", roadBoundary: "", landRegister: "", dem: "" },
+  coordinateSystem: "",
+});
+
 interface BusinessUnitManagementProps {
   onConnectionChange: (units: ConnectedUnit[]) => void;
 }
 
 export function BusinessUnitManagement({ onConnectionChange }: BusinessUnitManagementProps) {
-  const [isFetching, setIsFetching] = useState(false);
-  const [fetchedAt, setFetchedAt] = useState<string | null>(null);
-  const [hasFetched, setHasFetched] = useState(false);
+  const [searchQuery,  setSearchQuery]  = useState("");
+  const [filterTab,    setFilterTab]    = useState<FilterTab>("all");
+  const [selectedId,   setSelectedId]   = useState<string | null>(null);
+  const [isSaving,          setIsSaving]          = useState(false);
+  const [disconnectTarget,  setDisconnectTarget]  = useState<string | null>(null);
+  const [toast,             setToast]             = useState<{ message: string; type: "success" | "error" } | null>(null);
 
-  const [connected, setConnected] = useState<Set<string>>(new Set(["ext-001", "ext-002"]));
-  const [dataMap, setDataMap] = useState<Record<string, UnitData>>(() => {
-    const init: Record<string, UnitData> = {};
-    EXTERNAL_UNITS.forEach((u) => {
-      init[u.id] = { aerialPhoto: null, cadastralMap: null, roadBoundary: null, landRegister: null, dem: null, coordinateSystem: "" };
-    });
+  const [configMap, setConfigMap] = useState<Record<string, UnitConfig>>(() => {
+    const init: Record<string, UnitConfig> = {};
+    ALL_UNITS.forEach((u) => { init[u.id] = emptyConfig(); });
     return init;
   });
-  const [errorsMap, setErrorsMap] = useState<Record<string, UnitErrors>>({});
-  const [savedMap, setSavedMap] = useState<Record<string, SavedState>>({});
 
-  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const [savedMap,  setSavedMap]  = useState<Record<string, SavedUnit>>({});
 
-  const handleFetch = () => {
-    setIsFetching(true);
-    setTimeout(() => {
-      setIsFetching(false);
-      setHasFetched(true);
-      const now = new Date();
-      const pad = (n: number) => String(n).padStart(2, "0");
-      setFetchedAt(`${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`);
-    }, 1200);
+  /* ── helpers ── */
+  const showToast = (message: string, type: "success" | "error" = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3500);
   };
 
-  const toggleConnect = (unitId: string, value: boolean) => {
-    setConnected((prev) => {
-      const next = new Set(prev);
-      if (value) {
-        next.add(unitId);
-      } else {
-        next.delete(unitId);
-        setErrorsMap((e) => { const c = { ...e }; delete c[unitId]; return c; });
-        setSavedMap((s) => { const c = { ...s }; delete c[unitId]; return c; });
-      }
-      const units = EXTERNAL_UNITS.filter((u) => next.has(u.id)).map((u) => ({
+  const notifyParent = (next: Record<string, SavedUnit>) => {
+    onConnectionChange(
+      ALL_UNITS.filter((u) => next[u.id]).map((u) => ({
         id: u.id,
         label: u.label,
         dataFilter: u.label.replace("건설사업단", "").trim(),
-      }));
-      onConnectionChange(units);
-      return next;
-    });
+      }))
+    );
   };
 
-  const setFile = (unitId: string, key: FileKey, file: File | null) => {
-    setDataMap((prev) => ({ ...prev, [unitId]: { ...prev[unitId], [key]: file } }));
-    if (file) {
-      setErrorsMap((prev) => {
-        const errs = { ...prev[unitId] };
-        delete errs[key];
-        return { ...prev, [unitId]: errs };
-      });
-    }
-  };
 
-  const setCoordinateSystem = (unitId: string, value: string) => {
-    setDataMap((prev) => ({ ...prev, [unitId]: { ...prev[unitId], coordinateSystem: value } }));
-    if (value.trim()) {
-      setErrorsMap((prev) => {
-        const errs = { ...prev[unitId] };
-        delete errs.coordinateSystem;
-        return { ...prev, [unitId]: errs };
-      });
-    }
-  };
+  /* ── actions ── */
+  const updatePath = (unitId: string, key: FileKey, value: string) =>
+    setConfigMap((p) => ({
+      ...p,
+      [unitId]: { ...p[unitId], paths: { ...p[unitId].paths, [key]: value } },
+    }));
+
+  const updateCoord = (unitId: string, value: string) =>
+    setConfigMap((p) => ({ ...p, [unitId]: { ...p[unitId], coordinateSystem: value } }));
 
   const handleSave = (unitId: string) => {
-    const data = dataMap[unitId];
-    const errs: UnitErrors = {};
-    FILE_ITEMS.forEach((item) => {
-      if (!data[item.key]) errs[item.key] = "파일을 업로드해 주세요.";
-    });
-    if (!data.coordinateSystem.trim()) errs.coordinateSystem = "좌표계 정보를 입력해 주세요.";
-
-    setErrorsMap((prev) => ({ ...prev, [unitId]: errs }));
-    if (Object.keys(errs).length > 0) return;
-
-    const now = new Date();
-    const pad = (n: number) => String(n).padStart(2, "0");
-    const savedAt = `${now.getFullYear()}.${pad(now.getMonth() + 1)}.${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
-    setSavedMap((prev) => ({ ...prev, [unitId]: { savedAt } }));
+    if (isSaving) return;
+    setIsSaving(true);
+    setTimeout(() => {
+      const now = new Date();
+      const p = (n: number) => String(n).padStart(2, "0");
+      const savedAt = `${now.getFullYear()}.${p(now.getMonth() + 1)}.${p(now.getDate())} ${p(now.getHours())}:${p(now.getMinutes())}`;
+      const next = { ...savedMap, [unitId]: { savedAt, config: configMap[unitId] } };
+      setSavedMap(next);
+      notifyParent(next);
+      setIsSaving(false);
+      showToast(`${ALL_UNITS.find((u) => u.id === unitId)?.label} 설정이 저장되었습니다.`);
+    }, 900);
   };
 
+  const confirmDisconnect = () => {
+    if (!disconnectTarget) return;
+    const next = { ...savedMap };
+    delete next[disconnectTarget];
+    setSavedMap(next);
+    notifyParent(next);
+    setDisconnectTarget(null);
+    showToast("연결이 해제되었습니다.", "error");
+  };
+
+  /* ── derived ── */
+  const filteredUnits = ALL_UNITS
+    .filter((u) => {
+      const q = searchQuery.toLowerCase();
+      const matches = u.label.includes(searchQuery) || u.region.includes(searchQuery) || u.code.toLowerCase().includes(q);
+      if (filterTab === "connected")    return matches && !!savedMap[u.id];
+      if (filterTab === "disconnected") return matches && !savedMap[u.id];
+      return matches;
+    })
+    .sort((a, b) => {
+      const as = !!savedMap[a.id], bs = !!savedMap[b.id];
+      return as === bs ? 0 : as ? -1 : 1;
+    });
+
+  const connectedCount = Object.keys(savedMap).length;
+  const selectedUnit   = ALL_UNITS.find((u) => u.id === selectedId) ?? null;
+  const selectedConfig = selectedId ? configMap[selectedId] : null;
+  const selectedSaved  = selectedId ? savedMap[selectedId] ?? null : null;
+
+  /* ── render ── */
   return (
-    <div className="max-w-3xl">
-      {/* 페이지 헤더 */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-foreground sm:text-3xl">사업단 관리</h1>
-        <p className="mt-1.5 text-[16px] text-muted-foreground">
-          외부 시스템의 사업단 목록을 불러오고, AI 잔여지 판독 시스템과 연결할 사업단을 선택합니다.
-        </p>
+    <div className="flex rounded-xl border border-border bg-card overflow-hidden" style={{ height: "calc(100vh - 96px)" }}>
+
+      {/* ════════════════════════════════════════
+          LEFT PANEL — Master List (380px)
+      ════════════════════════════════════════ */}
+      <div className="flex w-[380px] shrink-0 flex-col border-r border-border">
+
+        {/* Header */}
+        <div className="shrink-0 border-b border-border px-4 pt-4 pb-3 space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[15px] font-bold text-foreground">사업단 목록</p>
+              <p className="text-[12px] text-muted-foreground mt-0.5">
+                전체 {ALL_UNITS.length}개 · 연동 완료{" "}
+                <span className="text-emerald-600 font-semibold">{connectedCount}개</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="사업단명, 지역 검색..."
+              className="pl-8 h-9 text-[13px]"
+            />
+          </div>
+
+          {/* Filter tabs */}
+          <div className="flex gap-1 rounded-lg bg-muted p-1">
+            {([ ["all", "전체"], ["connected", "연결됨"], ["disconnected", "연결안됨"] ] as [FilterTab, string][]).map(
+              ([tab, label]) => (
+                <button
+                  key={tab}
+                  onClick={() => setFilterTab(tab)}
+                  className={cn(
+                    "flex-1 rounded-md px-2 py-1.5 text-[12px] font-medium transition-all",
+                    filterTab === tab
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {label}
+                  {tab === "connected" && connectedCount > 0 && (
+                    <span className="ml-1 text-[11px] text-emerald-600 font-semibold">({connectedCount})</span>
+                  )}
+                </button>
+              )
+            )}
+          </div>
+        </div>
+
+        {/* Unit list — scrollable */}
+        <div className="flex-1 overflow-y-auto min-h-0">
+          {filteredUnits.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full gap-2 text-center px-6">
+              <p className="text-[13px] text-muted-foreground">검색 결과가 없습니다.</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-border/60">
+              {filteredUnits.map((unit) => {
+                const isSaved    = !!savedMap[unit.id];
+                const isSelected = selectedId === unit.id;
+
+                return (
+                  <div
+                    key={unit.id}
+                    onClick={() => setSelectedId(isSelected ? null : unit.id)}
+                    className={cn(
+                      "group flex items-center gap-2.5 px-4 py-3 cursor-pointer transition-all select-none",
+                      isSelected
+                        ? "bg-primary/5 border-l-[3px] border-l-primary"
+                        : isSaved
+                        ? "bg-muted/30 hover:bg-muted/50"
+                        : "hover:bg-muted/20"
+                    )}
+                  >
+                    {/* Status dot */}
+                    <span className={cn(
+                      "shrink-0 h-2 w-2 rounded-full transition-colors",
+                      isSaved ? "bg-emerald-500" : "bg-muted-foreground/20"
+                    )} />
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <p className={cn(
+                        "text-[13px] font-medium truncate leading-snug",
+                        isSaved ? "text-muted-foreground" : "text-foreground"
+                      )}>
+                        {unit.label}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground/70 mt-0.5">
+                        {unit.region} · {unit.code}
+                      </p>
+                    </div>
+
+                    {/* Right side */}
+                    {isSaved ? (
+                      <div className="flex items-center gap-1 shrink-0">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-700 whitespace-nowrap">
+                          <CheckCircle2 className="h-2.5 w-2.5" />
+                          연동 완료
+                        </span>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setSelectedId(unit.id); }}
+                          className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors opacity-0 group-hover:opacity-100"
+                          title="설정 편집"
+                        >
+                          <Settings2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <ChevronRight className={cn(
+                        "h-3.5 w-3.5 shrink-0 text-muted-foreground/40",
+                        isSelected && "text-primary"
+                      )} />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* 외부 시스템 연동 */}
-      <div className="rounded-xl border border-border bg-card p-5 mb-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-base font-semibold text-foreground">외부 시스템 연동</p>
-            <p className="mt-0.5 text-[16px] text-muted-foreground">
-              공사 내 기존 시스템과 연결하여 최신 사업단 목록을 가져옵니다.
-            </p>
-            {fetchedAt && (
-              <p className="mt-1.5 flex items-center gap-1.5 text-sm text-emerald-600">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                마지막 동기화: {fetchedAt}
+      {/* ════════════════════════════════════════
+          RIGHT PANEL — Detail (flex fill)
+      ════════════════════════════════════════ */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {!selectedUnit ? (
+          /* Empty state */
+          <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center p-10">
+            <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center">
+              <Building2 className="h-7 w-7 text-muted-foreground/50" />
+            </div>
+            <div>
+              <p className="text-[15px] font-semibold text-foreground mb-1">사업단을 선택하세요</p>
+              <p className="text-[13px] text-muted-foreground leading-relaxed">
+                왼쪽 목록에서 사업단 카드를 클릭하면<br />데이터 연결 설정 패널이 열립니다.
+              </p>
+            </div>
+            {connectedCount > 0 && (
+              <p className="text-[12px] text-emerald-600 font-medium">
+                현재 {connectedCount}개 사업단이 연동 중입니다.
               </p>
             )}
           </div>
-          <Button onClick={handleFetch} disabled={isFetching} variant="outline" className="shrink-0 gap-2">
-            <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
-            {isFetching ? "불러오는 중..." : hasFetched ? "다시 불러오기" : "사업단 목록 불러오기"}
-          </Button>
-        </div>
-      </div>
+        ) : (
+          /* Detail panel */
+          <div className="flex flex-col h-full overflow-hidden">
 
-      {/* 사업단 목록 */}
-      {!hasFetched ? (
-        <div className="rounded-xl border border-dashed border-border bg-card py-16 text-center">
-          <RefreshCw className="mx-auto h-8 w-8 text-muted-foreground/40 mb-3" />
-          <p className="text-[16px] text-muted-foreground">
-            외부 시스템에서 사업단 목록을 불러오면 여기에 표시됩니다.
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {EXTERNAL_UNITS.map((unit) => {
-            const isConnected = connected.has(unit.id);
-            const data = dataMap[unit.id];
-            const errors = errorsMap[unit.id] ?? {};
-            const saved = savedMap[unit.id] ?? null;
-
-            return (
-              <div
-                key={unit.id}
-                className={cn(
-                  "rounded-xl border bg-card overflow-hidden transition-all",
-                  isConnected ? "border-primary/30" : "border-border"
-                )}
-              >
-                {/* 사업단 헤더 행 */}
-                <div className="flex items-center gap-4 px-5 py-4">
-                  <span className={cn(
-                    "inline-flex shrink-0 h-2 w-2 rounded-full",
-                    isConnected ? "bg-emerald-500" : "bg-muted-foreground/30"
-                  )} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-base font-medium text-foreground">{unit.label}</p>
-                      <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                        {unit.code}
+            {/* Sticky header */}
+            <div className="shrink-0 border-b border-border bg-card px-6 py-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <p className="text-[16px] font-bold text-foreground">{selectedUnit.label}</p>
+                    {selectedSaved && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[11px] font-bold text-emerald-700">
+                        <CheckCircle2 className="h-3 w-3" />
+                        연동 완료
                       </span>
-                    </div>
-                    <p className="text-[16px] text-muted-foreground">지역: {unit.region}</p>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2.5 shrink-0">
-                    <span className="text-[16px] text-muted-foreground">
-                      {isConnected ? "연결됨" : "연결 안됨"}
-                    </span>
-                    <Switch
-                      checked={isConnected}
-                      onCheckedChange={(v) => toggleConnect(unit.id, v)}
-                    />
-                  </div>
+                  <p className="text-[12px] text-muted-foreground">
+                    {selectedUnit.region} · {selectedUnit.code}
+                    {selectedSaved && ` · 저장: ${selectedSaved.savedAt}`}
+                  </p>
                 </div>
-
-                {/* 연결 시 파일 업로드 영역 */}
-                {isConnected && (
-                  <div className="border-t border-border px-5 pb-5 pt-4 bg-muted/30">
-                    <p className="text-[16px] font-medium text-foreground mb-1">잔여지 분석 데이터</p>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      모든 항목은 필수값입니다.
-                      <span className="text-destructive ml-1">*</span>
-                    </p>
-                    <div className="space-y-4">
-                      {FILE_ITEMS.map((item) => {
-                        const file = data[item.key];
-                        const refKey = `${unit.id}-${item.key}`;
-                        const err = errors[item.key];
-                        return (
-                          <div key={item.key}>
-                            <Label className="mb-1.5 block">
-                              {item.label}
-                              <span className="ml-1.5 text-sm font-normal text-muted-foreground">{item.hint}</span>
-                              <span className="ml-1 text-destructive">*</span>
-                            </Label>
-                            {file ? (
-                              <div className="flex items-center gap-2 rounded-md border border-primary/40 bg-primary/5 px-4 py-3 text-base">
-                                <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />
-                                <span className="flex-1 truncate text-foreground">{file.name}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => setFile(unit.id, item.key, null)}
-                                  className="p-0.5 rounded text-muted-foreground hover:text-destructive transition-colors"
-                                >
-                                  <X className="h-4 w-4" />
-                                </button>
-                              </div>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => fileInputRefs.current[refKey]?.click()}
-                                className={cn(
-                                  "w-full flex items-center gap-2 rounded-md border border-dashed px-4 py-3 text-base transition-colors",
-                                  err
-                                    ? "border-destructive bg-destructive/5 text-destructive"
-                                    : "border-input text-muted-foreground hover:border-primary/50 hover:bg-primary/5 hover:text-primary"
-                                )}
-                              >
-                                <Upload className="h-4 w-4 shrink-0" />
-                                파일 선택
-                              </button>
-                            )}
-                            <input
-                              ref={(el) => { fileInputRefs.current[refKey] = el; }}
-                              type="file"
-                              accept={item.accept}
-                              className="hidden"
-                              onChange={(e) => {
-                                const f = e.target.files?.[0] ?? null;
-                                setFile(unit.id, item.key, f);
-                                e.target.value = "";
-                              }}
-                            />
-                            {err && (
-                              <p className="flex items-center gap-1 text-sm text-destructive mt-1.5">
-                                <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                                {err}
-                              </p>
-                            )}
-                          </div>
-                        );
-                      })}
-
-                      {/* 좌표계 정보 */}
-                      <div>
-                        <Label className="mb-1.5 block">
-                          좌표계 정보
-                          <span className="ml-1.5 text-sm font-normal text-muted-foreground">ex. EPSG:5186</span>
-                          <span className="ml-1 text-destructive">*</span>
-                        </Label>
-                        <Input
-                          value={data.coordinateSystem}
-                          onChange={(e) => setCoordinateSystem(unit.id, e.target.value)}
-                          placeholder="좌표계를 입력하세요 (예: EPSG:5186)"
-                          className={cn(
-                            data.coordinateSystem && "border-primary/40 bg-primary/5",
-                            errors.coordinateSystem && !data.coordinateSystem && "border-destructive focus-visible:ring-destructive/20"
-                          )}
-                        />
-                        {errors.coordinateSystem && (
-                          <p className="flex items-center gap-1 text-sm text-destructive mt-1.5">
-                            <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                            {errors.coordinateSystem}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* 저장 버튼 */}
-                    <div className="flex items-center justify-between mt-5 pt-4 border-t border-border">
-                      {saved ? (
-                        <p className="flex items-center gap-1.5 text-sm text-emerald-600">
-                          <CheckCircle2 className="h-3.5 w-3.5" />
-                          저장됨: {saved.savedAt}
-                        </p>
-                      ) : (
-                        <span />
-                      )}
-                      <Button size="sm" onClick={() => handleSave(unit.id)}>
-                        저장
-                      </Button>
-                    </div>
-                  </div>
+                {selectedSaved && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setDisconnectTarget(selectedId!)}
+                    className="shrink-0 text-destructive border-destructive/30 hover:bg-destructive/5 gap-1.5 text-[13px]"
+                  >
+                    <Unlink className="h-3.5 w-3.5" />
+                    연결 해제
+                  </Button>
                 )}
               </div>
-            );
-          })}
+            </div>
+
+            {/* Scrollable body */}
+            <div className="flex-1 overflow-y-auto min-h-0 px-6 py-5">
+
+              {/* File path fields */}
+              <div className="space-y-5 mb-6">
+                {FILE_ITEMS.map((item, idx) => {
+                  const path = selectedConfig?.paths[item.key] ?? "";
+
+                  return (
+                    <div key={item.key}>
+                      <Label className="flex items-center gap-1.5 mb-2">
+                        <span className="inline-flex h-[18px] w-[18px] items-center justify-center rounded-full bg-primary text-white text-[10px] font-bold shrink-0">
+                          {idx + 1}
+                        </span>
+                        <span className="text-[14px] font-medium">{item.label}</span>
+                        <span className="text-[12px] font-normal text-muted-foreground">{item.hint}</span>
+                      </Label>
+                      <Input
+                        value={path}
+                        onChange={(e) => updatePath(selectedId!, item.key, e.target.value)}
+                        placeholder={item.placeholder}
+                        className="font-mono text-[12px] h-9"
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Coordinate system */}
+              <div className="border-t border-dashed border-border pt-5 mb-6">
+                <Label className="flex items-center gap-1.5 mb-2">
+                  <span className="text-[14px] font-medium">투영 좌표계</span>
+                  <span className="text-[12px] font-normal text-muted-foreground">예: EPSG:5186</span>
+                </Label>
+                <Input
+                  value={selectedConfig?.coordinateSystem ?? ""}
+                  onChange={(e) => updateCoord(selectedId!, e.target.value)}
+                  placeholder="좌표계 코드를 입력하세요 (예: EPSG:5186)"
+                  className="font-mono text-[13px] h-9"
+                />
+              </div>
+
+              {/* Save row */}
+              <div className="border-t border-border pt-5 flex items-center justify-between">
+                <div>
+                  {selectedSaved ? (
+                    <p className="flex items-center gap-1.5 text-[12px] text-emerald-600 font-semibold">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      마지막 저장: {selectedSaved.savedAt}
+                    </p>
+                  ) : (
+                    <span />
+                  )}
+                </div>
+                <Button
+                  disabled={isSaving}
+                  onClick={() => handleSave(selectedId!)}
+                  className="gap-2 px-6"
+                >
+                  {isSaving
+                    ? <><Loader2 className="h-4 w-4 animate-spin" /> 저장 중...</>
+                    : "저장"
+                  }
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 연결 해제 확인 다이얼로그 */}
+      <AlertDialog open={!!disconnectTarget} onOpenChange={(open) => { if (!open) setDisconnectTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>연결을 해제하시겠습니까?</AlertDialogTitle>
+            <AlertDialogDescription className="leading-relaxed">
+              연결을 해제하면 <span className="font-semibold text-foreground">{ALL_UNITS.find((u) => u.id === disconnectTarget)?.label}</span>에
+              등록된 모든 경로 설정 및 데이터가 삭제됩니다.
+              <br />
+              <span className="text-destructive font-medium">삭제된 정보는 복구할 수 없습니다.</span>
+              계속 진행하시겠습니까?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDisconnect}
+              className="bg-destructive hover:bg-destructive/90 text-white"
+            >
+              연결 해제
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Toast */}
+      {toast && (
+        <div className={cn(
+          "fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 rounded-xl px-5 py-3.5 shadow-xl text-white text-[13px] font-semibold pointer-events-none",
+          toast.type === "success" ? "bg-emerald-600" : "bg-destructive"
+        )}>
+          {toast.type === "success"
+            ? <CheckCircle2 className="h-4 w-4 shrink-0" />
+            : <AlertTriangle className="h-4 w-4 shrink-0" />
+          }
+          {toast.message}
         </div>
       )}
     </div>

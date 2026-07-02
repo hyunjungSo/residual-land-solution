@@ -156,7 +156,7 @@ export const dummyLandInfoList: LandInfo[] = [
       { lat: 37.2165, lng: 127.2960 },
     ],
   },
-  // 매수 충족 케이스 (면적 기준 충족 + 형상 비정형)
+  // 보상 충족 케이스 (면적 기준 충족 + 형상 비정형)
   {
     id: "land-005-met",
     address: "경기도 용인시 처인구 양지면 마성리 133",
@@ -208,7 +208,7 @@ export const dummyLandInfoList: LandInfo[] = [
       { lat: 37.2155, lng: 127.2957 },
     ],
   },
-  // 매수 불가 케이스 (잔여 비율 높음, 형상 변화 적음)
+  // 보상 불가 케이스 (잔여 비율 높음, 형상 변화 적음)
   {
     id: "land-005",
     address: "경기도 용인시 처인구 양지면 마성리 135",
@@ -469,7 +469,7 @@ export const dummyLandInfoList: LandInfo[] = [
       { lat: 37.3678, lng: 127.1425 },
     ],
   },
-  // 매수 불가 케이스 1: 잔여비율이 너무 높고 형상 변화 없음
+  // 보상 불가 케이스 1: 잔여비율이 너무 높고 형상 변화 없음
   {
     id: "land-010",
     address: "경기도 이천시 마장면 덕평리 333-1",
@@ -495,7 +495,7 @@ export const dummyLandInfoList: LandInfo[] = [
       { lat: 37.2738, lng: 127.4325 },
     ],
   },
-  // 매수 불가 케이스 2: 면적/형상 기준 모두 미충족
+  // 보상 불가 케이스 2: 면적/형상 기준 모두 미충족
   {
     id: "land-011",
     address: "경기도 여주시 대신면 천남리 777-5",
@@ -720,7 +720,7 @@ export const dummyLandInfoList: LandInfo[] = [
       { lat: 37.2083, lng: 127.0835 },
     ],
   },
-  // ===== 복수필지 매수 케이스 =====
+  // ===== 복수필지 보상 케이스 =====
   // 복수필지: 3필지 농지 (동일 소유자)
   {
     id: "land-unified-001",
@@ -899,7 +899,7 @@ export const dummyLandInfoList: LandInfo[] = [
     ],
   },
   // ===== 소규모 복수필지 케이스 =====
-  // 소규모 복수필지: 2필지 대지 (맹지 발생으로 매수)
+  // 소규모 복수필지: 2필지 대지 (맹지 발생으로 보상)
   {
     id: "land-recognized-001",
     address: "경기도 용인시 처인구 양지면 대대리 123-1",
@@ -1076,8 +1076,8 @@ export const dummyLandInfoList: LandInfo[] = [
       { lat: 37.3175, lng: 127.9540 },
     ],
   },
-  // ===== 혼합 케이스 (일부 매수 + 일부 미해당) =====
-  // 4필지 중 2필지 매수, 나머지 2필지 미해당
+  // ===== 혼합 케이스 (일부 보상 + 일부 미해당) =====
+  // 4필지 중 2필지 보상, 나머지 2필지 미해당
   {
     id: "land-mixed-001",
     address: "경기도 평택시 포승읍 내기리 200-1",
@@ -2174,9 +2174,9 @@ const _rawDummyApplications: Application[] = [
     adminStatus: "심사완료",
     appliedAt: TWO_DAYS_AGO,
     aiResult: generateAIResult(dummyLandInfoList[3]),
-    finalJudgment: "매수",
-    reviewerComment: "잔여지 형상 및 면적 기준 충족으로 매수 판정",
-    finalReviewOpinion: "본 토지는 도로사업 편입으로 인해 잔여지가 발생하였으며, 잔여지 면적이 기준 미달이고 형상지수 악화로 정상적인 이용이 곤란한 것으로 판단됩니다. 따라서 잔여지 보상 기준에 부합하여 매수 결정이 적정합니다.",
+    finalJudgment: "보상",
+    reviewerComment: "잔여지 형상 및 면적 기준 충족으로 보상 판정",
+    finalReviewOpinion: "본 토지는 도로사업 편입으로 인해 잔여지가 발생하였으며, 잔여지 면적이 기준 미달이고 형상지수 악화로 정상적인 이용이 곤란한 것으로 판단됩니다. 따라서 잔여지 보상 기준에 부합하여 보상 결정이 적정합니다.",
     landDataList: [
       {
         currentUsage: "잡" as const,
@@ -2211,7 +2211,7 @@ const _rawDummyApplications: Application[] = [
     actualUsage: "대",
     reportedShape: "삼각형",
     farmMachineDifficulty: false,
-    reason: "도로 편입으로 인접한 2개 필지가 모두 불규칙한 형태로 남아 건축이 불가능합니다. 각 필지별로 매수 검토를 요청드립니다.",
+    reason: "도로 편입으로 인접한 2개 필지가 모두 불규칙한 형태로 남아 건축이 불가능합니다. 각 필지별로 보상 검토를 요청드립니다.",
     // 토지는 민원인 입력 데이터
     attachments: ["토지대장_100-1.pdf", "토지대장_100-2.pdf", "등기부등본.pdf"],
     status: "검토중",
@@ -2265,7 +2265,7 @@ const _rawDummyApplications: Application[] = [
   adminName: "최영호",
   businessUnit: "강진광주건설 사업단",
   },
-  // 매수 충족 케이스 - 면적/형상 모두 충족
+  // 보상 충족 케이스 - 면적/형상 모두 충족
   {
     id: "app-met-001",
     applicationNumber: "2026-0420-001",
@@ -2358,7 +2358,7 @@ const _rawDummyApplications: Application[] = [
     ],
     businessUnit: "강진광주건설 사업단",
   },
-  // 매수 불가 케이스 - 기각 처리됨
+  // 보상 불가 케이스 - 기각 처리됨
   {
     id: "app-007",
     applicationNumber: "2026-0407-001",
@@ -2366,18 +2366,18 @@ const _rawDummyApplications: Application[] = [
     applicantName: "조현우",
     applicantContact: "010-1111-2222",
     applicantAddress: "경기도 이천시 마장면 덕평리 300",
-    landInfo: dummyLandInfoList[9], // land-010 (매수 불가 케이스)
+    landInfo: dummyLandInfoList[9], // land-010 (보상 불가 케이스)
     actualUsage: "전",
     reportedShape: "가로장방형",
     farmMachineDifficulty: false,
-    reason: "도로 편입으로 일부 토지가 편입되었으나 잔여지가 충분히 넓어 매수를 요청합니다.",
+    reason: "도로 편입으로 일부 토지가 편입되었으나 잔여지가 충분히 넓어 보상를 요청합니다.",
     attachments: ["토지대장.pdf"],
     status: "처리완료",
     adminStatus: "심사완료",
     appliedAt: THREE_MONTHS_AGO,
     aiResult: generateAIResult(dummyLandInfoList[9]),
     finalJudgment: "기각",
-    reviewerComment: "잔여비율 90%로 매수 기준(30% 이하)을 크게 초과하며, 형상지수 변화도 0.1로 미미하여 종래 용도 사용에 지장이 없음. 매수 기준 미충족으로 기각 처리.",
+    reviewerComment: "잔여비율 90%로 보상 기준(30% 이하)을 크게 초과하며, 형상지수 변화도 0.1로 미미하여 종래 용도 사용에 지장이 없음. 보상 기준 미충족으로 기각 처리.",
     landDataList: [
       {
         currentUsage: "대" as const,
@@ -2414,7 +2414,7 @@ const _rawDummyApplications: Application[] = [
     aiResult: generateAIResult(dummyLandInfoList[8]),
     finalJudgment: "심의위원회 이관",
     reviewerComment: "AI 판정 결과 수용가능이나, 인접 토지와의 경계 분쟁 가능성 및 농지 활용도에 대한 현장 확인 결과 추가 검토가 필요함. 잔여면적 기준은 충족하나 형상지수 변화가 경계값에 있어 심의위원회의 전문적 판단이 요구됨.",
-    finalReviewOpinion: "본 건은 AI 분석 결과 매수 기준 충족으로 판단되었으나, 현장 조사 결과 인접 토지 소유자와의 경계 관련 민원이 제기된 상태이며, 농지 활용도에 대한 전문가 의견이 상이하여 심의위원회에 이관하여 종합적인 검토가 필요한 것으로 판단됩니다.",
+    finalReviewOpinion: "본 건은 AI 분석 결과 보상 기준 충족으로 판단되었으나, 현장 조사 결과 인접 토지 소유자와의 경계 관련 민원이 제기된 상태이며, 농지 활용도에 대한 전문가 의견이 상이하여 심의위원회에 이관하여 종합적인 검토가 필요한 것으로 판단됩니다.",
     landDataList: [
       {
         currentUsage: "전" as const,
@@ -2430,7 +2430,7 @@ const _rawDummyApplications: Application[] = [
     statusUpdatedAt: SIX_DAYS_AGO,
     businessUnit: "강진광주건설 사업단",
   },
-  // 매수 불가 케이스 - 검토 중 (곧 기각 예정)
+  // 보상 불가 케이스 - 검토 중 (곧 기각 예정)
   {
     id: "app-008",
     applicationNumber: "2026-0408-001",
@@ -2438,7 +2438,7 @@ const _rawDummyApplications: Application[] = [
     applicantName: "송지훈",
     applicantContact: "010-3333-4444",
     applicantAddress: "경기도 여주시 대신면 천남리 700",
-    landInfo: dummyLandInfoList[10], // land-011 (매수 불가 케이스)
+    landInfo: dummyLandInfoList[10], // land-011 (보상 불가 케이스)
     actualUsage: "대",
     reportedShape: "세로장방형",
     farmMachineDifficulty: false,
@@ -2490,7 +2490,7 @@ const _rawDummyApplications: Application[] = [
     actualUsage: "답",
     reportedShape: "삼각형",
     farmMachineDifficulty: false,
-    reason: "동탄2 도시개발사업으로 인해 소유한 8개 필지가 모두 도로에 편입되어 잔여지가 불규칙한 형태로 남았습니다. 각 필지별로 건축 및 농업 활동이 불가능하여 일괄 매수를 신청합니다.",
+    reason: "동탄2 도시개발사업으로 인해 소유한 8개 필지가 모두 도로에 편입되어 잔여지가 불규칙한 형태로 남았습니다. 각 필지별로 건축 및 농업 활동이 불가능하여 일괄 보상를 신청합니다.",
     landDataList: [
       {
         currentUsage: "대" as const,
@@ -2663,8 +2663,8 @@ const _rawDummyApplications: Application[] = [
     adminStatus: "심사완료",
     appliedAt: ONE_MONTH_AGO,
     aiResult: generateAIResult(dummyLandInfoList[3]),
-    finalJudgment: "매수",
-    reviewerComment: "매수 기준 충족",
+    finalJudgment: "보상",
+    reviewerComment: "보상 기준 충족",
     landDataList: [
       {
         currentUsage: "잡" as const,
@@ -2680,8 +2680,8 @@ const _rawDummyApplications: Application[] = [
     statusUpdatedAt: SIX_DAYS_AGO,
     businessUnit: "강진광주건설 사업단",
   },
-  // ===== 복수필지 매수 케이스 (신규) =====
-  // 복수필지 케이스 1: 박일단 - 3필지 농지 (AI 분석 완료, 매수 판정)
+  // ===== 복수필지 보상 케이스 (신규) =====
+  // 복수필지 케이스 1: 박일단 - 3필지 농지 (AI 분석 완료, 보상 판정)
   {
     id: "app-unified-001",
     applicationNumber: "2026-0425-001",
@@ -2699,7 +2699,7 @@ const _rawDummyApplications: Application[] = [
     actualUsage: "답",
     reportedShape: "삼각형",
     farmMachineDifficulty: true,
-    reason: "안성-천안 국도확장사업으로 인해 소유한 3개 농지 필지가 모두 도로에 편입되었습니다. 편입 후 각 필지가 불규칙한 형태로 남아 농기계 회전��� 불가능하고 관개수로도 단절되어 농업이 불가능합니다. 3필지 모두 매수 기준을 충족하여 일괄 매수를 신청합니다.",
+    reason: "안성-천안 국도확장사업으로 인해 소유한 3개 농지 필지가 모두 도로에 편입되었습니다. 편입 후 각 필지가 불규칙한 형태로 남아 농기계 회전��� 불가능하고 관개수로도 단절되어 농업이 불가능합니다. 3필지 모두 보상 기준을 충족하여 일괄 보상를 신청합니다.",
     landDataList: [
       {
         currentUsage: "답" as const,
@@ -2751,7 +2751,7 @@ const _rawDummyApplications: Application[] = [
       waterChannelLost: true,
       farmMachineDifficulty: true,
       judgmentRationale: {
-        summary: "농지 3필지 - 모든 매수 기준 충족으로 「매수」 판정",
+        summary: "농지 3필지 - 모든 보상 기준 충족으로 「보상」 판정",
         legalBasis: "「공익사업을 위한 토지 등의 취득 및 보상에 관한 법률」 제74조 및 동법 시행규칙 제34조",
         appliedCriteria: [
           "토지유형: 농지",
@@ -2763,9 +2763,9 @@ const _rawDummyApplications: Application[] = [
         manualCheckItems: [],
       },
     },
-    finalJudgment: "매수",
-    reviewerComment: "3필지 농지로 확인됨. 관개수로 단절 및 형상 변경으로 농업 활동 불가. 매수 기준 충족으로 매수 결정.",
-    finalReviewOpinion: "안성-천안 국도확장사업으로 편입된 3필지 농지입니다. 현장 확인 결과, 도로 편입 후 관개수로가 단절되고, 각 필지가 삼각형, 역삼각형, 부정형으로 변경되어 농기계 회전 및 회전이 불가능한 상태입니다. 매수 기준 충족하여 매수가 적정합니다.",
+    finalJudgment: "보상",
+    reviewerComment: "3필지 농지로 확인됨. 관개수로 단절 및 형상 변경으로 농업 활동 불가. 보상 기준 충족으로 보상 결정.",
+    finalReviewOpinion: "안성-천안 국도확장사업으로 편입된 3필지 농지입니다. 현장 확인 결과, 도로 편입 후 관개수로가 단절되고, 각 필지가 삼각형, 역삼각형, 부정형으로 변경되어 농기계 회전 및 회전이 불가능한 상태입니다. 보상 기준 충족하여 보상가 적정합니다.",
     adminName: "홍길동",
     statusUpdatedAt: TWO_WEEKS_AGO,
     businessUnit: "강진광주건설 사업단",
@@ -2788,7 +2788,7 @@ const _rawDummyApplications: Application[] = [
     actualUsage: "대",
     reportedShape: "삼각형",
     farmMachineDifficulty: false,
-    reason: "천안 도시개발사업으로 인해 소유한 4개 필지(대지 1, 농지 2, 잡종지 1)가 모두 도로에 편입되었습니다. 대지에는 주택이 있었으나 철거되었고, 인접한 농지와 잡종지는 주택 부속 텃밭과 창고용지로 사용해 왔습니다. 편입 후 각 필지가 불규칙한 형태로 남아 건축 및 농업이 불가능합니다. 4필지 모두 매수를 신청합니다.",
+    reason: "천안 도시개발사업으로 인해 소유한 4개 필지(대지 1, 농지 2, 잡종지 1)가 모두 도로에 편입되었습니다. 대지에는 주택이 있었으나 철거되었고, 인접한 농지와 잡종지는 주택 부속 텃밭과 창고용지로 사용해 왔습니다. 편입 후 각 필지가 불규칙한 형태로 남아 건축 및 농업이 불가능합니다. 4필지 모두 보상를 신청합니다.",
     landDataList: [
       {
         currentUsage: "대" as const,
@@ -2848,7 +2848,7 @@ const _rawDummyApplications: Application[] = [
       waterChannelLost: true,
       farmMachineDifficulty: true,
       judgmentRationale: {
-        summary: "4필지 혼합 토지 - 각 필지별 매수 기준 충족으로 「매수」 판정",
+        summary: "4필지 혼합 토지 - 각 필지별 보상 기준 충족으로 「보상」 판정",
         legalBasis: "「공익사업을 위한 토지 등의 취득 및 보상에 관한 법률」 제74조 및 동법 시행규칙 제34조",
         appliedCriteria: [
           "토지유형: 혼합 (대지+농지+잡종지)",
@@ -2866,7 +2866,7 @@ const _rawDummyApplications: Application[] = [
     businessUnit: "강진광주건설 사업단",
   },
   // ===== 소규모 복수필지 케이스 =====
-  // 소규모 복수필지 케이스 1: 김인정 - 2필지 대지 (개별 필지별 맹지 발생으로 매수 인정)
+  // 소규모 복수필지 케이스 1: 김인정 - 2필지 대지 (개별 필지별 맹지 발생으로 보상 인정)
   {
     id: "app-recognized-001",
     applicationNumber: "2026-0427-001",
@@ -2925,25 +2925,25 @@ const _rawDummyApplications: Application[] = [
       waterChannelLost: false,
       farmMachineDifficulty: false,
       judgmentRationale: {
-        summary: "2필지 대지 - 맹지 판정으로 「매수」 인정",
+        summary: "2필지 대지 - 맹지 판정으로 「보상」 인정",
         legalBasis: "「공익사업을 위한 토지 등의 취득 및 보상에 관한 법률」 제74조 및 동법 시행규칙 제34조",
         appliedCriteria: [
           "토지유형: 대지 (주거용)",
           "잔여면적: 140㎡ (건축 곤란)",
           "맹지 판정: 양 필지 모두 접면도로 상실로 건축허가 불가",
         ],
-        detailedExplanation: "2필지 대지\n\n[필지 1] 123-1: 180㎡ → 80㎡ (삼각형)\n[필지 2] 123-2: 150㎡ → 60㎡ (자루형)\n\n고속도로 편입으로 양 필지 모두 접면도로가 상실되어 맹지가 되었습니다. 건축이 불가능한 맹지 상태이므로 매수가 인정됩니다.",
+        detailedExplanation: "2필지 대지\n\n[필지 1] 123-1: 180㎡ → 80㎡ (삼각형)\n[필지 2] 123-2: 150㎡ → 60㎡ (자루형)\n\n고속도로 편입으로 양 필지 모두 접면도로가 상실되어 맹지가 되었습니다. 건축이 불가능한 맹지 상태이므로 보상가 인정됩니다.",
         manualCheckItems: [],
       },
     },
-    finalJudgment: "매수",
-    reviewerComment: "맹지 판정으로 매수 인정. 현장 확인 결과 두 필지 모두 접면도로 상실 확인.",
-    finalReviewOpinion: "용인-안성 고속도로 확장으로 편입된 2필지 대지입니다. 고속도로 편입으로 양 필지 모두 접면도로가 상실되어 맹지가 되었습니다. 건축이 불가능한 맹지 상태이므로 매수가 적정합니다.",
+    finalJudgment: "보상",
+    reviewerComment: "맹지 판정으로 보상 인정. 현장 확인 결과 두 필지 모두 접면도로 상실 확인.",
+    finalReviewOpinion: "용인-안성 고속도로 확장으로 편입된 2필지 대지입니다. 고속도로 편입으로 양 필지 모두 접면도로가 상실되어 맹지가 되었습니다. 건축이 불가능한 맹지 상태이므로 보상가 적정합니다.",
     adminName: "김철수",
     statusUpdatedAt: ONE_MONTH_AGO,
     businessUnit: "강진광주건설 사업단",
   },
-  // 소규모 복수필지 케이스 2: 이산림 - 5필지 산지 (조림지 분단으로 매수 인정)
+  // 소규모 복수필지 케이스 2: 이산림 - 5필지 산지 (조림지 분단으로 보상 인정)
   {
     id: "app-recognized-002",
     applicationNumber: "2026-0428-001",
@@ -2961,7 +2961,7 @@ const _rawDummyApplications: Application[] = [
     actualUsage: "임",
     reportedShape: "부정형",
     farmMachineDifficulty: false,
-    reason: "원주-제천 고속도로 건설로 인해 소유한 5개 산지 필지가 편입되었습니다. 30년간 조림하여 관리해 온 임야로, 고속도로가 중앙을 관통하여 조림지가 양분되었습니다. 각 필지별로 형상이 불량해지고 접근로가 차단되어 산림경영이 불가능합니다. 5필지 모두 매수를 신청합니다.",
+    reason: "원주-제천 고속도로 건설로 인해 소유한 5개 산지 필지가 편입되었습니다. 30년간 조림하여 관리해 온 임야로, 고속도로가 중앙을 관통하여 조림지가 양분되었습니다. 각 필지별로 형상이 불량해지고 접근로가 차단되어 산림경영이 불가능합니다. 5필지 모두 보상를 신청합니다.",
     landDataList: [
       {
         currentUsage: "임" as const,
@@ -3029,7 +3029,7 @@ const _rawDummyApplications: Application[] = [
       waterChannelLost: false,
       farmMachineDifficulty: false,
       judgmentRationale: {
-        summary: "5필지 산지 - 조림지 분단으로 「매수」 인정",
+        summary: "5필지 산지 - 조림지 분단으로 「보상」 인정",
         legalBasis: "「공익사업을 위한 토지 등의 취득 및 보상에 관한 법률」 제74조 및 동법 시행규칙 제34조, 산지관리법 제18조",
         appliedCriteria: [
           "토지유형: 산지 (조림지)",
@@ -3044,9 +3044,9 @@ const _rawDummyApplications: Application[] = [
     statusUpdatedAt: ONE_MONTH_AGO,
     businessUnit: "강진광주건설 사업단",
   },
-  // ===== 혼합 케이스: 일부 매수 + 일부 미해당 =====
+  // ===== 혼합 케이스: 일부 보상 + 일부 미해당 =====
   // 정혼합 - 4필지 개별 판정
-  // 내기리 200-1, 200-2: 답(논), 면적 기준 충족 → 매수
+  // 내기리 200-1, 200-2: 답(논), 면적 기준 충족 → 보상
   // 만호리 55-1, 55-2: 전(밭), 면적 기준 미충족 → 미해당
   {
     id: "app-mixed-001",
@@ -3128,15 +3128,15 @@ const _rawDummyApplications: Application[] = [
       waterChannelLost: true,
       farmMachineDifficulty: true,
       judgmentRationale: {
-        summary: "4필지 개별 판정 - 2필지(내기리) 「매수」, 2필지(만호리) 「미해당」",
+        summary: "4필지 개별 판정 - 2필지(내기리) 「보상」, 2필지(만호리) 「미해당」",
         legalBasis: "「공익사업을 위한 토지 등의 취득 및 보상에 관한 법률」 제74조 및 동법 시행규칙 제34조",
         appliedCriteria: [
-          "내기리 200-1: 잔여 150㎡ ≤ 330㎡, 형상지수 5.0(불량), 농기계 회전곤란 → 매수",
-          "내기리 200-2: 잔여 180㎡ ≤ 330㎡, 형상지수 4.8(불량), 관개수로 상실 → 매수",
+          "내기리 200-1: 잔여 150㎡ ≤ 330㎡, 형상지수 5.0(불량), 농기계 회전곤란 → 보상",
+          "내기리 200-2: 잔여 180㎡ ≤ 330㎡, 형상지수 4.8(불량), 관개수로 상실 → 보상",
           "만호리 55-1: 면적 기준 미충족(600㎡>330㎡), 형상 양호(1.2), 종래 사용 가능 → 미해당",
           "만호리 55-2: 면적 기준 미충족(550㎡>330㎡), 형상 양호(1.3), 종래 사용 가능 → 미해당",
         ],
-        detailedExplanation: "4필지 개별 판정\n\n[매수 판정]\n• 내기리 200-1(답): 500㎡→150㎡, 삼각형, 형상지수 5.0(불량)\n• 내기리 200-2(답): 600㎡→180㎡, 역삼각형, 형상지수 4.8(불량)\n→ 면적 기준 충족, 형상 불량, 관개수로 상실, 농기계 회전 곤란\n\n[미해당 판정]\n• 만호리 55-1(전): 800㎡→600㎡, 형상지수 1.2, 정방형\n• 만호리 55-2(전): 700㎡→550㎡, 형상지수 1.3, 장방형\n→ 면적 기준 미충족, 형상 양호, 종래 용도 사용 가능",
+        detailedExplanation: "4필지 개별 판정\n\n[보상 판정]\n• 내기리 200-1(답): 500㎡→150㎡, 삼각형, 형상지수 5.0(불량)\n• 내기리 200-2(답): 600㎡→180㎡, 역삼각형, 형상지수 4.8(불량)\n→ 면적 기준 충족, 형상 불량, 관개수로 상실, 농기계 회전 곤란\n\n[미해당 판정]\n• 만호리 55-1(전): 800㎡→600㎡, 형상지수 1.2, 정방형\n• 만호리 55-2(전): 700㎡→550㎡, 형상지수 1.3, 장방형\n→ 면적 기준 미충족, 형상 양호, 종래 용도 사용 가능",
         manualCheckItems: ["만호리 필지 현장 확인", "농기계 회전로 상태 확인"],
       },
       unifiedParcelAnalysis: {
@@ -3150,12 +3150,12 @@ const _rawDummyApplications: Application[] = [
           sameUsage: false, // 전답은 용도 불일치 (답/전)
         },
         combinedArea: 1480,
-        explanation: "4필지 개별 분석 결과: 내기리 200-1, 200-2는 면적 기준 충족 및 형상 불량으로 매수 판정. 만호리 55-1, 55-2는 면적 기준 미충족, 형상 양호로 미해당 판정.",
+        explanation: "4필지 개별 분석 결과: 내기리 200-1, 200-2는 면적 기준 충족 및 형상 불량으로 보상 판정. 만호리 55-1, 55-2는 면적 기준 미충족, 형상 양호로 미해당 판정.",
       },
       // 필지별 판정 결과 (개별 분석)
       landJudgments: [
-        { landId: "land-mixed-001", judgment: "매수", unifiedGroupId: null, reason: "내기리 200-1: 잔여 150㎡ ≤ 330㎡, 형상지수 5.0(불량), 농기계 회전곤란" },
-        { landId: "land-mixed-002", judgment: "매수", unifiedGroupId: null, reason: "내기리 200-2: 잔여 180㎡ ≤ 330㎡, 형상지수 4.8(불량), 관개수로 상실" },
+        { landId: "land-mixed-001", judgment: "보상", unifiedGroupId: null, reason: "내기리 200-1: 잔여 150㎡ ≤ 330㎡, 형상지수 5.0(불량), 농기계 회전곤란" },
+        { landId: "land-mixed-002", judgment: "보상", unifiedGroupId: null, reason: "내기리 200-2: 잔여 180㎡ ≤ 330㎡, 형상지수 4.8(불량), 관개수로 상실" },
         { landId: "land-mixed-003", judgment: "미해당", unifiedGroupId: null, reason: "면적 기준 미충족(600㎡>330㎡), 형상지수 1.2(양호), 종래 사용 가능" },
         { landId: "land-mixed-004", judgment: "미해당", unifiedGroupId: null, reason: "면적 기준 미충족(550㎡>330㎡), 형상지수 1.3(양호), 종래 사용 가능" },
       ],
@@ -3243,8 +3243,8 @@ const _rawDummyApplications: Application[] = [
     attachments: ["토지대장_용인시_포곡읍_200-1.pdf", "지적도_용인시_포곡읍_200-1.pdf", "현장사진_20260501.jpg"],
     status: "처리완료",
     adminStatus: "담당자검토완료",
-    finalJudgment: "매수",
-    reviewerComment: "현장 확인 결과 200-1(전)은 세장형 변형으로 농기계 진입·회전 곤란, 200-2(답)는 관개수로 절단으로 논농사 불가 확인. 2필지 모두 매수 기준 충족으로 매수 판정.",
+    finalJudgment: "보상",
+    reviewerComment: "현장 확인 결과 200-1(전)은 세장형 변형으로 농기계 진입·회전 곤란, 200-2(답)는 관개수로 절단으로 논농사 불가 확인. 2필지 모두 보상 기준 충족으로 보상 판정.",
     appliedAt: THREE_DAYS_AGO,
     // 민원인 AI 분석 결과 - 농지 2필지 개별 분석
     aiResult: {
@@ -3273,8 +3273,8 @@ const _rawDummyApplications: Application[] = [
         manualCheckItems: ["현장 형상 확인", "농기계 진입로 확인", "관개수로 현황 확인"],
       },
       landJudgments: [
-        { landId: "land-unified-001", judgment: "매수", reason: "전: 세장형(형상지수 4.8), 농기계 회전 곤란으로 효율적 영농 불가" },
-        { landId: "land-unified-002", judgment: "매수", reason: "답: 관개수로 상실(형상지수 5.2), 부정형으로 논농사 불가" },
+        { landId: "land-unified-001", judgment: "보상", reason: "전: 세장형(형상지수 4.8), 농기계 회전 곤란으로 효율적 영농 불가" },
+        { landId: "land-unified-002", judgment: "보상", reason: "답: 관개수로 상실(형상지수 5.2), 부정형으로 논농사 불가" },
       ],
     },
     // 담당자 AI 재분석 결과 - 농지 2필지 분석
@@ -3298,14 +3298,14 @@ const _rawDummyApplications: Application[] = [
           "토지유형: 농지 (전, 답)",
           "200-1(전): 형상지수 4.8(불량), 농기계 회전 곤란 현장 확인 ✓",
           "200-2(답): 형상지수 5.2(불량), 관개수로 상실 현장 확인 ✓",
-          "두 필지 모두 효율적 영농 곤란으로 매수 기준 충족",
+          "두 필지 모두 효율적 영농 곤란으로 보상 기준 충족",
         ],
         detailedExplanation: "둔전리 200-1(전, 1,850㎡→1,230㎡): 현장 확인 결과 세장형 형태로 농기계 진입 및 회전이 곤란하여 효율적인 밭농사가 어려움.\n둔전리 200-2(답, 2,100㎡→1,250㎡): 현장 확인 결과 도로 편입으로 관개수로가 절단되어 논농사 불가.",
         manualCheckItems: ["최종 형상 확인 완료", "농업인 영농 현황 확인"],
       },
       landJudgments: [
-        { landId: "land-unified-001", judgment: "매수", reason: "전: 세장형(형상지수 4.8), 농기계 회전 곤란 현장 확인" },
-        { landId: "land-unified-002", judgment: "매수", reason: "답: 관개수로 상실(형상지수 5.2), 논농사 불가 현장 확인" },
+        { landId: "land-unified-001", judgment: "보상", reason: "전: 세장형(형상지수 4.8), 농기계 회전 곤란 현장 확인" },
+        { landId: "land-unified-002", judgment: "보상", reason: "답: 관개수로 상실(형상지수 5.2), 논농사 불가 현장 확인" },
       ],
     },
     adminName: "김철수",
@@ -3356,9 +3356,9 @@ const _rawDummyApplications: Application[] = [
         manualCheckItems: ["현장 형상 확인", "접도 조건 확인", "건축 가능 여부 확인"],
       },
       landJudgments: [
-        { landId: "land-3parcel-001", judgment: "매수 불가", reason: "택지: 잔여면적 270㎡, 형상 양호하나 면적 기준 초과로 재분할 필요" },
-        { landId: "land-3parcel-002", judgment: "매수 불가", reason: "택지: 잔여면적 230㎡, 장방형으로 건축 효율 저하로 부적절" },
-        { landId: "land-3parcel-003", judgment: "매수", reason: "택지: 잔여면적 300㎡이나 사다리꼴 형상으로 건축 효율 저하" },
+        { landId: "land-3parcel-001", judgment: "보상 불가", reason: "택지: 잔여면적 270㎡, 형상 양호하나 면적 기준 초과로 재분할 필요" },
+        { landId: "land-3parcel-002", judgment: "보상 불가", reason: "택지: 잔여면적 230㎡, 장방형으로 건축 효율 저하로 부적절" },
+        { landId: "land-3parcel-003", judgment: "보상", reason: "택지: 잔여면적 300㎡이나 사다리꼴 형상으로 건축 효율 저하" },
       ],
     },
     landAIResults: {
@@ -3386,7 +3386,7 @@ const _rawDummyApplications: Application[] = [
           summary: "매탄동 101번지: 잔여면적 230㎡로 장방형 형상으로 부적절",
           legalBasis: "「공익사업법」 제74조",
           appliedCriteria: ["잔여면적 230㎡ > 기준 90㎡", "장방형 형상"],
-          detailedExplanation: "장방형 형상으로 건축 효율이 저하되어 매수 불가로 판정합니다.",
+          detailedExplanation: "장방형 형상으로 건축 효율이 저하되어 보상 불가로 판정합니다.",
           manualCheckItems: ["건축 배치 가능 여부 확인"],
         },
       },
@@ -3397,7 +3397,7 @@ const _rawDummyApplications: Application[] = [
         remainingArea: 300,
         remainingRatio: 57.7,
         judgmentRationale: {
-          summary: "매탄동 102번지: 사다리꼴 형상으로 건축 효율 저하, 매수 대상",
+          summary: "매탄동 102번지: 사다리꼴 형상으로 건축 효율 저하, 보상 대상",
           legalBasis: "「공익사업법」 제74조",
           appliedCriteria: ["사다리꼴 형상으로 건축 효율 저하", "형상지수 불량"],
           detailedExplanation: "사다리꼴 형상으로 인해 효율적인 건축물 배치가 어려워 보상 가능으로 판정합니다.",
@@ -3437,8 +3437,8 @@ const _rawDummyApplications: Application[] = [
     adminStatus: "심사완료",
     appliedAt: TODAY,
     aiResult: generateAIResult(dummyLandInfoList[0]),
-    finalJudgment: "매수",
-    reviewerComment: "형상지수 악화로 매수 판정",
+    finalJudgment: "보상",
+    reviewerComment: "형상지수 악화로 보상 판정",
     landDataList: [
       {
         currentUsage: "대" as const,
@@ -3540,8 +3540,8 @@ const _rawDummyApplications: Application[] = [
     adminStatus: "심사완료",
     appliedAt: YESTERDAY,
     aiResult: generateAIResult(dummyLandInfoList[3]),
-    finalJudgment: "매수",
-    reviewerComment: "형상 악화로 매수 결정",
+    finalJudgment: "보상",
+    reviewerComment: "형상 악화로 보상 결정",
     landDataList: [
       {
         currentUsage: "대" as const,
@@ -3574,8 +3574,8 @@ const _rawDummyApplications: Application[] = [
     adminStatus: "심사완료",
     appliedAt: YESTERDAY,
     aiResult: generateAIResult(dummyLandInfoList[4]),
-    finalJudgment: "매수",
-    reviewerComment: "농기계 진입 불가로 매수",
+    finalJudgment: "보상",
+    reviewerComment: "농기계 진입 불가로 보상",
     landDataList: [
       {
         currentUsage: "전" as const,
@@ -3642,8 +3642,8 @@ const _rawDummyApplications: Application[] = [
     adminStatus: "심사완료",
     appliedAt: THREE_DAYS_AGO,
     aiResult: generateAIResult(dummyLandInfoList[6]),
-    finalJudgment: "매수",
-    reviewerComment: "농기계 운용 불가로 매수 결정",
+    finalJudgment: "보상",
+    reviewerComment: "농기계 운용 불가로 보상 결정",
     landDataList: [
       {
         currentUsage: "전" as const,
@@ -3711,8 +3711,8 @@ const _rawDummyApplications: Application[] = [
     adminStatus: "심사완료",
     appliedAt: FIVE_DAYS_AGO,
     aiResult: generateAIResult(dummyLandInfoList[8]),
-    finalJudgment: "매수",
-    reviewerComment: "형상지수 악화로 매수",
+    finalJudgment: "보상",
+    reviewerComment: "형상지수 악화로 보상",
     landDataList: [
       {
         currentUsage: "대" as const,
@@ -3745,7 +3745,7 @@ const _rawDummyApplications: Application[] = [
     adminStatus: "심사완료",
     appliedAt: SIX_DAYS_AGO,
     aiResult: generateAIResult(dummyLandInfoList[9]),
-    finalJudgment: "매수",
+    finalJudgment: "보상",
     reviewerComment: "자루형으로 농기계 진입 불가",
     landDataList: [
       {
@@ -3813,8 +3813,8 @@ const _rawDummyApplications: Application[] = [
     adminStatus: "심사완료",
     appliedAt: TEN_DAYS_AGO,
     aiResult: generateAIResult(dummyLandInfoList[11]),
-    finalJudgment: "매수",
-    reviewerComment: "접근 불가로 매수 결정",
+    finalJudgment: "보상",
+    reviewerComment: "접근 불가로 보상 결정",
     landDataList: [
       {
         currentUsage: "전" as const,
@@ -3847,7 +3847,7 @@ const _rawDummyApplications: Application[] = [
     adminStatus: "심사완료",
     appliedAt: TWO_WEEKS_AGO,
     aiResult: generateAIResult(dummyLandInfoList[0]),
-    finalJudgment: "매수",
+    finalJudgment: "보상",
     reviewerComment: "삼각형 형상으로 건축 불가",
     landDataList: [
       {
@@ -3919,8 +3919,8 @@ const _rawDummyApplications: Application[] = [
     attachments: ["토지대장.pdf", "지적도.pdf"],
     status: "검토중",
     adminStatus: "담당자검토완료",
-    finalJudgment: "매수",
-    reviewerComment: "현장 확인 결과 잔여 대지가 삼각형으로 변형되어 건축 가능 면적 확보 불가. 도로 접면 유지되나 형상 불량으로 건축 허가 곤란 판단. 매수 기준 충족으로 매수 판정.",
+    finalJudgment: "보상",
+    reviewerComment: "현장 확인 결과 잔여 대지가 삼각형으로 변형되어 건축 가능 면적 확보 불가. 도로 접면 유지되나 형상 불량으로 건축 허가 곤란 판단. 보상 기준 충족으로 보상 판정.",
     appliedAt: THREE_DAYS_AGO,
     aiResult: generateAIResult(dummyLandInfoList[0]),
     landDataList: [
@@ -3939,7 +3939,7 @@ const _rawDummyApplications: Application[] = [
     businessUnit: "강진광주건설 사업단",
   },
 
-  // Case 2: 담당자 판정 — 매수 (심사완료, 비위원회)
+  // Case 2: 담당자 판정 — 보상 (심사완료, 비위원회)
   {
     id: "app-case-02",
     applicationNumber: "2026-0601-002",
@@ -3958,8 +3958,8 @@ const _rawDummyApplications: Application[] = [
     isCommitteeCase: false,
     appliedAt: FIVE_DAYS_AGO,
     aiResult: generateAIResult(dummyLandInfoList[1]),
-    finalJudgment: "매수",
-    reviewerComment: "형상지수 악화(1.8→3.2) 및 농기계 진입 불가 확인. 잔여지 보상 기준 충족으로 매수 판정.",
+    finalJudgment: "보상",
+    reviewerComment: "형상지수 악화(1.8→3.2) 및 농기계 진입 불가 확인. 잔여지 보상 기준 충족으로 보상 판정.",
     landDataList: [
       {
         currentUsage: "전" as const,
@@ -3988,7 +3988,7 @@ const _rawDummyApplications: Application[] = [
     actualUsage: "전",
     reportedShape: "가로장방형",
     farmMachineDifficulty: false,
-    reason: "도로 편입 후 잔여지가 남았으나 활용이 어려워 매수를 신청합니다.",
+    reason: "도로 편입 후 잔여지가 남았으나 활용이 어려워 보상를 신청합니다.",
     attachments: ["토지대장.pdf"],
     status: "처리완료",
     adminStatus: "담당자검토완료",
@@ -3997,7 +3997,7 @@ const _rawDummyApplications: Application[] = [
     aiResult: generateAIResult(dummyLandInfoList[2]),
     finalJudgment: "기각",
     citizenAppealChoice: "한국도로공사",
-    reviewerComment: "잔여비율 78%로 매수 기준(30% 이하) 초과. 형상지수 변화 미미(0.05)하여 종래 용도 사용 가능. 기각 처리.",
+    reviewerComment: "잔여비율 78%로 보상 기준(30% 이하) 초과. 형상지수 변화 미미(0.05)하여 종래 용도 사용 가능. 기각 처리.",
     landDataList: [
       {
         currentUsage: "잡" as const,
@@ -4124,7 +4124,7 @@ const _rawDummyApplications: Application[] = [
     businessUnit: "강진광주건설 사업단",
   },
 
-  // Case 7: 심의위원회 판정 — 매수 (검토 완료, 위원회 경유)
+  // Case 7: 심의위원회 판정 — 보상 (검토 완료, 위원회 경유)
   {
     id: "app-case-07",
     applicationNumber: "2026-0601-007",
@@ -4143,8 +4143,8 @@ const _rawDummyApplications: Application[] = [
     isCommitteeCase: true,
     appliedAt: THREE_MONTHS_AGO,
     aiResult: generateAIResult(dummyLandInfoList[6]),
-    finalJudgment: "매수",
-    reviewerComment: "심의위원회 현장 검토 결과, 잔여지 폭 2.1m로 건축법상 최소 기준 미달. 매수 기준 충족으로 판정.",
+    finalJudgment: "보상",
+    reviewerComment: "심의위원회 현장 검토 결과, 잔여지 폭 2.1m로 건축법상 최소 기준 미달. 보상 기준 충족으로 판정.",
     landDataList: [
       {
         currentUsage: "전" as const,
@@ -4182,7 +4182,7 @@ const _rawDummyApplications: Application[] = [
     appliedAt: THREE_MONTHS_AGO,
     aiResult: generateAIResult(dummyLandInfoList[7]),
     finalJudgment: "기각",
-    reviewerComment: "심의위원회 현장 검토 결과, 잔여면적(580㎡) 및 형상지수 변화(0.08)가 매수 기준에 미달. 기각 처리.",
+    reviewerComment: "심의위원회 현장 검토 결과, 잔여면적(580㎡) 및 형상지수 변화(0.08)가 보상 기준에 미달. 기각 처리.",
     landDataList: [
       {
         currentUsage: "대" as const,
@@ -4258,7 +4258,7 @@ const _rawDummyApplications: Application[] = [
     appliedAt: SIX_MONTHS_AGO,
     aiResult: generateAIResult(dummyLandInfoList[9]),
     finalJudgment: "기각",
-    reviewerComment: "잔여면적 620㎡으로 매수 기준 초과. 심의위원회 기각 최종 확정.",
+    reviewerComment: "잔여면적 620㎡으로 보상 기준 초과. 심의위원회 기각 최종 확정.",
     landDataList: [
       {
         currentUsage: "대" as const,
@@ -4275,7 +4275,7 @@ const _rawDummyApplications: Application[] = [
     businessUnit: "강진광주건설 사업단",
   },
 
-  // Case 11: 복수필지 — 심의위원회 검토 완료 (필지별 기각/매수/기각 혼합)
+  // Case 11: 복수필지 — 심의위원회 검토 완료 (필지별 기각/보상/기각 혼합)
   {
     id: "app-committee-multi-001",
     applicationNumber: "2026-0601-011",
@@ -4327,7 +4327,7 @@ const _rawDummyApplications: Application[] = [
         originalArea: 380,
         remainingArea: 62,
         remainingRatio: 16.3,
-        judgment: "매수",
+        judgment: "보상",
         purchaseDecision: "O",
         citizenAppealChoice: null,
       },
@@ -4444,7 +4444,7 @@ const _rawDummyApplications: Application[] = [
     appliedAt: THREE_MONTHS_AGO,
     aiResult: generateAIResult(dummyLandInfoList[6]),
     finalJudgment: "기각",
-    reviewerComment: "심의위원회 검토 결과, 잔여면적 490㎡로 매수 기준(330㎡) 초과. 기각.",
+    reviewerComment: "심의위원회 검토 결과, 잔여면적 490㎡로 보상 기준(330㎡) 초과. 기각.",
     landDataList: [
       {
         currentUsage: "대" as const,
@@ -4600,7 +4600,7 @@ const _rawDummyApplications: Application[] = [
     isCommitteeCase: true,
     appliedAt: TWO_MONTHS_AGO,
     aiResult: generateAIResult(dummyLandInfoList[0]),
-    reviewerComment: "3필지 심의위원회 검토 완료. 필지 1·3은 기각, 필지 2는 매수 확정.",
+    reviewerComment: "3필지 심의위원회 검토 완료. 필지 1·3은 기각, 필지 2는 보상 확정.",
     adminName: "이정은",
     statusUpdatedAt: ONE_MONTH_AGO,
     businessUnit: "수도권",
@@ -4627,7 +4627,7 @@ const _rawDummyApplications: Application[] = [
         originalArea: 820,
         remainingArea: 190,
         remainingRatio: 23.2,
-        judgment: "매수",
+        judgment: "보상",
         purchaseDecision: "O",
         citizenAppealChoice: null,
       },
@@ -4757,6 +4757,41 @@ const _rawDummyApplications: Application[] = [
           "전라남도 강진군 마량면 마량리", "전라남도 강진군 병영면 삼인리",
         ],
       },
+      {
+        businessUnit: "부산울산" as BusinessUnit,
+        projectName: "부산-울산 고속도로 3공구",
+        addresses: [
+          "경상남도 양산시 웅상읍 용당리", "경상남도 양산시 물금읍 가촌리", "부산광역시 기장군 장안읍 좌천리",
+          "부산광역시 기장군 일광읍 삼성리", "경상남도 양산시 동면 금산리",
+        ],
+      },
+      {
+        businessUnit: "춘천원주" as BusinessUnit,
+        projectName: "춘천-원주 국도 42호선 확장",
+        addresses: [
+          "강원특별자치도 춘천시 남산면 방하리", "강원특별자치도 홍천군 홍천읍 희망리",
+          "강원특별자치도 횡성군 공근면 상창봉리", "강원특별자치도 원주시 지정면 안창리",
+          "강원특별자치도 원주시 호저면 무장리",
+        ],
+      },
+      {
+        businessUnit: "청주충주" as BusinessUnit,
+        projectName: "청주-충주 고속도로 1공구",
+        addresses: [
+          "충청북도 청주시 청원구 오창읍 양청리", "충청북도 청주시 상당구 미원면 미원리",
+          "충청북도 괴산군 증평읍 증천리", "충청북도 충주시 산척면 명서리",
+          "충청북도 충주시 엄정면 목계리",
+        ],
+      },
+      {
+        businessUnit: "함양합천" as BusinessUnit,
+        projectName: "함양-합천 국도확장사업",
+        addresses: [
+          "경상남도 함양군 함양읍 용평리", "경상남도 함양군 지곡면 거대리",
+          "경상남도 합천군 합천읍 정양리", "경상남도 합천군 봉산면 송림리",
+          "경상남도 합천군 가야면 구원리",
+        ],
+      },
     ];
 
     const PER_UNIT = 32;
@@ -4817,14 +4852,14 @@ const _rawDummyApplications: Application[] = [
           actualUsage: landCategory,
           reportedShape,
           farmMachineDifficulty: i % 3 === 0,
-          reason: "공익사업 편입으로 잔여지의 형상이 변형되어 활용이 곤란하여 매수를 신청합니다.",
+          reason: "공익사업 편입으로 잔여지의 형상이 변형되어 활용이 곤란하여 보상를 신청합니다.",
           attachments: ["토지대장.pdf", "현황사진.jpg"],
           status,
           adminStatus,
           appliedAt,
           ...(hasAiResult && { aiResult: generateAIResult(landInfo) }),
           ...(adminStatus === "심사완료" && {
-            finalJudgment: i % 2 === 0 ? "매수" : "기각",
+            finalJudgment: i % 2 === 0 ? "보상" : "기각",
             reviewerComment: "검토 완료",
             statusUpdatedAt: appliedAt,
           }),
@@ -5988,6 +6023,45 @@ const rawProcessedParcels: ProcessedParcel[] = [
           "전라남도 강진군 마량면 마량리", "전라남도 강진군 병영면 삼인리",
         ],
         baseLat: 34.6, baseLng: 126.75,
+      },
+      {
+        businessUnit: "부산울산",
+        projectName: "부산-울산 고속도로 3공구",
+        addresses: [
+          "경상남도 양산시 웅상읍 용당리", "경상남도 양산시 물금읍 가촌리", "부산광역시 기장군 장안읍 좌천리",
+          "부산광역시 기장군 일광읍 삼성리", "경상남도 양산시 동면 금산리",
+        ],
+        baseLat: 35.35, baseLng: 129.05,
+      },
+      {
+        businessUnit: "춘천원주",
+        projectName: "춘천-원주 국도 42호선 확장",
+        addresses: [
+          "강원특별자치도 춘천시 남산면 방하리", "강원특별자치도 홍천군 홍천읍 희망리",
+          "강원특별자치도 횡성군 공근면 상창봉리", "강원특별자치도 원주시 지정면 안창리",
+          "강원특별자치도 원주시 호저면 무장리",
+        ],
+        baseLat: 37.55, baseLng: 127.95,
+      },
+      {
+        businessUnit: "청주충주",
+        projectName: "청주-충주 고속도로 1공구",
+        addresses: [
+          "충청북도 청주시 청원구 오창읍 양청리", "충청북도 청주시 상당구 미원면 미원리",
+          "충청북도 괴산군 증평읍 증천리", "충청북도 충주시 산척면 명서리",
+          "충청북도 충주시 엄정면 목계리",
+        ],
+        baseLat: 36.75, baseLng: 127.55,
+      },
+      {
+        businessUnit: "함양합천",
+        projectName: "함양-합천 국도확장사업",
+        addresses: [
+          "경상남도 함양군 함양읍 용평리", "경상남도 함양군 지곡면 거대리",
+          "경상남도 합천군 합천읍 정양리", "경상남도 합천군 봉산면 송림리",
+          "경상남도 합천군 가야면 구원리",
+        ],
+        baseLat: 35.55, baseLng: 127.95,
       },
     ];
 
