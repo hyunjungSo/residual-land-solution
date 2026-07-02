@@ -154,9 +154,9 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
 
   const handlePurchaseDecision = (index: number, val: "O" | "X") => {
     setLandParcels((prev) => {
-      const updated = prev.map((p, i) => i === index ? { ...p, purchaseDecision: p.purchaseDecision === val ? "" : val } : p);
+      const updated = prev.map((p, i) => i === index ? { ...p, purchaseDecision: (p.purchaseDecision === val ? "" : val) as "" | "O" | "X" } : p);
       saveDocumentData(updated);
-      return updated;
+      return updated as typeof prev;
     });
   };
 
@@ -240,7 +240,7 @@ export function ReviewDocumentView({ applicationId }: ReviewDocumentViewProps) {
             {/* 제목 */}
             <div className="mb-5 text-center">
               <h2 className="text-xl font-bold text-foreground sm:text-2xl inline-flex items-center gap-1">
-                잔여지 매수여부 심의서(
+                잔여지 보상여부 심의서(
                 {isEditing ? (
                   <input
                     value={documentMeta.sectionNumber}

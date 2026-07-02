@@ -18,7 +18,7 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   {
     id: "residual-land",
-    label: "잔여지 매수",
+    label: "잔여지 보상",
     children: [
       { id: "new", label: "신규 신청", href: "/citizen?tab=new" },
       { id: "status", label: "신청현황 조회", href: "/citizen?tab=status" },
@@ -35,7 +35,7 @@ export function CitizenSidebar({ activeTab, onTabChange }: CitizenSidebarProps) 
   const searchParams = useSearchParams();
   const currentTab = searchParams.get("tab") || "new";
   
-  // 기본적으로 잔여지 매수 메뉴 열어두기
+  // 기본적으로 잔여지 보상 메뉴 열어두기
   const [expandedMenus, setExpandedMenus] = useState<Set<string>>(new Set(["residual-land"]));
 
   const toggleMenu = (menuId: string) => {

@@ -200,6 +200,8 @@ interface LandEditData {
   roadFrontageLoss: boolean;
   irrigationCanalLoss: boolean;
   farmEquipmentTurnImpossible: boolean;
+  reason: string;
+  attachments: FileItem[];
 }
 
 function LandInfoSection({
@@ -226,8 +228,8 @@ function LandInfoSection({
   MAX_FILES?: number;
 }) {
   const isMultipleLands = application.additionalLands && application.additionalLands.length > 0;
-  const allLands = isMultipleLands 
-    ? [application.landInfo, ...application.additionalLands] 
+  const allLands = isMultipleLands
+    ? [application.landInfo, ...(application.additionalLands ?? [])]
     : [application.landInfo];
   
   // 파일 뷰어 상태
@@ -388,7 +390,7 @@ function LandInfoSection({
                     onClick={(e) => {
                       e.stopPropagation();
                       const content = [
-                        "■ 잔여지 매수청구 심의결과서",
+                        "■ 잔여지 보상청구 심의결과서",
                         "",
                         `신청번호: ${application.applicationNumber}`,
                         `신청인: ${application.applicantName}`,
@@ -397,7 +399,7 @@ function LandInfoSection({
                         "■ 심의 결과",
                         "심의위원회 검토 결과: 기각",
                         "",
-                        "귀하의 잔여지 매수청구 건에 대해 심의위원회에서 검토한 결과,",
+                        "귀하의 잔여지 보상청구 건에 대해 심의위원회에서 검토한 결과,",
                         "위와 같이 결정되었음을 통보합니다.",
                         "",
                         "※ 본 심의결과서는 중앙토지수용위원회 수용 신청 시 제출 서류로 활용하실 수 있습니다.",
@@ -479,10 +481,10 @@ function LandInfoSection({
         const landAIResult = application.landAIResults?.[selectedLand.id] || application.aiResult;
         if (!landAIResult?.provisionalJudgment) return null;
         
-        // 시민용 AI 판정 레이블 변환 (수용가능 -> 매수 가능성 높음, 수용불가 -> 매수 가능성 낮음)
+        // 시민용 AI 판정 레이블 변환 (수용가능 -> 보상 가능성 높음, 수용불가 -> 보상 가능성 낮음)
         const getCitizenJudgmentLabel = (judgment: string) => {
-          if (judgment === "수용가능") return "매수 가능성 높음";
-          if (judgment === "수용불가") return "매수 가능성 낮음";
+          if (judgment === "수용가능") return "보상 가능성 높음";
+          if (judgment === "수용불가") return "보상 가능성 낮음";
           return judgment;
         };
         
@@ -497,9 +499,9 @@ function LandInfoSection({
                   <div className="flex items-center gap-2">
                     {(() => {
                       const j = getCitizenJudgmentLabel(landAIResult.provisionalJudgment);
-                      const cls = j === "매수 가능성 높음"
+                      const cls = j === "보상 가능성 높음"
                         ? "text-emerald-700"
-                        : j === "매수 가능성 낮음"
+                        : j === "보상 가능성 낮음"
                         ? "text-rose-700"
                         : "text-amber-700";
                       return <span className={`text-[15px] font-medium ${cls}`}>{j}</span>;
@@ -518,7 +520,7 @@ function LandInfoSection({
                 <div className="border-t border-border bg-muted/20 px-4 py-3">
                   <RationaleCard 
                     rationale={landAIResult.judgmentRationale} 
-                    provisionalJudgment={getCitizenJudgmentLabel(landAIResult.provisionalJudgment)}
+                    provisionalJudgment={getCitizenJudgmentLabel(landAIResult.provisionalJudgment) as "수용가능" | "수용불가" | undefined}
                     variant="expanded"
                   />
                 </div>
@@ -690,7 +692,7 @@ function LandInfoSection({
                     {editData.attachments.length}개 / {MAX_FILES}개
                   </span>
                   <ul className="space-y-1">
-                    {editData.attachments.map((file, index) => (
+                    {editData.attachments.map((file: FileItem, index: number) => (
                       <li
                         key={index}
                         className="flex items-center justify-between rounded-md border border-gray-200 bg-white px-3 py-2"
@@ -873,7 +875,7 @@ function ApplicationDetailPanel({
     baseAddress: application.applicantAddress,
     detailAddress: "",
     // 신청 사유 및 첨부 (필수값) - 공통 항목
-    reason: application.reason || "잔여지 매수 신청",
+    reason: application.reason || "잔여지 보상 신청",
     attachments: [] as FileItem[],
   });
 
@@ -888,7 +890,7 @@ function ApplicationDetailPanel({
       postalCode: "",
       baseAddress: application.applicantAddress,
       detailAddress: "",
-      reason: application.reason || "잔여지 매수 신청",
+      reason: application.reason || "잔여지 보상 신청",
       attachments: [],
     });
     setLandEditDataList(initLandEditDataList());
@@ -951,7 +953,7 @@ function ApplicationDetailPanel({
         ...application.landInfo,
         currentUsage: landEditDataList[0]?.landUseCategory,
         reportedShape: landEditDataList[0]?.landShape,
-        landSubType: landEditDataList[0]?.siteType,
+        landSubType: landEditDataList[0]?.siteType as "residential-detached" | "commercial" | "industrial",
         accessRoadLost: landEditDataList[0]?.roadFrontageLoss,
         waterChannelLost: landEditDataList[0]?.irrigationCanalLoss,
         farmMachineDifficulty: landEditDataList[0]?.farmEquipmentTurnImpossible,
@@ -961,7 +963,7 @@ function ApplicationDetailPanel({
         ...land,
         currentUsage: landEditDataList[index + 1]?.landUseCategory || land.currentUsage,
         reportedShape: landEditDataList[index + 1]?.landShape || land.reportedShape,
-        landSubType: landEditDataList[index + 1]?.siteType || land.landSubType,
+        landSubType: (landEditDataList[index + 1]?.siteType || land.landSubType) as "residential-detached" | "commercial" | "industrial",
         accessRoadLost: landEditDataList[index + 1]?.roadFrontageLoss || land.accessRoadLost,
         waterChannelLost: landEditDataList[index + 1]?.irrigationCanalLoss || land.waterChannelLost,
         farmMachineDifficulty: landEditDataList[index + 1]?.farmEquipmentTurnImpossible || land.farmMachineDifficulty,
@@ -994,7 +996,7 @@ function ApplicationDetailPanel({
       postalCode: "",
       baseAddress: application.applicantAddress,
       detailAddress: "",
-      reason: application.reason || "잔여지 매수 신청",
+      reason: application.reason || "잔여지 보상 신청",
       attachments: [],
     });
     // 필지별 토지 데이터도 복원
@@ -1375,7 +1377,7 @@ export function ApplicationStatusSection({ onReapply }: ApplicationStatusSection
               <FileText className="h-10 w-10 text-muted-foreground" />
               <p className="mt-4 text-[15px] font-medium text-foreground">신청 내역이 없습니다</p>
               <p className="mt-1 text-[15px] text-muted-foreground">
-                신규 신청 탭에서 잔여지 매수를 신청해 주세요.
+                신규 신청 탭에서 잔여지 보상를 신청해 주세요.
               </p>
             </div>
           ) : (
@@ -1406,7 +1408,7 @@ export function ApplicationStatusSection({ onReapply }: ApplicationStatusSection
                       <p className="mt-1.5 truncate text-[15px] text-muted-foreground">
                         {app.landInfo.address}
                         {isMultipleLands && (
-                          <span className="ml-1 font-medium text-black">외 {app.additionalLands.length}필지</span>
+                          <span className="ml-1 font-medium text-black">외 {(app.additionalLands ?? []).length}필지</span>
                         )}
                       </p>
 

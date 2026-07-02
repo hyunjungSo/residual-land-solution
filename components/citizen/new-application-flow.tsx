@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { FormLabel } from "@/components/ui/form-label";
 import { Badge } from "@/components/ui/badge";
+import { JUDGMENT_COLORS } from "@/components/ui/judgment-badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Check, ChevronLeft, ChevronDown, MapPin, Search, FileText, Sparkles, ClipboardCheck, XCircle, X, Trash2, ClipboardList, ShoppingCart, AlertTriangle } from "lucide-react";
 import type { LandInfo, AIAnalysisResult, Application } from "@/lib/types";
@@ -204,7 +205,17 @@ const myParcels = [
 ];
 
 // AI 분석을 위한 정보수집 질문들 (판독 일부 지원 항목만)
-const questions = [
+type QuestionItem = {
+  id: string;
+  title: string;
+  subtitle?: string;
+  type: "radio" | "textarea";
+  layout?: string;
+  placeholder?: string;
+  showWhen?: { questionId: string; value: string };
+  options?: { value: string; label: string }[];
+};
+const questions: QuestionItem[] = [
   // 1. 토지 유형 선택
   {
     id: "landType",
@@ -254,6 +265,7 @@ const questions = [
     options: [
       { value: "yes", label: "네, 도로가 바뀌어서 건물 허가를 받을 수 없게 되었습니다." },
       { value: "no", label: "아니요, 여전히 건물 허가를 받을 수 있습니다." },
+      { value: "na", label: "해당사항 없습니다." },
     ],
   },
   // ===== 농지 확인 항목 (판독 일부 지원) =====
@@ -438,14 +450,24 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
         await new Promise(resolve => setTimeout(resolve, 2500));
         
         // 랜덤하게 결과 생성 (데모용)
-        const isPositive = Math.random() > 0.3;
-        setAiResult({
-          judgment: isPositive ? "매수 가능성 높음" : "매수 가능성 낮음",
-          score: isPositive ? Math.floor(Math.random() * 20) + 75 : Math.floor(Math.random() * 30) + 30,
-          reasoning: isPositive 
-            ? "잔여지 면적이 최소 기준을 충족하며, 도로 접근성 저하로 인한 활용도 감소가 인정됩니다. 주변 유사 사례와 비교 시 매수 가능성이 높은 것으로 분석됩니다."
-            : "잔여지 면적이 독립 활용 가능한 수준으로 판단되며, 현재 용도로 계속 활용 가능한 것으로 보입니다. 다만, 추가 서류 제출 시 재검토가 가능합니다.",
-        });
+        const rand = Math.random();
+        let judgment: string;
+        let score: number;
+        let reasoning: string;
+        if (rand > 0.6) {
+          judgment = "보상 가능성 있음";
+          score = Math.floor(Math.random() * 20) + 75;
+          reasoning = "잔여지 면적이 최소 기준을 충족하며, 도로 접근성 저하로 인한 활용도 감소가 인정됩니다. 주변 유사 사례와 비교 시 보상 가능성이 높은 것으로 분석됩니다.";
+        } else if (rand > 0.3) {
+          judgment = "담당자 검토 필요";
+          score = Math.floor(Math.random() * 25) + 50;
+          reasoning = "일부 보상 요건은 충족하나 판단이 필요한 항목이 있습니다. 담당자가 추가 서류 및 현장을 확인한 후 최종 결정이 내려집니다.";
+        } else {
+          judgment = "보상 가능성 매우 낮음";
+          score = Math.floor(Math.random() * 30) + 20;
+          reasoning = "잔여지 면적이 독립 활용 가능한 수준으로 판단되며, 현재 용도로 계속 활용 가능한 것으로 보입니다. 다만, 추가 서류 제출 시 재검토가 가능합니다.";
+        }
+        setAiResult({ judgment, score, reasoning });
         setIsAnalyzing(false);
       }
     } else if (step === "decision") {
@@ -535,7 +557,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
       const aiResultData: AIAnalysisResult = {
         landTypePath: "택지",
         criteriaChecks: [],
-        provisionalJudgment: firstItem.aiResult.judgment === "매수 가능성 높음" ? "수용가능" : "수용불가",
+        provisionalJudgment: firstItem.aiResult.judgment === "보상 가능성 있음" ? "수용가능" : "수용불가",
         originalShapeIndex: 1.0,
         remainingShapeIndex: 5.0,
         shapeIndexChange: 4.0,
@@ -554,7 +576,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
       const application: Application = {
         id: `APP-${Date.now()}`,
         applicationNumber: `2026-${Date.now().toString().slice(-6)}`,
-        applicationType: "단일",
+        applicationType: "single",
         applicantName: user?.name || firstItem.parcel.ownerName,
         applicantContact: applicationForm.contact,
         applicantAddress: applicationForm.address || "",
@@ -601,25 +623,41 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
     };
 
     const aiResultData: AIAnalysisResult = {
-      provisionalJudgment: aiResult.judgment === "매수 가능성 높음" ? "수용가능" : "수용불가",
+      provisionalJudgment: aiResult.judgment === "보상 가능성 있음" ? "수용가능" : "수용불가",
       confidenceScore: aiResult.score,
-      reasoning: aiResult.reasoning,
-      comparisonCases: [],
-      reviewDate: new Date().toISOString(),
-      reviewerId: "AI-SYSTEM",
+      landTypePath: "택지",
+      criteriaChecks: [],
+      originalShapeIndex: 1.0,
+      remainingShapeIndex: 5.0,
+      shapeIndexChange: 4.0,
+      isBlindLand: false,
+      accessRoadLost: false,
+      waterChannelLost: false,
+      farmMachineDifficulty: false,
+      judgmentRationale: {
+        summary: aiResult.reasoning || "",
+        legalBasis: "",
+        appliedCriteria: [],
+        detailedExplanation: aiResult.reasoning || "",
+      },
     };
 
     const application: Application = {
       id: `APP-${Date.now()}`,
+      applicationNumber: `2026-${Date.now().toString().slice(-6)}`,
+      applicationType: "single",
       applicantName: user?.name || selectedParcel.ownerName,
       applicantContact: applicationForm.contact,
-      applicantEmail: "",
-      applicationDate: new Date().toISOString(),
-      status: "검토중",
+      applicantAddress: "",
       landInfo,
+      actualUsage: "대",
+      reportedShape: "정방형",
+      reason: applicationForm.reason,
+      attachments: [],
+      status: "검토중",
+      adminStatus: "접수완료",
+      appliedAt: new Date().toISOString(),
       aiResult: aiResultData,
-      documents: [],
-      additionalNotes: applicationForm.reason,
     };
 
     setStep("complete");
@@ -635,7 +673,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
     setApplicationForm({ contact: user?.contact || "", postalCode: "", address: "", addressDetail: "", reason: "", attachments: [] });
   };
 
-  // 매수신청 목록에 추가
+  // 보상 신청 목록에 추가
   const handleAddToCart = () => {
     if (!selectedParcel || !aiResult) return;
     
@@ -650,7 +688,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
     setCartItems(prev => [...prev, newItem]);
     
     toast({
-      title: "매수신청 목록에 추가되었습니다",
+      title: "보상 신청 목록에 추가되었습니다",
       description: `${selectedParcel.address.split(' ').slice(0, 3).join(' ')} 외 잔여지가 신청 목록에 담겼습니다.`,
       duration: 3500,
     });
@@ -785,7 +823,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
         <div className={`space-y-6 transition-opacity duration-300 ${isTransitioning ? "opacity-0" : "opacity-100"}`}>
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              매수 신청할 잔여지를 선택해 주세요
+              보상 신청할 잔여지를 선택해 주세요
             </h2>
             <p className="text-gray-500">
               본인 소유의 잔여지 목록입니다. 신청할 토지를 선택해 주세요.
@@ -1009,7 +1047,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                 AI가 분석 중입니다
               </h2>
               <p className="text-gray-500">
-                입력하신 정보를 바탕으로 매수 가능성을 분석하고 있어요.<br />
+                입력하신 정보를 바탕으로 보상 가능성을 분석하고 있어요.<br />
                 잠시만 기다려 주세요.
               </p>
             </div>
@@ -1027,35 +1065,45 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
               {/* ① 핵심 결과 히어로 카드 */}
               {selectedParcel && (
                 <div className={`rounded-2xl p-7 text-center ${
-                  aiResult.judgment === "매수 가능성 높음"
+                  aiResult.judgment === "보상 가능성 있음"
                     ? "bg-emerald-50 border-2 border-emerald-300"
+                    : aiResult.judgment === "담당자 검토 필요"
+                    ? "bg-amber-50 border-2 border-amber-300"
                     : "bg-rose-50 border-2 border-rose-300"
                 }`}>
                   <div className={`w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center ${
-                    aiResult.judgment === "매수 가능성 높음" ? "bg-emerald-100" : "bg-rose-100"
+                    aiResult.judgment === "보상 가능성 있음" ? "bg-emerald-100"
+                    : aiResult.judgment === "담당자 검토 필요" ? "bg-amber-100"
+                    : "bg-rose-100"
                   }`}>
-                    {aiResult.judgment === "매수 가능성 높음" ? (
+                    {aiResult.judgment === "보상 가능성 있음" ? (
                       <Check className="w-9 h-9 text-emerald-600" />
+                    ) : aiResult.judgment === "담당자 검토 필요" ? (
+                      <AlertTriangle className="w-9 h-9 text-amber-500" />
                     ) : (
                       <XCircle className="w-9 h-9 text-rose-500" />
                     )}
                   </div>
                   <p className="text-[15px] font-medium text-gray-500 mb-1">{selectedParcel.address}</p>
                   <h2 className={`text-2xl font-bold mb-3 ${
-                    aiResult.judgment === "매수 가능성 높음" ? "text-emerald-700" : "text-rose-600"
+                    aiResult.judgment === "보상 가능성 있음" ? "text-emerald-700"
+                    : aiResult.judgment === "담당자 검토 필요" ? "text-amber-700"
+                    : "text-rose-600"
                   }`}>
-                    {aiResult.judgment === "매수 가능성 높음"
-                      ? "매수 가능성이 높습니다"
-                      : "매수 가능성이 낮습니다"}
+                    {aiResult.judgment}
                   </h2>
                   <p className="text-base text-gray-600 leading-relaxed">
                     신청자가 입력하신 정보가 사실이라면,<br />
                     <span className={`font-semibold ${
-                      aiResult.judgment === "매수 가능성 높음" ? "text-emerald-700" : "text-rose-600"
+                      aiResult.judgment === "보상 가능성 있음" ? "text-emerald-700"
+                      : aiResult.judgment === "담당자 검토 필요" ? "text-amber-700"
+                      : "text-rose-600"
                     }`}>
-                      {aiResult.judgment === "매수 가능성 높음"
-                        ? "이 토지는 잔여지 매수 요건을 충족할 가능성이 높습니다."
-                        : "이 토지는 현재 조건으로는 잔여지 매수 요건을 충족하기 어렵습니다."}
+                      {aiResult.judgment === "보상 가능성 있음"
+                        ? "이 토지는 잔여지 보상 요건을 충족할 가능성이 높습니다."
+                        : aiResult.judgment === "담당자 검토 필요"
+                        ? "담당자가 추가 서류 및 현장을 확인한 후 최종 결정이 내려집니다."
+                        : "이 토지는 현재 조건으로는 잔여지 보상 요건을 충족하기 어렵습니다."}
                     </span>
                   </p>
                 </div>
@@ -1080,89 +1128,108 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                     <span className="text-base font-medium text-gray-700">AI 판독 상세 근거 보기</span>
                     <ChevronDown className="w-5 h-5 text-gray-400 transition-transform group-open:rotate-180" />
                   </summary>
-                  <div className="px-5 pb-5 space-y-4 border-t border-gray-100 pt-4">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-gray-50 rounded-lg p-3">
-                        <p className="text-[14px] text-gray-500 mb-1">토지 유형</p>
-                        <p className="text-[15px] font-medium text-gray-900">{selectedParcel.landCategory}</p>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-3">
-                        <p className="text-[14px] text-gray-500 mb-1">잔여 면적</p>
-                        <p className="text-[15px] font-medium text-gray-900">{selectedParcel.remainingArea}m²</p>
-                      </div>
-                    </div>
-                    <div className={`rounded-lg p-3 border ${
-                      aiResult.judgment === "매수 가능성 높음"
-                        ? "bg-emerald-50 border-emerald-200"
-                        : "bg-gray-50 border-gray-200"
-                    }`}>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-[14px] text-gray-500 mb-1">면적 기준</p>
-                          <p className="text-[15px] text-gray-700">
-                            {selectedParcel.landCategory === "대" ? "택지 기준: 90m² 이하" :
-                             selectedParcel.landCategory === "전" || selectedParcel.landCategory === "답" ? "농지 기준: 330m² 이하" :
-                             selectedParcel.landCategory === "임" ? "산지 기준: 330m² 이하" : "기준: 330m² 이하"}
-                          </p>
+                  {(() => {
+                    const origArea = selectedParcel.area ?? 0;
+                    const remArea = selectedParcel.remainingArea ?? 0;
+                    const inclArea = origArea - remArea;
+                    const remRatio = origArea > 0 ? Math.round((remArea / origArea) * 1000) / 10 : 0;
+                    const threshold = selectedParcel.landCategory === "대" ? 90 : 330;
+                    const isUnderThreshold = remArea <= threshold;
+                    const isSmallScale = origArea <= 330;
+                    type CriteriaStatus = "충족" | "미충족" | "확인필요";
+                    const statusBadge = (status: CriteriaStatus) => {
+                      const colorMap = {
+                        "충족":    `${JUDGMENT_COLORS.충족.bg} text-white`,
+                        "미충족":  `${JUDGMENT_COLORS.미충족.bg} text-white`,
+                        "확인필요": `${JUDGMENT_COLORS.이관.bg} text-white`,
+                      };
+                      return (
+                        <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${colorMap[status]}`}>
+                          {status}
+                        </span>
+                      );
+                    };
+                    const criteriaItem = (
+                      num: number,
+                      title: string,
+                      status: CriteriaStatus,
+                      criterion: string,
+                      detail?: string
+                    ) => (
+                      <div key={num} className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+                        <div className="flex items-center gap-2 px-4 py-3 bg-white">
+                          <span className="w-6 h-6 rounded-full bg-[#2E6B4F] text-white flex items-center justify-center text-[13px] font-bold shrink-0">{num}</span>
+                          <span className="text-[15px] font-semibold text-gray-900">{title}</span>
                         </div>
-                        {aiResult.judgment === "매수 가능성 높음" ? (
-                          <Badge className="bg-emerald-100 text-emerald-700 text-[14px]">충족</Badge>
-                        ) : (
-                          <Badge className="bg-gray-100 text-gray-600 text-[14px]">미충족</Badge>
-                        )}
+                        <div className="border-t border-dashed border-gray-200 px-4 py-3 space-y-2 bg-gray-50">
+                          <div className="flex gap-3">
+                            <span className="text-[13px] text-gray-400 shrink-0 w-14">판독기준</span>
+                            <span className="text-[13px] text-gray-600">{criterion}</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-[13px] text-gray-400 shrink-0 w-14">판독결과</span>
+                            {statusBadge(status)}
+                          </div>
+                          {detail && (
+                            <div className="flex gap-3">
+                              <span className="text-[13px] text-gray-400 shrink-0 w-14">상세</span>
+                              <span className="text-[13px] text-gray-600">{detail}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <p className="text-[14px] text-gray-500 mb-2">물리적 조건 검토</p>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className={`rounded-lg p-2 border text-[14px] ${
-                          answers.roadStatusChange === "yes"
-                            ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                            : "bg-gray-50 border-gray-200 text-gray-500"
-                        }`}>
-                          <div className="flex items-center gap-1">
-                            {answers.roadStatusChange === "yes" ? <Check className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                            <span>도로 변경으로 건축 불가</span>
+                    );
+                    return (
+                      <div className="border-t border-gray-100">
+                        {/* 편입현황 */}
+                        <div className="px-5 pt-4 pb-3 space-y-3">
+                          <p className="text-[13px] font-semibold text-gray-500 tracking-wide">편입현황</p>
+                          <div className="grid grid-cols-4 gap-2">
+                            {[
+                              { label: "원면적", value: `${origArea.toLocaleString()} m²` },
+                              { label: "편입면적", value: `${inclArea.toLocaleString()} m²` },
+                              { label: "잔여면적", value: `${remArea.toLocaleString()} m²` },
+                              { label: "잔여비율", value: `${remRatio}%` },
+                            ].map(item => (
+                              <div key={item.label} className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                                <p className="text-[12px] text-gray-400 mb-1">{item.label}</p>
+                                <p className="text-[15px] font-bold text-gray-900">{item.value}</p>
+                              </div>
+                            ))}
                           </div>
                         </div>
-                        <div className={`rounded-lg p-2 border text-[14px] ${
-                          answers.shapeChange === "yes"
-                            ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                            : "bg-gray-50 border-gray-200 text-gray-500"
-                        }`}>
-                          <div className="flex items-center gap-1">
-                            {answers.shapeChange === "yes" ? <Check className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                            <span>형상 부정형 변경</span>
-                          </div>
+                        {/* 법적근거 */}
+                        <div className="px-5 pb-4 space-y-1">
+                          <p className="text-[13px] font-semibold text-gray-500 tracking-wide">법적근거</p>
+                          <p className="text-[13px] text-gray-600">중앙토지수용위원회 참고기준 제7조제1항제2호, 제7조제1항제3호</p>
                         </div>
-                        {(selectedParcel.landCategory === "전" || selectedParcel.landCategory === "답") && (
-                          <>
-                            <div className={`rounded-lg p-2 border text-[14px] ${
-                              answers.waterChannelLost === "yes"
-                                ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                                : "bg-gray-50 border-gray-200 text-gray-500"
-                            }`}>
-                              <div className="flex items-center gap-1">
-                                {answers.waterChannelLost === "yes" ? <Check className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                                <span>물길(수로) 상실</span>
-                              </div>
-                            </div>
-                            <div className={`rounded-lg p-2 border text-[14px] ${
-                              answers.farmMachineDifficulty === "yes"
-                                ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                                : "bg-gray-50 border-gray-200 text-gray-500"
-                            }`}>
-                              <div className="flex items-center gap-1">
-                                {answers.farmMachineDifficulty === "yes" ? <Check className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                                <span>농기계 사용 어려움</span>
-                              </div>
-                            </div>
-                          </>
-                        )}
+                        {/* 판독 항목 */}
+                        <div className="px-5 pb-5 space-y-3">
+                          {criteriaItem(
+                            1,
+                            "면적 미달 여부",
+                            isUnderThreshold ? "충족" : aiResult.judgment === "담당자 검토 필요" ? "확인필요" : "미충족",
+                            `잔여지 면적이 지목별 기준 면적 미만인지 여부 (대: 90m² 이하, 농지·임야: 330m² 이하)`,
+                            `잔여면적 ${remArea.toLocaleString()}m² ${isUnderThreshold ? "≤" : ">"} 기준 ${threshold}m²`
+                          )}
+                          {criteriaItem(
+                            2,
+                            "단독필지 여부 (일단의 토지)",
+                            aiResult.judgment === "담당자 검토 필요" ? "확인필요" : "충족",
+                            "편입토지와 동일소유자이며, 인접하여 동일용도 필지 존재 여부",
+                            "동일소유자+인접+동일용도 필지 없음 → 단독"
+                          )}
+                          {criteriaItem(
+                            3,
+                            "소규모 토지 여부",
+                            isSmallScale ? "충족" : aiResult.judgment === "보상 가능성 있음" ? "충족" : "미충족",
+                            "원면적이 기준면적(330m²) 이하",
+                            `원면적 ${origArea.toLocaleString()}m² ${isSmallScale ? "≤" : ">"} 기준 330m²`
+                          )}
+                        </div>
                       </div>
-                    </div>
-
-                  </div>
+                    );
+                  })()}
                 </details>
               )}
 
@@ -1179,7 +1246,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                   className="bg-[#2E8B57] hover:bg-[#256b45] text-white h-12 text-base rounded-xl flex-1"
                 >
                   <ClipboardList className="w-5 h-5 mr-2" />
-                  매수신청 목록에 추가
+                  보상 신청 목록에 추가
                 </Button>
               </div>
             </div>
@@ -1192,37 +1259,45 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
         <div className="space-y-8">
           <div className="text-center py-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              매수 신청을 진행하시겠습니까?
+              보상 신청을 진행하시겠습니까?
             </h2>
             <p className="text-gray-500">
               AI 분석 결과를 확인하셨습니다.<br />
-              매수 신청서를 작성하시겠습니까?
+              보상 신청서를 작성하시겠습니까?
             </p>
           </div>
 
           {/* AI 결과 요약 */}
           {aiResult && (
             <Card className={`p-4 border ${
-              aiResult.judgment === "매수 가능성 높음" 
-                ? "border-emerald-200 bg-emerald-50" 
+              aiResult.judgment === "보상 가능성 있음"
+                ? "border-emerald-200 bg-emerald-50"
+                : aiResult.judgment === "담당자 검토 필요"
+                ? "border-amber-200 bg-amber-50"
                 : "border-rose-200 bg-rose-50"
             }`}>
               <div className="flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  aiResult.judgment === "매수 가능성 높음"
+                  aiResult.judgment === "보상 가능성 있음"
                     ? "bg-emerald-500"
+                    : aiResult.judgment === "담당자 검토 필요"
+                    ? "bg-amber-500"
                     : "bg-rose-500"
                 }`}>
-                  {aiResult.judgment === "매수 가능성 높음" ? (
+                  {aiResult.judgment === "보상 가능성 있음" ? (
                     <Check className="w-5 h-5 text-white font-bold" />
+                  ) : aiResult.judgment === "담당자 검토 필요" ? (
+                    <AlertTriangle className="w-5 h-5 text-white" />
                   ) : (
                     <XCircle className="w-5 h-5 text-white" />
                   )}
                 </div>
                 <div>
                   <p className={`font-semibold ${
-                    aiResult.judgment === "매수 가능성 높음"
+                    aiResult.judgment === "보상 가능성 있음"
                       ? "text-emerald-700"
+                      : aiResult.judgment === "담당자 검토 필요"
+                      ? "text-amber-700"
                       : "text-rose-700"
                   }`}>
                     {aiResult.judgment}
@@ -1350,7 +1425,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                   {cartItems
                     .filter(item => selectedCartItems.has(item.id))
                     .map((item, index) => {
-                      const isPositive = item.aiResult.judgment === "매수 가능성 높음";
+                      const isPositive = item.aiResult.judgment === "보상 가능성 있음";
                       const isExpanded = expandedCartItem === item.id;
                       const landType = item.answers.landType || "택지";
                       
@@ -1371,8 +1446,12 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                                 </p>
                               </div>
                               <div className="flex items-center gap-2">
-                                <Badge className={`text-[14px] text-white ${isPositive ? "bg-emerald-500" : "bg-rose-500"}`}>
-                                  {isPositive ? "매수 가능" : "매수 불가"}
+                                <Badge className={`text-[14px] text-white ${
+                                  item.aiResult.judgment === "보상 가능성 있음" ? "bg-emerald-500"
+                                  : item.aiResult.judgment === "담당자 검토 필요" ? "bg-amber-500"
+                                  : "bg-rose-500"
+                                }`}>
+                                  {item.aiResult.judgment}
                                 </Badge>
                                 <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
                               </div>
@@ -1485,7 +1564,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                               <div>
                                 <FormLabel className="text-gray-600 mb-1.5 block">신청 사유</FormLabel>
                                 <Textarea
-                                  placeholder="이 필지의 매수 신청 사유를 작성해 주세요."
+                                  placeholder="이 필지의 보상 신청 사유를 작성해 주세요."
                                   value={item.reason || ""}
                                   onChange={(e) => {
                                     setCartItems(prev => prev.map(ci => 
@@ -1639,7 +1718,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                   <div>
                     <FormLabel className="text-gray-600 mb-1.5 block">신청 사유</FormLabel>
                     <Textarea
-                      placeholder="잔여지 매수를 신청하시는 사유를 상세히 작성해 주세요."
+                      placeholder="잔여지 보상를 신청하시는 사유를 상세히 작성해 주세요."
                       value={applicationForm.reason}
                       onChange={(e) => setApplicationForm(prev => ({ ...prev, reason: e.target.value }))}
                       className="min-h-[120px]"
@@ -1729,14 +1808,14 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
       )}
     </div>
 
-    {/* 매수신청 목록 플로팅 버튼 (신규 신청서 작성 단계에서는 미노출) */}
+    {/* 보상 신청 목록 플로팅 버튼 (신규 신청서 작성 단계에서는 미노출) */}
     {cartItems.length > 0 && !isCartOpen && step !== "application" && (
       <button
         onClick={() => setIsCartOpen(true)}
         className="fixed bottom-6 right-6 z-50 flex h-14 items-center gap-2 rounded-full bg-[#2E8B57] px-5 text-white shadow-lg transition-all hover:bg-[#256b45] hover:shadow-xl animate-float"
       >
         <ClipboardList className="h-5 w-5" />
-        <span className="font-medium">매수신청 목록</span>
+        <span className="font-medium">보상 신청 목록</span>
         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-[15px] font-bold text-[#2E8B57]">
           {cartItems.length}
         </span>
@@ -1758,7 +1837,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
       }
     `}</style>
 
-    {/* 매수신청 목록 슬라이드 패널 */}
+    {/* 보상 신청 목록 슬라이드 패널 */}
     {isCartOpen && (
       <div className="fixed inset-0 z-50 flex justify-end">
         {/* 오버레이 */}
@@ -1772,7 +1851,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
           {/* 헤더 */}
           <div className="flex items-center justify-between border-b px-4 py-4">
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-semibold">매수신청 목록</h2>
+              <h2 className="text-lg font-semibold">보상 신청 목록</h2>
               <Badge className="bg-[#2E8B57]">{cartItems.length}건</Badge>
             </div>
             <button
@@ -1852,7 +1931,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                         <div className="p-2 space-y-2">
                           {items.map((item) => {
                             const isSelected = selectedCartItems.has(item.id);
-                            const isPositive = item.aiResult.judgment === "매수 가능성 높음";
+                            const isPositive = item.aiResult.judgment === "보상 가능성 있음";
                             return (
                               <div 
                                 key={item.id}
@@ -1888,10 +1967,14 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
                                       <span>잔여: {item.parcel.remainingArea}m<sup>2</sup></span>
                                       <span>|</span>
                                       <span>{item.parcel.landCategory}</span>
-                                      <Badge 
-                                        className={`text-[14px] text-white ${isPositive ? "bg-emerald-500" : "bg-rose-500"}`}
+                                      <Badge
+                                        className={`text-[14px] text-white ${
+                                          item.aiResult.judgment === "보상 가능성 있음" ? "bg-emerald-500"
+                                          : item.aiResult.judgment === "담당자 검토 필요" ? "bg-amber-500"
+                                          : "bg-rose-500"
+                                        }`}
                                       >
-                                        {isPositive ? "매수 가능성 높음" : "매수 가능성 낮음"}
+                                        {item.aiResult.judgment}
                                       </Badge>
                                     </div>
                                   </div>

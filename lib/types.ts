@@ -1,14 +1,17 @@
 // 토지 유형
-export type LandType = "택지" | "농지" | "산지" | "그밖의토지";
+export type LandType = "택지" | "농지" | "산지" | "그밖의토지" | "대지";
 
 // 토지 형상
 export type LandShape =
   | "정방형"
+  | "장방형"
   | "가로장방형"
   | "세로장방형"
+  | "세장형"
   | "변형사다리형"
   | "역사다리형"
   | "사다리형"
+  | "사다리꼴"
   | "삼각형"
   | "역삼각형"
   | "부정형"
@@ -18,12 +21,15 @@ export type LandShape =
 export type LandCategory =
   | "과"
   | "구"
+  | "광"
+  | "공"
   | "답"
   | "대"
   | "도"
   | "목"
   | "묘"
   | "양"
+  | "염"
   | "임"
   | "잡"
   | "장"
@@ -52,8 +58,8 @@ export type AdminStatus =
   | "심사완료";
 
 // AI 1차 판독 결과
-// 관리자: 수용가능/수용불가, 시민: 매수 가능성 높음/매수 가능성 낮음
-export type AIJudgmentResult = "수용가능" | "수용불가" | "매수 가능성 높음" | "매수 가능성 낮음";
+// 관리자: 수용가능/수용불가, 시민: 보상 가능성 높음/보상 가능성 낮음
+export type AIJudgmentResult = "수용가능" | "수용불가" | "보상 가능성 높음" | "보상 가능성 낮음" | "적용가능" | "매수 불가";
 
 // 최종 판정 결과 (매수/기각/심의위원회 이관)
 export type FinalJudgmentResult = "매수" | "기각" | "심의위원회 이관";
@@ -99,7 +105,10 @@ export type BusinessUnit =
   | "안동영주"
   | "구미김천"
   // 제주권
-  | "제주서귀포";
+  | "제주서귀포"
+  // 건설사업단 전체명 (하위 호환)
+  | "수도권건설사업단" | "천안안성건설사업단" | "강진광주건설사업단"
+  | "강진광주건설 사업단";
 
 // 토지 정보
 export interface LandInfo {
@@ -117,12 +126,21 @@ export interface LandInfo {
   remainingShapeIndex: number; // 잔여지 형상지수
   ownerName: string; // 소유자명
   ownerContact?: string; // 소유자 연락처
+  ownerType?: string; // 소유자 구분
   hasIncludedLand: boolean; // 편입토지 존재 여부
   officialLandPrice?: number; // 개별공시지가 (원/m²)
   officialLandPriceYear?: number; // 공시기준연도
   coordinates?: Array<{ lat: number; lng: number }>; // 필지 경계 좌표
   businessUnit?: BusinessUnit; // 관할기관
   projectName?: string; // 사업명
+  // 민원인 입력 데이터 (LandSpecificData 미러, 선택적)
+  currentUsage?: LandCategory;
+  landSubType?: "" | "residential-detached" | "residential-multi" | "residential-apartment" | "commercial" | "industrial";
+  reportedShape?: LandShape;
+  accessRoadLost?: boolean;
+  waterChannelLost?: boolean;
+  farmMachineDifficulty?: boolean;
+  incorporatedArea?: number; // includedArea 별칭
 }
 
 // 일단지 판정 조건
@@ -168,6 +186,8 @@ export interface Application {
   adminStatus: AdminStatus; // 담당자 진행상황
   appliedAt: string; // 신청일
   aiResult?: AIAnalysisResult; // AI 분석 결과
+  landAIResults?: Record<string, AIAnalysisResult>; // 필지별 AI 분석 결과
+  applicantEmail?: string; // 신청인 이메일
   finalJudgment?: JudgmentResult; // 최종 판정
   reviewerComment?: string; // 담당자 검토 의견
   finalReviewOpinion?: string; // 최종 검토 의견 (복수 필지용, 심의서 현지상황 및 검토의견에 자동입력)
@@ -209,6 +229,7 @@ export interface AIAnalysisResult {
   waterChannelLost: boolean; // 수로 상실 (직접확인)
   farmMachineDifficulty: boolean; // 농기계 회전 곤란 (직접확인)
   judgmentRationale: JudgmentRationale; // 판단 근거 설명
+  confidenceScore?: number; // 신뢰도 점수 (0-1)
   unifiedParcelAnalysis?: UnifiedParcelAnalysis; // 일단지 판정 결과
   landJudgments?: LandJudgment[]; // 필지별 판정 결과 (혼합 케이스용)
 }
@@ -270,9 +291,12 @@ export interface BusinessUnitGroupedCart {
 
 // 담당자 확인항목 (사전등록용)
 export interface AdminCheckItems {
-  farmMachineDifficulty: boolean;
-  accessRoadLost: boolean;
-  waterChannelLost: boolean;
+  accessRoadLost: boolean;                    // 접면도로 상실
+  waterChannelLost: boolean;                  // 농업용 수로 상실
+  farmMachineDifficulty: boolean;             // 농기계 진입 곤란
+  farmMachineRotationDifficulty: boolean;     // 농기계 회전 곤란
+  livestockBuildingUnusable: boolean;         // 축사 부지 사용불가
+  adjacentSameOwnerLand: boolean;             // 인접 동일소유자 토지
 }
 
 // 사전등록 필지 (민원인 화면용)
@@ -311,7 +335,7 @@ export interface ReviewDocument {
 export type AnalysisStage = string;
 
 // 필지 공개 상태 (민원인 조회 가능 여부)
-export type ParcelPublishStatus = "대기중" | "1차분석완료" | "2차분석중" | "담당자확인완료" | "공개";
+export type ParcelPublishStatus = "대기중" | "분석전" | "분석전" | "1차분석완료" | "1차분석완료" | "2차분석중" | "2차분석완료" | "2차분석중" | "2차분석완료" | "담당자확인완료" | "공개";
 
 // 분석 히스토리
 export interface AnalysisHistory {
@@ -327,9 +351,12 @@ export interface AnalysisHistory {
   changedOptions?: {                          // 변경된 옵션값
     currentUsage?: LandCategory;              // 활용지목
     landShape?: LandShape;                    // 토지형상
-    farmMachineDifficulty?: boolean;          // 농기계 진입불가
     accessRoadLost?: boolean;                 // 접면도로 상실
-    waterChannelLost?: boolean;               // 관개수로 상실
+    waterChannelLost?: boolean;               // 농업용 수로 상실
+    farmMachineDifficulty?: boolean;          // 농기계 진입 곤란
+    farmMachineRotationDifficulty?: boolean;  // 농기계 회전 곤란
+    livestockBuildingUnusable?: boolean;      // 축사 부지 사용불가
+    adjacentSameOwnerLand?: boolean;          // 인접 동일소유자 토지
   };
   changeReason?: string;                      // 변경 사유
   memo?: string;                              // 메모
@@ -379,8 +406,8 @@ export interface BatchAnalysisResult {
   totalCount: number;                         // 전체 건수
   successCount: number;                       // 성공 건수
   failedCount: number;                        // 실패 건수
-  highPossibilityCount: number;               // 매수 가능성 높음 건수
-  lowPossibilityCount: number;                // 매수 가능성 낮음 건수
+  highPossibilityCount: number;               // 보상 가능성 높음 건수
+  lowPossibilityCount: number;                // 보상 가능성 낮음 건수
   processedParcels: ProcessedParcel[];        // 처리된 필지 목록
 }
 

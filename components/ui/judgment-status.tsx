@@ -4,8 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { JUDGMENT_COLORS } from "@/components/ui/judgment-badge";
 
-// AI 판정 결과: 관리자(수용가능/수용불가), 시민(매수 가능성 높음/매수 가능성 낮음)
-export type JudgmentType = "수용가능" | "수용불가" | "매수 가능성 높음" | "매수 가능성 낮음" | "분석중";
+// AI 판정 결과: 관리자(수용가능/수용불가), 시민(보상 가능성 높음/보상 가능성 낮음)
+export type JudgmentType = "수용가능" | "수용불가" | "보상 가능성 높음" | "보상 가능성 낮음" | "분석중";
 
 interface JudgmentStatusProps {
   judgment: JudgmentType | string;
@@ -40,15 +40,15 @@ export function JudgmentStatus({
           badge: `${JUDGMENT_COLORS.수용불가.bg} text-white hover:${JUDGMENT_COLORS.수용불가.bg}`,
           text: JUDGMENT_COLORS.수용불가.text
         };
-      case "매수 가능성 높음":
+      case "보상 가능성 높음":
         return {
-          badge: `${JUDGMENT_COLORS["매수 가능성 높음"].bg} text-white hover:${JUDGMENT_COLORS["매수 가능성 높음"].bg}`,
-          text: JUDGMENT_COLORS["매수 가능성 높음"].text
+          badge: `${JUDGMENT_COLORS["보상 가능성 높음"].bg} text-white hover:${JUDGMENT_COLORS["보상 가능성 높음"].bg}`,
+          text: JUDGMENT_COLORS["보상 가능성 높음"].text
         };
-      case "매수 가능성 낮음":
+      case "보상 가능성 낮음":
         return {
-          badge: `${JUDGMENT_COLORS["매수 가능성 낮음"].bg} text-white hover:${JUDGMENT_COLORS["매수 가능성 낮음"].bg}`,
-          text: JUDGMENT_COLORS["매수 가능성 낮음"].text
+          badge: `${JUDGMENT_COLORS["보상 가능성 낮음"].bg} text-white hover:${JUDGMENT_COLORS["보상 가능성 낮음"].bg}`,
+          text: JUDGMENT_COLORS["보상 가능성 낮음"].text
         };
       default:
         return {
@@ -106,7 +106,7 @@ export function JudgmentOX({
   judgment: JudgmentType | string;
   className?: string;
 }) {
-  const isAccepted = judgment === "수용가능" || judgment === "매수" || judgment === "매수 가능성 높음";
+  const isAccepted = judgment === "수용가능" || judgment === "매수" || judgment === "보상 가능성 높음";
   
   return (
     <span className={cn(

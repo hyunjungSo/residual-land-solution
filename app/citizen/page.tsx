@@ -60,7 +60,7 @@ function CitizenPageContent() {
             <ChevronRight className="h-4 w-4" />
             <span>마이페이지</span>
             <ChevronRight className="h-4 w-4" />
-            <span>잔여지 매수</span>
+            <span>잔여지 보상</span>
             <ChevronRight className="h-4 w-4" />
             <span className="text-gray-900 font-medium">{currentConfig.breadcrumb}</span>
           </nav>

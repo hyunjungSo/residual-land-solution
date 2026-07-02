@@ -268,6 +268,7 @@ export function ApplicationFormSection({
     // 신청 데이터 생성
     const application: Application = {
       id: `app-${Date.now()}`,
+      applicationType: "single",
       applicationNumber: `2026-${String(new Date().getMonth() + 1).padStart(2, "0")}${String(new Date().getDate()).padStart(2, "0")}-${String(Math.floor(Math.random() * 999)).padStart(3, "0")}`,
       applicantName: formData.applicantName,
       applicantContact: formData.applicantContact,
@@ -277,7 +278,7 @@ export function ApplicationFormSection({
       reportedShape: firstLandData.reportedShape,
       farmMachineDifficulty: firstLandData.farmMachineDifficulty,
       reason: formData.reason,
-      attachments: formData.attachments,
+      attachments: formData.attachments as unknown as string[],
       status: "접수완료",
       adminStatus: "접수완료",
       appliedAt: new Date().toISOString().split("T")[0],
@@ -353,7 +354,7 @@ export function ApplicationFormSection({
         {/* 신청서 양식 */}
         <Card className="border-0 shadow-none">
           <CardHeader>
-            <CardTitle className="text-xl">매수 신청서 작성</CardTitle>
+            <CardTitle className="text-xl">보상 신청서 작성</CardTitle>
             <CardDescription>
               신청인 정보와 토지 관련 정보를 입력해주세요. * 표시는 필수 항목입니다.
             </CardDescription>
@@ -668,7 +669,7 @@ export function ApplicationFormSection({
                 <label className="text-sm font-medium">신청 사유 <span className="text-orange-500">*</span></label>
                 <Textarea
                   id="reason"
-                  placeholder="잔여지 매수를 신청하는 사유를 상세히 작성해주세요."
+                  placeholder="잔여지 보상를 신청하는 사유를 상세히 작성해주세요."
                   rows={3}
                   value={formData.reason}
                   onChange={(e) =>
@@ -773,7 +774,7 @@ export function ApplicationFormSection({
                 ) : (
                   <>
                     <Send className="h-4 w-4" />
-                    매수 신청서 제출
+                    보상 신청서 제출
                   </>
                 )}
               </Button>
@@ -786,7 +787,7 @@ export function ApplicationFormSection({
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>잔여지 매수 신청서를 제출하시겠습니까?</AlertDialogTitle>
+            <AlertDialogTitle>잔여지 보상 신청서를 제출하시겠습니까?</AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-3 text-muted-foreground">
                 <p className="text-sm">

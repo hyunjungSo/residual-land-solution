@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { LeafletMap } from "@/components/leaflet-map";
 import { dummyLandInfoList } from "@/lib/dummy-data";
-import type { LandInfo, AIAnalysisResult, JudgmentRationale, ApplicationCartItem } from "@/lib/types";
+import type { LandInfo, AIAnalysisResult, JudgmentRationale, ApplicationCartItem, LandType } from "@/lib/types";
 import { Search, MapPin, ChevronRight, ChevronLeft, Bot, CheckCircle2, XCircle, AlertTriangle, Loader2, RotateCcw, Info, Ban, FileText, Scale, ChevronDown, ChevronUp, ClipboardList, Plus, Trash2, X, User, Layers, PlayCircle } from "lucide-react";
 import { AIIcon } from "@/components/ui/ai-icon";
 import { LandUsageSelect, getLandUsageLabel } from "@/components/common/land-usage-select";
@@ -34,7 +34,6 @@ const regionData = {
   ],
   시군구: {
     "서울특별시": ["강남구", "강동구", "강북구", "강서구", "관악구", "광진구", "구로구", "금천구", "노원구", "도봉구", "동대문구", "동작구", "마포구", "서대문구", "서초구", "성동구", "성북구", "송파구", "양천구", "영등포구", "용산구", "은평구", "종로구", "중구", "중랑구"],
-    "부산광역시": ["강서구", "금정구", "기장군", "남구", "동구", "동래구", "부산진구", "북구", "사상구", "사하구", "서구", "수영구", "연제구", "영도구", "중구", "해운대구"],
     "부산광역시": ["강서구", "금정구", "기장군", "남구", "동구", "동래구", "부산진구", "북구", "사상구", "사하구", "서구", "수영구", "연제구", "영도구", "중구", "해운대구"],
     "대구광역시": ["남구", "달서구", "달성군", "동구", "북구", "서구", "수성구", "중구"],
     "인천광역시": ["강화군", "계양구", "남동구", "동구", "미추홀구", "부평구", "서구", "연수구", "옹진군", "중구"],
@@ -416,7 +415,7 @@ function simulateAIAnalysis(
 
   const judgmentRationale: JudgmentRationale = generateJudgmentRationale(
     land,
-    provisionalJudgment,
+    provisionalJudgment === "수용가능" ? "매수" : "기각",
     metAutoCriteria,
     metCriteriaNames,
     manualCheckItems,
@@ -790,6 +789,9 @@ export function LandSearchSection({ onLandSelect, cartItems = [], onAddToCart, o
         results = ownerLandData.map((landData) => ({
           ...dummyLandInfoList[0],
           ...landData,
+          landType: landData.landType as LandType,
+          landCategory: landData.landCategory as import("@/lib/types").LandCategory,
+          businessUnit: landData.businessUnit as import("@/lib/types").BusinessUnit | undefined,
           ownerName: ownerName || "홍길동",
         }));
         
@@ -1311,7 +1313,7 @@ export function LandSearchSection({ onLandSelect, cartItems = [], onAddToCart, o
                     // AI 판독 상태만 리셋 (필지 목록은 유지)
                     setParcelAiResults(new Map());
                     setAiResult(null);
-                    setCheckedParcelsForCart(new Set());
+                    setSelectedCartItems(new Set());
                     setOwnedParcels(new Set());
                   }}
                   className="text-muted-foreground hover:text-foreground"
@@ -1526,7 +1528,7 @@ export function LandSearchSection({ onLandSelect, cartItems = [], onAddToCart, o
                   <div className="rounded border border-destructive bg-destructive/5 p-3">
                     <div className="flex items-center gap-2">
                       <Ban className="h-4 w-4 text-destructive" />
-                      <span className="text-base font-medium text-destructive">편입토지 없음 - 매수 가능성 낮음</span>
+                      <span className="text-base font-medium text-destructive">편입토지 없음 - 보상 가능성 낮음</span>
                     </div>
                   </div>
                 )}
@@ -1561,11 +1563,9 @@ export function LandSearchSection({ onLandSelect, cartItems = [], onAddToCart, o
                     {/* 선택된 필지 상세 결과 */}
                     {aiResult && selectedLand && (
                       <div className={`rounded-lg border-2 p-4 ${
-                        aiResult.provisionalJudgment === "수용가능" 
-                          ? `${JUDGMENT_COLORS.수용가능.border} ${JUDGMENT_COLORS.수용가능.bgLight}` 
-                          : aiResult.provisionalJudgment === "심의위원회 이관"
-                            ? `${JUDGMENT_COLORS.이관.border} ${JUDGMENT_COLORS.이관.bgLight}`
-                            : `${JUDGMENT_COLORS.수용불가.border} ${JUDGMENT_COLORS.수용불가.bgLight}`
+                        aiResult.provisionalJudgment === "수용가능"
+                          ? `${JUDGMENT_COLORS.수용가능.border} ${JUDGMENT_COLORS.수용가능.bgLight}`
+                          : `${JUDGMENT_COLORS.수용불가.border} ${JUDGMENT_COLORS.수용불가.bgLight}`
                       }`}>
                         {/* 헤더 */}
                         <div className="mb-3 flex items-start justify-between">
@@ -1575,14 +1575,12 @@ export function LandSearchSection({ onLandSelect, cartItems = [], onAddToCart, o
                           </div>
                           <Badge 
                             className={`px-2 py-1 text-sm font-semibold text-white ${
-                              aiResult.provisionalJudgment === "수용가능" || aiResult.provisionalJudgment === "매수 가능성 높음"
-                                ? JUDGMENT_COLORS.수용가능.bg 
-                                : aiResult.provisionalJudgment === "심의위원회 이관"
-                                  ? JUDGMENT_COLORS.이관.bg
-                                  : JUDGMENT_COLORS.수용불가.bg
+                              aiResult.provisionalJudgment === "수용가능" || aiResult.provisionalJudgment === "보상 가능성 높음"
+                                ? JUDGMENT_COLORS.수용가능.bg
+                                : JUDGMENT_COLORS.수용불가.bg
                             }`}
                           >
-                            {aiResult.provisionalJudgment === "수용가능" || aiResult.provisionalJudgment === "매수 가능성 높음" ? "매수 가능성 높음" : aiResult.provisionalJudgment === "심의위원회 이관" ? "심의위원회 이관" : "매수 가능성 낮음"}
+                            {aiResult.provisionalJudgment === "수용가능" || aiResult.provisionalJudgment === "보상 가능성 높음" ? "보상 가능성 높음" : "보상 가능성 낮음"}
                           </Badge>
                         </div>
 
@@ -1757,7 +1755,7 @@ export function LandSearchSection({ onLandSelect, cartItems = [], onAddToCart, o
                       <div className="space-y-2">
                         <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-center">
                           <p className="text-sm font-medium text-red-600">
-                            잔여지가 없어 매수 신청이 불가합니다
+                            잔여지가 없어 보상 신청이 불가합니다
                           </p>
                           <p className="mt-1.5 text-xs text-red-600">
                             본 토지는 전체가 공익사업에 편입되어 잔여지가 존재하지 않습니다.
@@ -1943,9 +1941,9 @@ export function LandSearchSection({ onLandSelect, cartItems = [], onAddToCart, o
                                       <span>|</span>
                                       <span>{item.landInfo.landType}</span>
                                       <Badge 
-                                        className={`text-xs text-white ${item.aiResult.provisionalJudgment === "수용가능" || item.aiResult.provisionalJudgment === "매수 가능성 높음" ? JUDGMENT_COLORS.수용가능.bg : JUDGMENT_COLORS.수용불가.bg}`}
+                                        className={`text-xs text-white ${item.aiResult.provisionalJudgment === "수용가능" || item.aiResult.provisionalJudgment === "보상 가능성 높음" ? JUDGMENT_COLORS.수용가능.bg : JUDGMENT_COLORS.수용불가.bg}`}
                                       >
-                                        {item.aiResult.provisionalJudgment === "수용가능" || item.aiResult.provisionalJudgment === "매수 가능성 높음" ? "매수 가능성 높음" : "매수 가능성 낮음"}
+                                        {item.aiResult.provisionalJudgment === "수용가능" || item.aiResult.provisionalJudgment === "보상 가능성 높음" ? "보상 가능성 높음" : "보상 가능성 낮음"}
                                       </Badge>
                                     </div>
                                   </div>

@@ -235,7 +235,7 @@ export function BatchAnalysis({
     setCurrentPage(1);
   };
 
-  // AI 매수 가능성 카드 클릭 핸들러 — 항상 잔여지인정 필지 기준으로 필터
+  // AI 보상 가능성 카드 클릭 핸들러 — 항상 잔여지인정 필지 기준으로 필터
   const handleAiJudgmentClick = (value: "all" | "high" | "low" | "pending") => {
     setAiJudgmentFilter(value);
     setInclusionTypeFilter("partial");
@@ -347,7 +347,7 @@ export function BatchAnalysis({
       "편입면적(㎡)": p.landInfo.includedArea ?? "",
       "잔여비율(%)": p.landInfo.remainingRatio ?? "",
       편입유형: p.residualStatus === "잔여지 인정" ? "잔여지 발생" : !p.residualStatus ? "판독대기" : "-",
-      매수가능성: p.residualStatus !== "잔여지 인정" ? "-" : p.aiResult ? (p.aiResult.provisionalJudgment === "매수 가능성 높음" ? "높음" : "낮음") : "검토필요",
+      매수가능성: p.residualStatus !== "잔여지 인정" ? "-" : p.aiResult ? (p.aiResult.provisionalJudgment === "보상 가능성 높음" ? "높음" : "낮음") : "검토필요",
     }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
@@ -384,7 +384,7 @@ export function BatchAnalysis({
       const parcel = parcels.find(p => p.id === parcelId);
       if (!parcel) return;
 
-      const judgment: AIJudgmentResult = Math.random() > 0.5 ? "매수 가능성 높음" : "매수 가능성 낮음";
+      const judgment: AIJudgmentResult = Math.random() > 0.5 ? "보상 가능성 높음" : "보상 가능성 낮음";
       const newAiResult: AIAnalysisResult = {
         ...parcel.aiResult,
         provisionalJudgment: judgment,
@@ -440,7 +440,7 @@ export function BatchAnalysis({
       // 분석 시뮬레이션 (1초 딜레이)
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      const judgment: AIJudgmentResult = Math.random() > 0.5 ? "매수 가능성 높음" : "매수 가능성 낮음";
+      const judgment: AIJudgmentResult = Math.random() > 0.5 ? "보상 가능성 높음" : "보상 가능성 낮음";
       const newAiResult: AIAnalysisResult = { ...parcel.aiResult, provisionalJudgment: judgment, landTypePath: parcel.aiResult?.landTypePath || "농지", criteriaChecks: parcel.aiResult?.criteriaChecks || [], originalShapeIndex: parcel.aiResult?.originalShapeIndex || 0, remainingShapeIndex: parcel.aiResult?.remainingShapeIndex || 0, shapeIndexChange: 0, isBlindLand: false, accessRoadLost: parcel.aiResult?.accessRoadLost || false, waterChannelLost: parcel.aiResult?.waterChannelLost || false, farmMachineDifficulty: parcel.aiResult?.farmMachineDifficulty || false, judgmentRationale: parcel.aiResult?.judgmentRationale || { summary: "", legalBasis: "", appliedCriteria: [], detailedExplanation: "" } };
       const newHistory: AnalysisHistory = {
         id: `analysis_${Date.now()}_${Math.random()}`,
@@ -469,7 +469,7 @@ export function BatchAnalysis({
     await new Promise(resolve => setTimeout(resolve, 1000));
     const parcelsToAnalyze = baseParcels.filter(p => targetIds.has(p.id));
     const analyzed = parcelsToAnalyze.map(parcel => {
-      const judgment: AIJudgmentResult = Math.random() > 0.5 ? "매수 가능성 높음" : "매수 가능성 낮음";
+      const judgment: AIJudgmentResult = Math.random() > 0.5 ? "보상 가능성 높음" : "보상 가능성 낮음";
       const newAiResult: AIAnalysisResult = { ...parcel.aiResult, provisionalJudgment: judgment, landTypePath: parcel.aiResult?.landTypePath || "농지", criteriaChecks: parcel.aiResult?.criteriaChecks || [], originalShapeIndex: parcel.aiResult?.originalShapeIndex || 0, remainingShapeIndex: parcel.aiResult?.remainingShapeIndex || 0, shapeIndexChange: 0, isBlindLand: false, accessRoadLost: parcel.aiResult?.accessRoadLost || false, waterChannelLost: parcel.aiResult?.waterChannelLost || false, farmMachineDifficulty: parcel.aiResult?.farmMachineDifficulty || false, judgmentRationale: parcel.aiResult?.judgmentRationale || { summary: "", legalBasis: "", appliedCriteria: [], detailedExplanation: "" }, analysisSource: source };
       const newHistory: AnalysisHistory = { id: `analysis_${Date.now()}_${Math.random()}`, parcelId: parcel.id, stage: parcel.analysisHistory?.length ? "2차분석" : "1차분석", analyzedAt: new Date().toISOString(), analyzedBy: source === "auto" ? "AI 자동 분석" : "수동 판독", newResult: judgment, previousResult: parcel.aiResult?.provisionalJudgment || undefined, changedOptions: {}, aiResult: newAiResult };
       return { ...parcel, aiResult: newAiResult, analysisHistory: [...(parcel.analysisHistory || []), newHistory], lastAnalyzedAt: new Date().toISOString(), isVisible: true } as ProcessedParcel;
@@ -485,15 +485,15 @@ export function BatchAnalysis({
     return analyzed.length;
   };
 
-  // AI 매수 가능성 분석 실행 (수동 선택)
+  // AI 보상 가능성 분석 실행 (수동 선택)
   const handleBatchAnalysis = async () => {
     if (selectedParcelIds.size === 0) return;
     setIsPurchaseAnalyzing(true);
     try {
       const count = await performAiAnalysis(selectedParcelIds, parcels);
       toast({
-        title: "AI 매수 가능성 분석 완료",
-        description: `${count}건의 AI 매수 가능성 분석이 완료되었습니다.`,
+        title: "AI 보상 가능성 분석 완료",
+        description: `${count}건의 AI 보상 가능성 분석이 완료되었습니다.`,
         duration: 3500,
       });
       setSelectedParcelIds(new Set());
@@ -529,14 +529,14 @@ export function BatchAnalysis({
 
       setSelectedParcelIds(new Set());
 
-      // 잔여지 인정 필지에 대해 AI 매수 가능성 자동 분석
+      // 잔여지 인정 필지에 대해 AI 보상 가능성 자동 분석
       const autoIds = new Set(updatedParcels.filter(p => selectedParcelIds.has(p.id) && p.residualStatus === "잔여지 인정").map(p => p.id));
       if (autoIds.size > 0) {
         setIsPurchaseAnalyzing(true);
         try {
           const count = await performAiAnalysis(autoIds, updatedParcels, "auto");
           toast({
-            title: "AI 매수 가능성 자동 분석 완료",
+            title: "AI 보상 가능성 자동 분석 완료",
             description: `잔여지 인정 ${count}건에 대한 AI 분석이 자동으로 완료되었습니다.`,
             duration: 3500,
           });
@@ -736,7 +736,7 @@ export function BatchAnalysis({
         <h1 className="text-2xl font-bold text-foreground sm:text-3xl">필지 관리</h1>
       </div>
       
-      <p className="text-muted-foreground -mt-4">편입 유형 분석 및 매수 가능성 심사를 관리합니다.</p>
+      <p className="text-muted-foreground -mt-4">편입 유형 분석 및 보상 가능성 심사를 관리합니다.</p>
 
       {/* 대시보드 요약 - 3카드 구조 */}
       <div className="grid gap-5 lg:grid-cols-2">
@@ -800,7 +800,7 @@ export function BatchAnalysis({
                   <TooltipTrigger asChild>
                     <span className="inline-flex items-center gap-1 text-[16px] font-medium text-emerald-600 underline decoration-dotted underline-offset-2 cursor-help" style={{ order: 1 }}><Info className="h-3.5 w-3.5 flex-shrink-0" />잔여지 발생</span>
                   </TooltipTrigger>
-                  <TooltipContent side="top">편입 후 잔여지가 발생하여 AI 매수 가능성 분석 대상인 필지입니다.</TooltipContent>
+                  <TooltipContent side="top">편입 후 잔여지가 발생하여 AI 보상 가능성 분석 대상인 필지입니다.</TooltipContent>
                 </Tooltip>
                 <div className="flex items-baseline gap-0.5" style={{ order: 2, marginTop: '8px' }}>
                   <span className="font-bold text-emerald-700" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.partialInclusion}</span>
@@ -819,7 +819,7 @@ export function BatchAnalysis({
           <CardContent className="space-y-2" style={{ paddingTop: '0' }}>
             <div className="space-y-2">
               <div className="flex items-center justify-between text-[16px]">
-                <span className="text-muted-foreground">AI 매수 가능성 높음 비율</span>
+                <span className="text-muted-foreground">AI 보상 가능성 높음 비율</span>
                 <span style={{ fontSize: '30px', fontWeight: '800', color: 'rgb(20, 113, 97)' }}>
                   {stats.partialInclusion > 0 ? Math.round((stats.highAI / stats.partialInclusion) * 100) : 0}%
                 </span>
@@ -853,7 +853,7 @@ export function BatchAnalysis({
                   <TooltipTrigger asChild>
                     <span className="inline-flex items-center gap-1 text-[16px] font-medium text-amber-600 underline decoration-dotted underline-offset-2 cursor-help"><Info className="h-3.5 w-3.5 flex-shrink-0" />검토필요</span>
                   </TooltipTrigger>
-                  <TooltipContent side="top">AI 분석 결과만으로 매수 가능성을 판정하기 어려워 담당자의 직접 확인이 필요한 건수입니다.</TooltipContent>
+                  <TooltipContent side="top">AI 분석 결과만으로 보상 가능성을 판정하기 어려워 담당자의 직접 확인이 필요한 건수입니다.</TooltipContent>
                 </Tooltip>
                 <div className="flex items-baseline gap-0.5 mt-2">
                   <span className="font-bold text-amber-600" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.pendingReview}</span>
@@ -869,7 +869,7 @@ export function BatchAnalysis({
                   <TooltipTrigger asChild>
                     <span className="inline-flex items-center gap-1 text-[16px] font-medium text-emerald-600 underline decoration-dotted underline-offset-2 cursor-help"><Info className="h-3.5 w-3.5 flex-shrink-0" />매수가능성 높음</span>
                   </TooltipTrigger>
-                  <TooltipContent side="top">AI가 매수 가능성이 높다고 판단한 건수입니다.</TooltipContent>
+                  <TooltipContent side="top">AI가 보상 가능성이 높다고 판단한 건수입니다.</TooltipContent>
                 </Tooltip>
                 <div className="flex items-baseline gap-0.5 mt-2">
                   <span className="font-bold text-emerald-700" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.highAI}</span>
@@ -885,7 +885,7 @@ export function BatchAnalysis({
                   <TooltipTrigger asChild>
                     <span className="inline-flex items-center gap-1 text-[16px] font-medium text-rose-500 underline decoration-dotted underline-offset-2 cursor-help"><Info className="h-3.5 w-3.5 flex-shrink-0" />매수가능성 낮음</span>
                   </TooltipTrigger>
-                  <TooltipContent side="top">AI가 매수 가능성이 낮다고 판단한 건수입니다.</TooltipContent>
+                  <TooltipContent side="top">AI가 보상 가능성이 낮다고 판단한 건수입니다.</TooltipContent>
                 </Tooltip>
                 <div className="flex items-baseline gap-0.5 mt-2">
                   <span className="font-bold text-rose-600" style={{ fontSize: '42px', lineHeight: '1em' }}>{stats.lowAI}</span>
@@ -896,7 +896,7 @@ export function BatchAnalysis({
             <div className="mt-3 px-1 space-y-1.5">
               <p className="text-[15px] text-slate-600 flex items-start gap-2">
                 <span className="mt-px shrink-0 text-slate-400">•</span>
-                전체 건수는 <span className="font-medium text-slate-700">잔여지 발생</span> 필지를 대상으로 AI가 매수 가능성을 판독한 건수입니다.
+                전체 건수는 <span className="font-medium text-slate-700">잔여지 발생</span> 필지를 대상으로 AI가 보상 가능성을 판독한 건수입니다.
               </p>
               <p className="text-[15px] text-slate-600 flex items-start gap-2">
                 <span className="mt-px shrink-0 text-slate-400">•</span>
@@ -943,7 +943,7 @@ export function BatchAnalysis({
                   <><Loader2 className="h-4 w-4 mr-2 animate-spin" />1단계: 편입 유형 분석 중...</>
                 )}
                 {integratedStep === "step2" && (
-                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" />2단계: AI 매수 가능성 검토 중...</>
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" />2단계: AI 보상 가능성 검토 중...</>
                 )}
                 {integratedStep === "success" && (
                   <>통합 판독 완료</>

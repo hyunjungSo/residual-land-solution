@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 
-type AIJudgmentType = "매수 가능성 높음" | "매수 가능성 낮음" | "수용가능" | "수용불가";
+type AIJudgmentType = "보상 가능성 높음" | "보상 가능성 낮음" | "수용가능" | "수용불가";
 
 interface AIJudgmentBadgeProps {
   judgment: AIJudgmentType | string;
@@ -10,7 +10,7 @@ interface AIJudgmentBadgeProps {
 }
 
 export function AIJudgmentBadge({ judgment, size = "md" }: AIJudgmentBadgeProps) {
-  const isHigh = judgment === "매수 가능성 높음" || judgment === "수용가능";
+  const isHigh = judgment === "보상 가능성 높음" || judgment === "수용가능";
   
   const sizeClasses = {
     sm: "text-xs px-2 py-1",
@@ -20,8 +20,8 @@ export function AIJudgmentBadge({ judgment, size = "md" }: AIJudgmentBadgeProps)
   
   const displayText = judgment === "수용가능" ? "높음" 
     : judgment === "수용불가" ? "낮음"
-    : judgment === "매수 가능성 높음" ? "높음"
-    : judgment === "매수 가능성 낮음" ? "낮음"
+    : judgment === "보상 가능성 높음" ? "높음"
+    : judgment === "보상 가능성 낮음" ? "낮음"
     : judgment;
   
   return (
@@ -39,5 +39,5 @@ export function AIJudgmentBadge({ judgment, size = "md" }: AIJudgmentBadgeProps)
 
 // AI 판정 여부 확인 헬퍼 함수
 export function isHighPossibility(judgment: string): boolean {
-  return judgment === "매수 가능성 높음" || judgment === "수용가능";
+  return judgment === "보상 가능성 높음" || judgment === "수용가능";
 }

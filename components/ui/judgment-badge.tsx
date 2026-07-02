@@ -93,7 +93,7 @@ export const JUDGMENT_COLORS = {
     border: "border-rose-500",
   },
   // 시민 측 판정값
-  "매수 가능성 높음": {
+  "보상 가능성 높음": {
     hex: "#10b981",
     bg: "bg-emerald-500",
     bgLight: "bg-emerald-50",
@@ -102,7 +102,7 @@ export const JUDGMENT_COLORS = {
     textDark: "text-emerald-700",
     border: "border-emerald-500",
   },
-  "매수 가능성 낮음": {
+  "보상 가능성 낮음": {
     hex: "#f43f5e",
     bg: "bg-rose-500",
     bgLight: "bg-rose-50",

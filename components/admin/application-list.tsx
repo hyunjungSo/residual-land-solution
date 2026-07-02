@@ -634,7 +634,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
         <CardHeader>
           <CardTitle>민원 목록</CardTitle>
           <CardDescription>
-            접수된 잔여지 매수 신청 민원을 관리합니다. 민원을 클릭하여 상세 분석을 진행하세요.
+            접수된 잔여지 보상 신청 민원을 관리합니다. 민원을 클릭하여 상세 분석을 진행하세요.
           </CardDescription>
         </CardHeader>
         <CardContent>

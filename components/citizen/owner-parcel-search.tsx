@@ -306,7 +306,7 @@ export function OwnerParcelSearch({ onSelectParcel }: OwnerParcelSearchProps) {
                 <TableBody>
                   {myParcels.map((parcel) => {
                     const isHighPossibility = 
-                      parcel.aiResult.provisionalJudgment === "매수 가능성 높음" || 
+                      parcel.aiResult.provisionalJudgment === "보상 가능성 높음" || 
                       parcel.aiResult.provisionalJudgment === "수용가능";
                     const ownerType = parcel.landInfo.ownerType === "individual" ? "개인" : "법인";
                     const analysisCount = parcel.analysisHistory?.length || 1;
@@ -365,7 +365,7 @@ export function OwnerParcelSearch({ onSelectParcel }: OwnerParcelSearchProps) {
                                 : "bg-rose-500 hover:bg-rose-500/90 text-white"
                             }
                           >
-                            {isHighPossibility ? "매수 가능성 높음" : "매수 가능성 낮음"}
+                            {isHighPossibility ? "보상 가능성 높음" : "보상 가능성 낮음"}
                           </Badge>
                         </TableCell>
                         
@@ -431,13 +431,13 @@ export function OwnerParcelSearch({ onSelectParcel }: OwnerParcelSearchProps) {
             <div className="space-y-6">
               {/* AI 판정 결과 */}
               <div className={`p-4 rounded-lg border-2 ${
-                selectedParcel.aiResult.provisionalJudgment === "매수 가능성 높음" || 
+                selectedParcel.aiResult.provisionalJudgment === "보상 가능성 높음" || 
                 selectedParcel.aiResult.provisionalJudgment === "수용가능"
                   ? "border-emerald-500 bg-emerald-50" 
                   : "border-rose-500 bg-rose-50"
               }`}>
                 <div className="flex items-center gap-3">
-                  {selectedParcel.aiResult.provisionalJudgment === "매수 가능성 높음" || 
+                  {selectedParcel.aiResult.provisionalJudgment === "보상 가능성 높음" || 
                    selectedParcel.aiResult.provisionalJudgment === "수용가능" ? (
                     <CheckCircle2 className="h-8 w-8 text-emerald-600" />
                   ) : (
@@ -446,12 +446,12 @@ export function OwnerParcelSearch({ onSelectParcel }: OwnerParcelSearchProps) {
                   <div>
                     <p className="text-sm text-muted-foreground">AI 분석 결과</p>
                     <p className={`text-xl font-bold ${
-                      selectedParcel.aiResult.provisionalJudgment === "매수 가능성 높음" || 
+                      selectedParcel.aiResult.provisionalJudgment === "보상 가능성 높음" || 
                       selectedParcel.aiResult.provisionalJudgment === "수용가능"
                         ? "text-emerald-600" : "text-rose-600"
                     }`}>
-                      {selectedParcel.aiResult.provisionalJudgment === "수용가능" ? "매수 가능성 높음" : 
-                       selectedParcel.aiResult.provisionalJudgment === "수용불가" ? "매수 가능성 낮음" :
+                      {selectedParcel.aiResult.provisionalJudgment === "수용가능" ? "보상 가능성 높음" : 
+                       selectedParcel.aiResult.provisionalJudgment === "수용불가" ? "보상 가능성 낮음" :
                        selectedParcel.aiResult.provisionalJudgment}
                     </p>
                   </div>
@@ -519,7 +519,7 @@ export function OwnerParcelSearch({ onSelectParcel }: OwnerParcelSearchProps) {
                   <Info className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
                   <p className="text-amber-800">
                     위 결과는 AI 분석 기준이며, 실제 매수 여부는 신청 후 담당자 심사를 통해 결정됩니다.
-                    매수 신청을 원하시면 아래 버튼을 눌러 신청서를 작성해주세요.
+                    보상 신청을 원하시면 아래 버튼을 눌러 신청서를 작성해주세요.
                   </p>
                 </div>
               </div>
@@ -531,7 +531,7 @@ export function OwnerParcelSearch({ onSelectParcel }: OwnerParcelSearchProps) {
               닫기
             </Button>
             {selectedParcel && (
-              selectedParcel.aiResult.provisionalJudgment === "매수 가능성 높음" || 
+              selectedParcel.aiResult.provisionalJudgment === "보상 가능성 높음" || 
               selectedParcel.aiResult.provisionalJudgment === "수용가능"
             ) && (
               <Button onClick={() => {
@@ -539,7 +539,7 @@ export function OwnerParcelSearch({ onSelectParcel }: OwnerParcelSearchProps) {
                 setShowDetailDialog(false);
               }}>
                 <FileText className="h-4 w-4 mr-2" />
-                매수 신청하기
+                보상 신청하기
               </Button>
             )}
           </DialogFooter>

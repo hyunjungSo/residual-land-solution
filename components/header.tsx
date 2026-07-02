@@ -10,7 +10,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 
 const citizenNavigation = [
-  { name: "잔여지 매수", href: "/citizen" },
+  { name: "잔여지 보상", href: "/citizen" },
 ];
 
 const adminNavigation = [

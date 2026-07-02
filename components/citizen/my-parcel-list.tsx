@@ -50,9 +50,12 @@ export function MyParcelList({
   
   // AI 재분석용 상태
   const [checkItems, setCheckItems] = useState<AdminCheckItems>({
-    farmMachineDifficulty: false,
     accessRoadLost: false,
     waterChannelLost: false,
+    farmMachineDifficulty: false,
+    farmMachineRotationDifficulty: false,
+    livestockBuildingUnusable: false,
+    adjacentSameOwnerLand: false,
   });
   const [selectedLandShape, setSelectedLandShape] = useState<LandShape | "">("");
   const [selectedLandUsage, setSelectedLandUsage] = useState<LandCategory | "">("");
@@ -93,10 +96,13 @@ export function MyParcelList({
   const handleParcelSelect = (parcel: PreRegisteredParcel) => {
     setSelectedParcel(parcel);
     // 기존 확인 항목으로 초기화
-    setCheckItems(parcel.checkItems || {
-      farmMachineDifficulty: false,
+    setCheckItems(parcel.adminCheckItems || {
       accessRoadLost: false,
       waterChannelLost: false,
+      farmMachineDifficulty: false,
+      farmMachineRotationDifficulty: false,
+      livestockBuildingUnusable: false,
+      adjacentSameOwnerLand: false,
     });
     setSelectedLandShape(parcel.landShape);
     setSelectedLandUsage(parcel.currentUsage);
@@ -119,14 +125,14 @@ export function MyParcelList({
     // 시뮬레이션된 AI 분석 (실제로는 API 호출)
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    // 확인 항목 중 하나라도 true면 매수 가능성 높음으로 판정 (시뮬레이션)
+    // 확인 항목 중 하나라도 true면 보상 가능성 높음으로 판정 (시뮬레이션)
     const hasAnyCheckItem = checkItems.farmMachineDifficulty || checkItems.accessRoadLost || checkItems.waterChannelLost;
     const shapeIndexChange = selectedParcel.aiResult.shapeIndexChange;
     const meetsCriteria = hasAnyCheckItem || shapeIndexChange >= 1.0;
     
     const newResult: AIAnalysisResult = {
       ...selectedParcel.aiResult,
-      provisionalJudgment: meetsCriteria ? "매수 가능성 높음" : "매수 가능성 낮음",
+      provisionalJudgment: meetsCriteria ? "보상 가능성 높음" : "보상 가능성 낮음",
       farmMachineDifficulty: checkItems.farmMachineDifficulty,
       accessRoadLost: checkItems.accessRoadLost,
       waterChannelLost: checkItems.waterChannelLost,
@@ -171,8 +177,8 @@ export function MyParcelList({
       judgmentRationale: {
         ...selectedParcel.aiResult.judgmentRationale,
         summary: meetsCriteria 
-          ? `${selectedParcel.landInfo.landType} 잔여지 - 선택된 기준 충족으로 「매수 가능성 높음」 판정`
-          : `${selectedParcel.landInfo.landType} 잔여지 - 기준 미충족으로 「매수 가능성 낮음」 판정`,
+          ? `${selectedParcel.landInfo.landType} 잔여지 - 선택된 기준 충족으로 「보상 가능성 높음」 판정`
+          : `${selectedParcel.landInfo.landType} 잔여지 - 기준 미충족으로 「보상 가능성 낮음」 판정`,
         appliedCriteria: [
           `토지유형: ${selectedParcel.landInfo.landType}`,
           `토지형상: ${selectedLandShape}`,
@@ -194,6 +200,7 @@ export function MyParcelList({
       id: p.landInfo.id,
       address: p.landInfo.address,
       coordinates: p.landInfo.coordinates || [],
+      isIncluded: false,
       isSelected: selectedParcel?.id === p.id,
       isHovered: hoveredParcelId === p.id,
     }));
@@ -213,7 +220,7 @@ export function MyParcelList({
             <Badge variant="secondary" className="bg-gray-100 text-gray-700">{myParcels.length}건</Badge>
           </div>
           <p className="text-xs text-gray-600">
-            매수 가능성 높음한 필지 목록입니다.
+            보상 가능성 높음한 필지 목록입니다.
           </p>
         </div>
 
@@ -223,7 +230,7 @@ export function MyParcelList({
             <div className="divide-y divide-gray-200">
               {myParcels.map((parcel) => {
                 const applied = isAlreadyApplied(parcel.landInfo.id);
-                const isEligible = parcel.aiResult.provisionalJudgment === "매수 가능성 높음";
+                const isEligible = parcel.aiResult.provisionalJudgment === "보상 가능성 높음";
                 return (
                   <div
                     key={parcel.id}
@@ -257,11 +264,11 @@ export function MyParcelList({
                       <div className="flex items-center justify-between">
                         {isEligible ? (
                           <Badge className="bg-emerald-500 hover:bg-emerald-500/90 text-white text-xs px-2 py-1">
-                            매수 가능성 높음
+                            보상 가능성 높음
                           </Badge>
                         ) : (
                           <Badge className="bg-rose-500 hover:bg-rose-500/90 text-white text-xs px-2 py-1">
-                            매수 가능성 낮음
+                            보상 가능성 낮음
                           </Badge>
                         )}
                         {applied ? (
@@ -404,7 +411,7 @@ export function MyParcelList({
 
                   {/* AI 판정 결과 (항상 표시) */}
                   <div className={`rounded-lg border-2 p-3 ${
-                    aiResult.provisionalJudgment === "매수 가능성 높음"
+                    aiResult.provisionalJudgment === "보상 가능성 높음"
                       ? "border-emerald-500 bg-emerald-500/5"
                       : "border-rose-500 bg-rose-500/5"
                   }`}>
@@ -415,11 +422,11 @@ export function MyParcelList({
                         {reanalyzedResult && <Badge variant="outline" className="text-xs ml-1">재분석</Badge>}
                       </span>
                       <Badge className={`text-xs text-white ${
-                        aiResult.provisionalJudgment === "매수 가능성 높음"
+                        aiResult.provisionalJudgment === "보상 가능성 높음"
                           ? "bg-emerald-500"
                           : "bg-rose-500"
                       }`}>
-                        {aiResult.provisionalJudgment === "매수 가능성 높음" ? "매수 가능성 높음" : "매수 가능성 낮음"}
+                        {aiResult.provisionalJudgment === "보상 가능성 높음" ? "보상 가능성 높음" : "보상 가능성 낮음"}
                       </Badge>
                     </div>
 
@@ -575,7 +582,7 @@ export function MyParcelList({
                   신청 목록에 추가됨
                 </span>
               </div>
-            ) : (reanalyzedResult || selectedParcel.aiResult).provisionalJudgment === "매수 가능성 높음" ? (
+            ) : (reanalyzedResult || selectedParcel.aiResult).provisionalJudgment === "보상 가능성 높음" ? (
               <Button 
                 className="w-full gap-1.5"
                 onClick={() => handleAddToCart(selectedParcel)}
@@ -586,7 +593,7 @@ export function MyParcelList({
             ) : (
               <div className="space-y-3">
                 <p className="text-sm text-gray-500 text-center">
-                  AI 분석 결과, 매수 신청 기준을 충족하지 않습니다.
+                  AI 분석 결과, 보상 신청 기준을 충족하지 않습니다.
                 </p>
                 <Button
                   variant="ghost"
@@ -610,7 +617,6 @@ export function MyParcelList({
             if (parcel) handleParcelSelect(parcel);
           }}
           selectedParcelId={selectedParcel?.landInfo.id}
-          className="h-full w-full"
         />
       </div>
     </div>

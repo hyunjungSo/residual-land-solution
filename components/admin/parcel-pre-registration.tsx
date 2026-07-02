@@ -85,9 +85,12 @@ export function ParcelPreRegistration({ businessUnit, onRegisterComplete }: Parc
   
   // 담당자 확인항목
   const [checkItems, setCheckItems] = useState<AdminCheckItems>({
-    farmMachineDifficulty: false,
     accessRoadLost: false,
     waterChannelLost: false,
+    farmMachineDifficulty: false,
+    farmMachineRotationDifficulty: false,
+    livestockBuildingUnusable: false,
+    adjacentSameOwnerLand: false,
   });
   
   // 현재 활용지목
@@ -124,9 +127,12 @@ export function ParcelPreRegistration({ businessUnit, onRegisterComplete }: Parc
   const handleSelectParcel = (parcel: LandInfo) => {
     setSelectedParcel(parcel);
     setCheckItems({
-      farmMachineDifficulty: false,
       accessRoadLost: false,
       waterChannelLost: false,
+      farmMachineDifficulty: false,
+      farmMachineRotationDifficulty: false,
+      livestockBuildingUnusable: false,
+      adjacentSameOwnerLand: false,
     });
     setCurrentUsage(parcel.landCategory);
     setLandShape(parcel.remainingShape || "부정형");
@@ -219,7 +225,7 @@ export function ParcelPreRegistration({ businessUnit, onRegisterComplete }: Parc
     return {
       landTypePath: parcel.landType,
       criteriaChecks,
-      provisionalJudgment: canPurchase ? "매수 가능성 높음" : "매수 가능성 낮음",
+      provisionalJudgment: canPurchase ? "보상 가능성 높음" : "보상 가능성 낮음",
       originalShapeIndex: parcel.originalShapeIndex,
       remainingShapeIndex: parcel.remainingShapeIndex,
       shapeIndexChange,
@@ -229,13 +235,13 @@ export function ParcelPreRegistration({ businessUnit, onRegisterComplete }: Parc
       farmMachineDifficulty: checks.farmMachineDifficulty,
       judgmentRationale: {
         summary: canPurchase 
-          ? `${parcel.landType} 잔여지 - 매수 기준 충족으로 「매수 가능성 높음」 판정`
-          : `${parcel.landType} 잔여지 - 매수 기준 미충족으로 「매수 가능성 낮음」 판정`,
+          ? `${parcel.landType} 잔여지 - 매수 기준 충족으로 「보상 가능성 높음」 판정`
+          : `${parcel.landType} 잔여지 - 매수 기준 미충족으로 「보상 가능성 낮음」 판정`,
         legalBasis: "「공익사업을 위한 토지 등의 취득 및 보상에 관한 법률」 제74조",
         appliedCriteria: criteriaChecks.filter(c => c.isMet).map(c => c.criteriaName),
         detailedExplanation: canPurchase
-          ? `본 필지는 잔여지 매수 기준을 충족하여 민원인 신청 시 매수 대상입니다.`
-          : `본 필지는 잔여지 매수 기준을 충족하지 않아 매수 대상에서 제외됩니다.`,
+          ? `본 필지는 잔여지 보상 기준을 충족하여 민원인 신청 시 매수 대상입니다.`
+          : `본 필지는 잔여지 보상 기준을 충족하지 않아 매수 대상에서 제외됩니다.`,
       },
     };
   };
@@ -285,9 +291,9 @@ export function ParcelPreRegistration({ businessUnit, onRegisterComplete }: Parc
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[16px] text-muted-foreground">매수 가능성 높음 필지</p>
+                <p className="text-[16px] text-muted-foreground">보상 가능성 높음 필지</p>
                 <p className="text-3xl font-bold text-green-600">
-                  {registeredParcels.filter(p => p.aiResult.provisionalJudgment === "매수 가능성 높음").length}
+                  {registeredParcels.filter(p => p.aiResult.provisionalJudgment === "보상 가능성 높음").length}
                 </p>
               </div>
               <CheckCircle2 className="h-10 w-10 text-green-600/20" />
@@ -298,9 +304,9 @@ export function ParcelPreRegistration({ businessUnit, onRegisterComplete }: Parc
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[16px] text-muted-foreground">매수 가능성 낮음 필지</p>
+                <p className="text-[16px] text-muted-foreground">보상 가능성 낮음 필지</p>
                 <p className="text-3xl font-bold text-red-600">
-                  {registeredParcels.filter(p => p.aiResult.provisionalJudgment === "매수 가능성 낮음").length}
+                  {registeredParcels.filter(p => p.aiResult.provisionalJudgment === "보상 가능성 낮음").length}
                 </p>
               </div>
               <XCircle className="h-10 w-10 text-red-600/20" />
@@ -413,7 +419,7 @@ export function ParcelPreRegistration({ businessUnit, onRegisterComplete }: Parc
                     </TableCell>
                     <TableCell>
                       <Badge 
-                        className={parcel.aiResult.provisionalJudgment === "매수 가능성 높음" 
+                        className={parcel.aiResult.provisionalJudgment === "보상 가능성 높음" 
                           ? "bg-emerald-500 hover:bg-emerald-500/90 text-white" 
                           : "bg-rose-500 hover:bg-rose-500/90 text-white"
                         }
@@ -601,7 +607,7 @@ export function ParcelPreRegistration({ businessUnit, onRegisterComplete }: Parc
               AI 분석 결과
               {analysisResult && (
                 <Badge 
-                  className={analysisResult.provisionalJudgment === "매수 가능성 높음" 
+                  className={analysisResult.provisionalJudgment === "보상 가능성 높음" 
                     ? "bg-emerald-500 hover:bg-emerald-500/90 text-white text-lg px-3 py-1" 
                     : "bg-rose-500 hover:bg-rose-500/90 text-white text-lg px-3 py-1"
                   }

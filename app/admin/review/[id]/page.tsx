@@ -316,7 +316,7 @@ export default function ReviewDocumentPage({
                 {/* 제목 */}
                 <div className="mb-6 text-center">
                   <h2 className="text-xl font-bold text-foreground sm:text-2xl">
-                    잔여지 매수여부 심의서({documentMeta.sectionNumber})[{documentMeta.reviewNumber}]
+                    잔여지 보상여부 심의서({documentMeta.sectionNumber})[{documentMeta.reviewNumber}]
                   </h2>
                 </div>
 
