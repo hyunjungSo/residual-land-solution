@@ -4838,8 +4838,6 @@ const _rawDummyApplications: Application[] = [
           projectName: cfg.projectName,
         };
 
-        const hasAiResult = status !== "접수완료";
-
         return {
           id: `app-gen-${String(n).padStart(4, "0")}`,
           applicationNumber: `2026-${mm}${dd}-${String(n).padStart(4, "0")}`,
@@ -4857,7 +4855,18 @@ const _rawDummyApplications: Application[] = [
           status,
           adminStatus,
           appliedAt,
-          ...(hasAiResult && { aiResult: generateAIResult(landInfo) }),
+          landDataList: [
+            {
+              currentUsage: landCategory,
+              landSubType: (landCategory === "대" ? "residential-detached" : "") as any,
+              actualUsage: landCategory,
+              reportedShape,
+              farmMachineDifficulty: i % 3 === 0,
+              accessRoadLost: i % 5 === 1,
+              waterChannelLost: i % 7 === 2,
+            },
+          ],
+          aiResult: generateAIResult(landInfo),
           ...(adminStatus === "심사완료" && {
             finalJudgment: i % 2 === 0 ? "보상" : "기각",
             reviewerComment: "검토 완료",

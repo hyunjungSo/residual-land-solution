@@ -2557,7 +2557,7 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
 
         if (!land) return null;
 
-        const aiResult = citizenAIResult ?? null;
+        const aiResult = (citizenAIResult ?? application.aiResult)!;
         const includedArea = land.includedArea ?? (land.originalArea - land.remainingArea);
         const siOriginal = land.originalShapeIndex ?? 1.0;
         const siRemaining = land.remainingShapeIndex ?? 5.0;
@@ -2590,8 +2590,7 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
               <DialogHeader>
                 <DialogTitle className="text-lg">민원인의 분석결과</DialogTitle>
               </DialogHeader>
-              {aiResult ? (
-                <div>
+              <div>
                   {/* 편입 정보 */}
                   <div className="py-1">
                     <SectionTitle icon={<LayoutGrid className="h-4 w-4" />} title="편입 정보" />
@@ -2708,9 +2707,6 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
                     </div>
                   )}
                 </div>
-              ) : (
-                <p className="text-sm text-muted-foreground py-4">결과 데이터 없음</p>
-              )}
             </DialogContent>
           </Dialog>
         );

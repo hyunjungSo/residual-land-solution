@@ -54,6 +54,10 @@ function AdminPageContent() {
   const [snbUnits, setSnbUnits] = useState<ConnectedUnit[]>([
     { id: "ext-001", label: "강진광주건설사업단", dataFilter: "강진광주" },
     { id: "ext-002", label: "경남권건설사업단", dataFilter: "경남권" },
+    { id: "ext-006", label: "부산울산건설사업단", dataFilter: "부산울산" },
+    { id: "ext-007", label: "춘천원주건설사업단", dataFilter: "춘천원주" },
+    { id: "ext-008", label: "청주충주건설사업단", dataFilter: "청주충주" },
+    { id: "ext-009", label: "함양합천건설사업단", dataFilter: "함양합천" },
   ]);
   const [projectUnitFilter, setProjectUnitFilter] = useState<string>("ext-001");
   // 사업단 변경 확인 대기 값 (모달 확인 시 적용)

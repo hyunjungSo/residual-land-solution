@@ -213,8 +213,8 @@ export function BusinessUnitManagement({ onConnectionChange }: BusinessUnitManag
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[15px] font-bold text-foreground">사업단 목록</p>
-              <p className="text-[12px] text-muted-foreground mt-0.5">
-                전체 {ALL_UNITS.length}개 · 연동 완료{" "}
+              <p className="text-[13px] text-muted-foreground mt-0.5">
+                전체 {ALL_UNITS.length}개 · 연결 완료{" "}
                 <span className="text-emerald-600 font-semibold">{connectedCount}개</span>
               </p>
             </div>
@@ -227,7 +227,7 @@ export function BusinessUnitManagement({ onConnectionChange }: BusinessUnitManag
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="사업단명, 지역 검색..."
-              className="pl-8 h-9 text-[13px]"
+              className="pl-8 h-9 text-[14px]"
             />
           </div>
 
@@ -239,7 +239,7 @@ export function BusinessUnitManagement({ onConnectionChange }: BusinessUnitManag
                   key={tab}
                   onClick={() => setFilterTab(tab)}
                   className={cn(
-                    "flex-1 rounded-md px-2 py-1.5 text-[12px] font-medium transition-all",
+                    "flex-1 rounded-md px-2 py-1.5 text-[13px] font-medium transition-all",
                     filterTab === tab
                       ? "bg-background text-foreground shadow-sm"
                       : "text-muted-foreground hover:text-foreground"
@@ -247,7 +247,7 @@ export function BusinessUnitManagement({ onConnectionChange }: BusinessUnitManag
                 >
                   {label}
                   {tab === "connected" && connectedCount > 0 && (
-                    <span className="ml-1 text-[11px] text-emerald-600 font-semibold">({connectedCount})</span>
+                    <span className="ml-1 text-[12px] text-emerald-600 font-semibold">({connectedCount})</span>
                   )}
                 </button>
               )
@@ -259,7 +259,7 @@ export function BusinessUnitManagement({ onConnectionChange }: BusinessUnitManag
         <div className="flex-1 overflow-y-auto min-h-0">
           {filteredUnits.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full gap-2 text-center px-6">
-              <p className="text-[13px] text-muted-foreground">검색 결과가 없습니다.</p>
+              <p className="text-[14px] text-muted-foreground">검색 결과가 없습니다.</p>
             </div>
           ) : (
             <div className="divide-y divide-border/60">
@@ -289,12 +289,12 @@ export function BusinessUnitManagement({ onConnectionChange }: BusinessUnitManag
                     {/* Info */}
                     <div className="flex-1 min-w-0">
                       <p className={cn(
-                        "text-[13px] font-medium truncate leading-snug",
+                        "text-[14px] font-medium truncate leading-snug",
                         isSaved ? "text-muted-foreground" : "text-foreground"
                       )}>
                         {unit.label}
                       </p>
-                      <p className="text-[11px] text-muted-foreground/70 mt-0.5">
+                      <p className="text-[12px] text-muted-foreground/70 mt-0.5">
                         {unit.region} · {unit.code}
                       </p>
                     </div>
@@ -302,9 +302,9 @@ export function BusinessUnitManagement({ onConnectionChange }: BusinessUnitManag
                     {/* Right side */}
                     {isSaved ? (
                       <div className="flex items-center gap-1 shrink-0">
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[10px] font-bold text-emerald-700 whitespace-nowrap">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[11px] font-bold text-emerald-700 whitespace-nowrap">
                           <CheckCircle2 className="h-2.5 w-2.5" />
-                          연동 완료
+                          연결 완료
                         </span>
                         <button
                           onClick={(e) => { e.stopPropagation(); setSelectedId(unit.id); }}
@@ -346,7 +346,7 @@ export function BusinessUnitManagement({ onConnectionChange }: BusinessUnitManag
             </div>
             {connectedCount > 0 && (
               <p className="text-[12px] text-emerald-600 font-medium">
-                현재 {connectedCount}개 사업단이 연동 중입니다.
+                현재 {connectedCount}개 사업단이 연결 중입니다.
               </p>
             )}
           </div>
@@ -363,7 +363,7 @@ export function BusinessUnitManagement({ onConnectionChange }: BusinessUnitManag
                     {selectedSaved && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[11px] font-bold text-emerald-700">
                         <CheckCircle2 className="h-3 w-3" />
-                        연동 완료
+                        연결 완료
                       </span>
                     )}
                   </div>
