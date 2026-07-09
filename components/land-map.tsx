@@ -418,7 +418,17 @@ export function LandMap({
     }
   };
 
+  const legendItems = [
+    { label: "원필지",   bg: "transparent",           border: "2px dashed #888888",  dashed: false },
+    { label: "잔여지",   bg: "rgba(59,130,246,0.35)",  border: "1.5px solid #3b82f6", dashed: false },
+    { label: "편입지",   bg: "rgba(239,68,68,0.35)",   border: "1.5px solid #ef4444", dashed: false },
+    { label: "도로구역", bg: "#a0a0a0",                border: "1.5px dashed #ff6b6b",dashed: true  },
+    { label: "국토수급", bg: "rgba(255,193,7,0.3)",    border: "1.5px solid #ffc107", dashed: false },
+    { label: "동일소유자",bg:"rgba(234,88,12,0.2)",    border: "1.5px dashed #ea580c",dashed: true  },
+  ];
+
   return (
+    <div className="w-full space-y-2">
     <div className="relative w-full overflow-hidden rounded-lg border border-border bg-muted">
       {/* 지도 컨트롤 - 우측 상단 (배경지도/도구) */}
       <div className="absolute right-3 top-3 z-[1000] flex flex-col gap-2">
@@ -644,6 +654,19 @@ export function LandMap({
       )}
       
 
+    </div>
+    {/* 범례 */}
+    <div className="flex flex-wrap gap-x-4 gap-y-1.5 px-1 py-1">
+      {legendItems.map((item) => (
+        <div key={item.label} className="flex items-center gap-1.5">
+          <span
+            className="inline-block w-3.5 h-3.5 rounded-[2px] shrink-0"
+            style={{ background: item.bg, border: item.border }}
+          />
+          <span className="text-[12px] text-muted-foreground">{item.label}</span>
+        </div>
+      ))}
+    </div>
     </div>
   );
 }

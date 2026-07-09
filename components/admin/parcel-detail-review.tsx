@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardAction } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -221,7 +221,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
 
 
       {/* 필지 기본 정보 + 담당자 확인 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className="flex flex-col gap-5">
       <Card className="border-0 shadow-none px-6">
         <CardContent className="p-0">
           {/* 상단: 소재지 + 민원 신청 상태 */}
@@ -277,96 +277,97 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
         <CardHeader className="pb-3">
           <CardTitle>담당자 확인</CardTitle>
           <CardDescription>담당자별로 확인한 항목과 검토 내용을 기록합니다.</CardDescription>
+          <CardAction>
+            <div className="flex items-center gap-3">
+              {savedAt && (
+                <span className="text-sm text-muted-foreground">마지막 저장: {savedAt}</span>
+              )}
+              <Button
+                type="button"
+                onClick={() => {
+                  const now = new Date();
+                  const pad = (n: number) => String(n).padStart(2, "0");
+                  const ts = `${now.getFullYear()}.${pad(now.getMonth() + 1)}.${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+                  const resolved: AdminCheckItems = {
+                    accessRoadLost: checkItems.accessRoadLost ?? false,
+                    waterChannelLost: checkItems.waterChannelLost ?? false,
+                    farmMachineDifficulty: checkItems.farmMachineDifficulty ?? false,
+                    farmMachineRotationDifficulty: checkItems.farmMachineRotationDifficulty ?? false,
+                    livestockBuildingUnusable: checkItems.livestockBuildingUnusable ?? false,
+                    adjacentSameOwnerLand: checkItems.adjacentSameOwnerLand ?? false,
+                  };
+                  setSavedAt(ts);
+                  setSavedCheckItems({ ...checkItems });
+                  setAiCheckItems(resolved);
+                  onUpdate({
+                    ...parcel,
+                    adminCheckItems: resolved,
+                    confirmedAt: new Date().toISOString(),
+                    confirmedBy: "담당자",
+                  });
+                  toast({ title: "저장 완료", description: "담당자 확인이 저장되었습니다." });
+                }}
+              >
+                저장
+              </Button>
+            </div>
+          </CardAction>
         </CardHeader>
         <CardContent className="space-y-5 pb-5">
-          {/* 확인 항목 */}
-          <div className="space-y-3">
-            <Label className="text-[15px] font-semibold">확인 항목</Label>
-            <div className="grid grid-cols-3 gap-3">
-              {adminCheckItemOptions.map((option) => {
-                const key = option.value as keyof AdminCheckItems;
-                const checked = checkItems[key];
-                return (
-                  <div key={key} className="flex flex-col gap-2 p-3 rounded-lg border border-border">
-                    <p className="text-[13px] font-medium text-foreground leading-snug">{option.label}</p>
-                    <div className="flex gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setCheckItems(prev => ({ ...prev, [key]: true }))}
-                        className={`flex-1 rounded-md h-[30px] text-[13px] font-medium transition-all ${
-                          checked === true
-                            ? "bg-black text-white"
-                            : "border border-black/30 text-foreground hover:bg-black/5"
-                        }`}
-                      >
-                        해당
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setCheckItems(prev => ({ ...prev, [key]: false }))}
-                        className={`flex-1 rounded-md h-[30px] text-[13px] font-medium transition-all ${
-                          checked === false
-                            ? "bg-black text-white"
-                            : "border border-black/30 text-foreground hover:bg-black/5"
-                        }`}
-                      >
-                        미해당
-                      </button>
+          {/* 확인 항목 + 메모 */}
+          <div className="grid grid-cols-[3fr_2fr] gap-5 items-stretch">
+            {/* 확인 항목 */}
+            <div className="flex flex-col gap-1">
+              <Label className="text-[15px] font-semibold">확인 항목</Label>
+              <div className="grid grid-cols-3 gap-3">
+                {adminCheckItemOptions.map((option) => {
+                  const key = option.value as keyof AdminCheckItems;
+                  const checked = checkItems[key];
+                  return (
+                    <div key={key} className="flex flex-col gap-2 p-3 rounded-lg border border-border">
+                      <p className="text-[15px] font-medium text-foreground leading-snug">{option.label}</p>
+                      <div className="flex gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setCheckItems(prev => ({ ...prev, [key]: true }))}
+                          className={`flex-1 rounded-md h-[30px] text-[13px] font-medium transition-all ${
+                            checked === true
+                              ? "bg-black text-white"
+                              : "border border-black/30 text-foreground hover:bg-black/5"
+                          }`}
+                        >
+                          해당
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setCheckItems(prev => ({ ...prev, [key]: false }))}
+                          className={`flex-1 rounded-md h-[30px] text-[13px] font-medium transition-all ${
+                            checked === false
+                              ? "bg-black text-white"
+                              : "border border-black/30 text-foreground hover:bg-black/5"
+                          }`}
+                        >
+                          미해당
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 메모 */}
+            <div className="flex flex-col gap-1">
+              <Label className="text-[15px] font-semibold">메모</Label>
+              <textarea
+                value={noteContent}
+                onChange={(e) => setNoteContent(e.target.value)}
+                placeholder="확인한 항목 및 내용을 기록하세요"
+                className="flex-1 w-full text-base px-4 py-3 bg-background rounded-xl border border-border outline-none focus:ring-2 focus:ring-ring/20 transition-colors placeholder:text-muted-foreground resize-none"
+              />
             </div>
           </div>
 
-          {/* 메모 */}
-          <div className="space-y-2">
-            <Label className="text-[15px] font-semibold">메모</Label>
-            <textarea
-              value={noteContent}
-              onChange={(e) => setNoteContent(e.target.value)}
-              placeholder="확인한 항목 및 내용을 기록하세요"
-              rows={4}
-              className="w-full text-base px-4 py-3 bg-background rounded-xl border border-border outline-none focus:ring-2 focus:ring-ring/20 transition-colors placeholder:text-muted-foreground resize-none"
-            />
-          </div>
-
-          {/* 통합 저장 버튼 */}
-          <div className="flex items-center justify-between pt-1">
-            {savedAt ? (
-              <span className="text-sm text-muted-foreground">마지막 저장: {savedAt}</span>
-            ) : (
-              <span />
-            )}
-            <Button
-              type="button"
-              onClick={() => {
-                const now = new Date();
-                const pad = (n: number) => String(n).padStart(2, "0");
-                const ts = `${now.getFullYear()}.${pad(now.getMonth() + 1)}.${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
-                const resolved: AdminCheckItems = {
-                  accessRoadLost: checkItems.accessRoadLost ?? false,
-                  waterChannelLost: checkItems.waterChannelLost ?? false,
-                  farmMachineDifficulty: checkItems.farmMachineDifficulty ?? false,
-                  farmMachineRotationDifficulty: checkItems.farmMachineRotationDifficulty ?? false,
-                  livestockBuildingUnusable: checkItems.livestockBuildingUnusable ?? false,
-                  adjacentSameOwnerLand: checkItems.adjacentSameOwnerLand ?? false,
-                };
-                setSavedAt(ts);
-                setSavedCheckItems({ ...checkItems });
-                setAiCheckItems(resolved);
-                onUpdate({
-                  ...parcel,
-                  adminCheckItems: resolved,
-                  confirmedAt: new Date().toISOString(),
-                  confirmedBy: "담당자",
-                });
-                toast({ title: "저장 완료", description: "담당자 확인이 저장되었습니다." });
-              }}
-            >
-              저장
-            </Button>
-          </div>
         </CardContent>
       </Card>
       </div>
@@ -385,16 +386,14 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
             {/* 지적도 */}
             <div className="space-y-2">
               <Label className="font-medium">지적도</Label>
-              <div className="h-[460px] rounded-lg overflow-hidden border bg-muted">
-                <LandMap
-                  landInfo={parcel.landInfo}
-                  showOverlay={true}
-                  interactive={false}
-                  sameOwnerParcels={dummyProcessedParcels
-                    .filter(p => p.id !== parcel.id && p.landInfo.ownerName === parcel.landInfo.ownerName)
-                    .map(p => p.landInfo)}
-                />
-              </div>
+              <LandMap
+                landInfo={parcel.landInfo}
+                showOverlay={true}
+                interactive={false}
+                sameOwnerParcels={dummyProcessedParcels
+                  .filter(p => p.id !== parcel.id && p.landInfo.ownerName === parcel.landInfo.ownerName)
+                  .map(p => p.landInfo)}
+              />
             </div>
 
             {/* 현재 활용지목 및 토지 형상 */}

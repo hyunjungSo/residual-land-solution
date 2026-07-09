@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -1431,15 +1432,13 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
                 {/* 지적도 */}
                 <div className="space-y-2">
                   <Label className="font-medium">지적도</Label>
-                  <div className="h-[460px] rounded-lg overflow-hidden border bg-muted">
-                    {applicationLands[selectedLandIndex] && (
-                      <LandMap
-                        landInfo={applicationLands[selectedLandIndex]}
-                        showOverlay={false}
-                        interactive={false}
-                      />
-                    )}
-                  </div>
+                  {applicationLands[selectedLandIndex] && (
+                    <LandMap
+                      landInfo={applicationLands[selectedLandIndex]}
+                      showOverlay={false}
+                      interactive={false}
+                    />
+                  )}
                 </div>
                 {/* 선택 옵션 + 실행 버튼 */}
                 {(() => {
@@ -1536,7 +1535,17 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
                       </div>
                       {/* 담당자 확인항목 */}
                       <div className="space-y-2">
-                        <Label className="text-[16px]">담당자 확인항목</Label>
+                        <div className="flex items-center gap-1.5">
+                          <Label className="text-[16px]">담당자 확인항목</Label>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help shrink-0" />
+                            </TooltipTrigger>
+                            <TooltipContent side="right" className="max-w-[260px] leading-relaxed">
+                              빨간 테두리 항목은 민원인과 AI 판정이 다른 항목입니다. 검토 시 한 번 더 확인해 주세요.
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
                         <div className="grid grid-cols-2 gap-2">
                           {adminCheckItemOptions.map((option) => {
                             const key = option.value as "accessRoadLost" | "waterChannelLost" | "farmMachineDifficulty" | "farmMachineRotationDifficulty" | "livestockBuildingUnusable" | "adjacentSameOwnerLand";
