@@ -465,6 +465,7 @@ function AdminPageContent() {
               onNavigateToList={handleNavigateToApplicationList}
               onDirtyChange={setIsDetailDirty}
               onOpenReview={openReviewTab}
+              processedParcels={processedParcels}
             />
             {/* 콘텐츠 하단 - 버튼 영역 (목록, 취소, 저장) */}
             <div className="flex items-center justify-between mt-6 pb-6">

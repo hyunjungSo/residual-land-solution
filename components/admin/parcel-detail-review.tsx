@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,10 +9,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { JUDGMENT_COLORS } from "@/components/ui/judgment-badge";
+import { useToast } from "@/hooks/use-toast";
 import { LandMap } from "@/components/land-map";
 import {
   Select,
@@ -69,15 +67,27 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
   };
   
   // 분석 옵션 상태
+  const { toast } = useToast();
   const [currentUsage, setCurrentUsage] = useState<LandCategory>(parcel.currentUsage);
   const [landShape, setLandShape] = useState<LandShape>(parcel.landShape);
-  const [checkItems, setCheckItems] = useState<AdminCheckItems>(parcel.adminCheckItems);
+  type NullableCheckItems = Record<keyof AdminCheckItems, boolean | null>;
+  const initCheckItems = (): NullableCheckItems => parcel.confirmedAt
+    ? { ...parcel.adminCheckItems }
+    : { accessRoadLost: null, waterChannelLost: null, farmMachineDifficulty: null, farmMachineRotationDifficulty: null, livestockBuildingUnusable: null, adjacentSameOwnerLand: null };
+  const [checkItems, setCheckItems] = useState<NullableCheckItems>(initCheckItems);
+  const [savedCheckItems, setSavedCheckItems] = useState<NullableCheckItems>(initCheckItems);
+  const [aiCheckItems, setAiCheckItems] = useState<AdminCheckItems>(parcel.adminCheckItems);
+
+  const [illandaItems, setIllandaItems] = useState({
+    ownerIdentity: false,
+    groundContinuity: false,
+    purposeUnity: false,
+  });
 
   const [memo, setMemo] = useState("");
 
-  // 담당자 확인 기록
+  // 담당자 확인
   const [noteContent, setNoteContent] = useState("");
-  const [savedContent, setSavedContent] = useState("");
   const [savedAt, setSavedAt] = useState("");
 
   // 분석이력 클릭 시 좌측 옵션 불러오기
@@ -103,8 +113,6 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
   const [showAIAnalysisDialog, setShowAIAnalysisDialog] = useState(false);
   // 토지정보 상세보기 모달
   const [showLandInfoModal, setShowLandInfoModal] = useState(false);
-  // 검토 확인 컨펌 다이얼로그
-  const { toast } = useToast();
 
   // 2차 분석 (재분석) 실행
   const handleReanalyze = async () => {
@@ -139,9 +147,9 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
       remainingShapeIndex: Math.random() * 0.5 + 0.2,
       shapeIndexChange: -0.3,
       isBlindLand: false,
-      accessRoadLost: checkItems.accessRoadLost,
-      waterChannelLost: checkItems.waterChannelLost,
-      farmMachineDifficulty: checkItems.farmMachineDifficulty,
+      accessRoadLost: checkItems.accessRoadLost ?? false,
+      waterChannelLost: checkItems.waterChannelLost ?? false,
+      farmMachineDifficulty: checkItems.farmMachineDifficulty ?? false,
       judgmentRationale: {
         summary: "재분석 결과",
         legalBasis: "「공익사업을 위한 토지 등의 취득 및 보상에 관한 법률」 제74조",
@@ -165,17 +173,30 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
       changedOptions: {
         currentUsage,
         landShape,
-        ...checkItems,
+        accessRoadLost: checkItems.accessRoadLost ?? false,
+        waterChannelLost: checkItems.waterChannelLost ?? false,
+        farmMachineDifficulty: checkItems.farmMachineDifficulty ?? false,
+        farmMachineRotationDifficulty: checkItems.farmMachineRotationDifficulty ?? false,
+        livestockBuildingUnusable: checkItems.livestockBuildingUnusable ?? false,
+        adjacentSameOwnerLand: checkItems.adjacentSameOwnerLand ?? false,
       },
       memo: memo || undefined,
       aiResult: newAiResult,
     };
     
+    const resolvedCheckItems: AdminCheckItems = {
+      accessRoadLost: checkItems.accessRoadLost ?? false,
+      waterChannelLost: checkItems.waterChannelLost ?? false,
+      farmMachineDifficulty: checkItems.farmMachineDifficulty ?? false,
+      farmMachineRotationDifficulty: checkItems.farmMachineRotationDifficulty ?? false,
+      livestockBuildingUnusable: checkItems.livestockBuildingUnusable ?? false,
+      adjacentSameOwnerLand: checkItems.adjacentSameOwnerLand ?? false,
+    };
     const updatedParcel: ProcessedParcel = {
       ...parcel,
       currentUsage,
       landShape,
-      adminCheckItems: checkItems,
+      adminCheckItems: resolvedCheckItems,
       aiResult: newAiResult,
       publishStatus: (parcel.analysisHistory?.length || 0) === 0 ? "1차분석완료" : "2차분석중",
       analysisHistory: [...(parcel.analysisHistory || []), newHistory],
@@ -199,7 +220,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
 
 
 
-      {/* 필지 기본 정보 + 담당자 확인 기록 */}
+      {/* 필지 기본 정보 + 담당자 확인 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
       <Card className="border-0 shadow-none px-6">
         <CardContent className="p-0">
@@ -251,51 +272,109 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
         </CardContent>
       </Card>
 
-      {/* 담당자 확인 기록 */}
+      {/* 담당자 확인 */}
       <Card className="border-0 shadow-none">
         <CardHeader className="pb-3">
-          <CardTitle>담당자 확인 기록</CardTitle>
+          <CardTitle>담당자 확인</CardTitle>
           <CardDescription>담당자별로 확인한 항목과 검토 내용을 기록합니다.</CardDescription>
         </CardHeader>
-        <CardContent className="p-0">
-          <div className="rounded-xl border border-border overflow-hidden mx-6">
+        <CardContent className="space-y-5 pb-5">
+          {/* 확인 항목 */}
+          <div className="space-y-3">
+            <Label className="text-[15px] font-semibold">확인 항목</Label>
+            <div className="grid grid-cols-3 gap-3">
+              {adminCheckItemOptions.map((option) => {
+                const key = option.value as keyof AdminCheckItems;
+                const checked = checkItems[key];
+                return (
+                  <div key={key} className="flex flex-col gap-2 p-3 rounded-lg border border-border">
+                    <p className="text-[13px] font-medium text-foreground leading-snug">{option.label}</p>
+                    <div className="flex gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setCheckItems(prev => ({ ...prev, [key]: true }))}
+                        className={`flex-1 rounded-md h-[30px] text-[13px] font-medium transition-all ${
+                          checked === true
+                            ? "bg-black text-white"
+                            : "border border-black/30 text-foreground hover:bg-black/5"
+                        }`}
+                      >
+                        해당
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCheckItems(prev => ({ ...prev, [key]: false }))}
+                        className={`flex-1 rounded-md h-[30px] text-[13px] font-medium transition-all ${
+                          checked === false
+                            ? "bg-black text-white"
+                            : "border border-black/30 text-foreground hover:bg-black/5"
+                        }`}
+                      >
+                        미해당
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 메모 */}
+          <div className="space-y-2">
+            <Label className="text-[15px] font-semibold">메모</Label>
             <textarea
               value={noteContent}
               onChange={(e) => setNoteContent(e.target.value)}
               placeholder="확인한 항목 및 내용을 기록하세요"
               rows={4}
-              className="w-full text-base px-4 py-3 bg-background outline-none focus:ring-2 focus:ring-ring/20 transition-colors placeholder:text-muted-foreground resize-none border-0"
+              className="w-full text-base px-4 py-3 bg-background rounded-xl border border-border outline-none focus:ring-2 focus:ring-ring/20 transition-colors placeholder:text-muted-foreground resize-none"
             />
-            <div className="border-t border-border bg-muted/40 px-4 py-2 flex items-center justify-between">
-              {savedAt ? (
-                <span className="text-sm text-muted-foreground">마지막 저장: {savedAt}</span>
-              ) : (
-                <span />
-              )}
-              <Button
-                type="button"
-                size="sm"
-                disabled={!noteContent.trim() || noteContent === savedContent}
-                onClick={() => {
-                  const now = new Date();
-                  const pad = (n: number) => String(n).padStart(2, "0");
-                  const ts = `${now.getFullYear()}.${pad(now.getMonth() + 1)}.${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
-                  setSavedContent(noteContent);
-                  setSavedAt(ts);
-                }}
-              >
-                저장
-              </Button>
-            </div>
+          </div>
+
+          {/* 통합 저장 버튼 */}
+          <div className="flex items-center justify-between pt-1">
+            {savedAt ? (
+              <span className="text-sm text-muted-foreground">마지막 저장: {savedAt}</span>
+            ) : (
+              <span />
+            )}
+            <Button
+              type="button"
+              onClick={() => {
+                const now = new Date();
+                const pad = (n: number) => String(n).padStart(2, "0");
+                const ts = `${now.getFullYear()}.${pad(now.getMonth() + 1)}.${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+                const resolved: AdminCheckItems = {
+                  accessRoadLost: checkItems.accessRoadLost ?? false,
+                  waterChannelLost: checkItems.waterChannelLost ?? false,
+                  farmMachineDifficulty: checkItems.farmMachineDifficulty ?? false,
+                  farmMachineRotationDifficulty: checkItems.farmMachineRotationDifficulty ?? false,
+                  livestockBuildingUnusable: checkItems.livestockBuildingUnusable ?? false,
+                  adjacentSameOwnerLand: checkItems.adjacentSameOwnerLand ?? false,
+                };
+                setSavedAt(ts);
+                setSavedCheckItems({ ...checkItems });
+                setAiCheckItems(resolved);
+                onUpdate({
+                  ...parcel,
+                  adminCheckItems: resolved,
+                  confirmedAt: new Date().toISOString(),
+                  confirmedBy: "담당자",
+                });
+                toast({ title: "저장 완료", description: "담당자 확인이 저장되었습니다." });
+              }}
+            >
+              저장
+            </Button>
           </div>
         </CardContent>
       </Card>
       </div>
 
       {/* AI 분석 영역 - 2컬럼 레이아웃 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {/* 왼쪽: AI 분석 */}
-        <Card className="border-0 shadow-none">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+        {/* 왼쪽: AI 분析 */}
+        <Card className="border-0 shadow-none sticky top-4">
           <CardHeader>
             <CardTitle>AI 분석</CardTitle>
             <CardDescription>
@@ -353,33 +432,74 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
               </div>
             </div>
 
+            {/* 일단의 토지 판단 */}
+            <div className="space-y-2">
+              <Label className="text-[16px]">일단의 토지 판단</Label>
+              <div className="grid grid-cols-3 gap-5">
+                {[
+                  { value: "ownerIdentity", label: "소유자의 동일성" },
+                  { value: "groundContinuity", label: "지반의 연속성" },
+                  { value: "purposeUnity", label: "용도의 일체성" },
+                ].map((option) => {
+                  const key = option.value as keyof typeof illandaItems;
+                  const checked = illandaItems[key];
+                  return (
+                    <div
+                      key={option.value}
+                      className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${
+                        checked ? "bg-primary/10 border-primary" : "hover:bg-muted/50"
+                      }`}
+                      onClick={() => setIllandaItems(prev => ({ ...prev, [key]: !prev[key] }))}
+                    >
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={(v) => setIllandaItems(prev => ({ ...prev, [key]: !!v }))}
+                      />
+                      <span className="text-xs">{option.label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* 담당자 확인항목 */}
             <div className="space-y-2">
-              <Label className="text-[16px]">담당자 확인항목</Label>
-              <div className="grid grid-cols-3 gap-5">
-                {adminCheckItemOptions.map((option) => (
-                  <div 
-                    key={option.value}
-                    className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${
-                      checkItems[option.value as keyof AdminCheckItems] 
-                        ? "bg-primary/10 border-primary" 
-                        : "hover:bg-muted/50"
-                    }`}
-                    onClick={() => setCheckItems(prev => ({
-                      ...prev,
-                      [option.value]: !prev[option.value as keyof AdminCheckItems]
-                    }))}
-                  >
-                    <Checkbox 
-                      checked={checkItems[option.value as keyof AdminCheckItems]}
-                      onCheckedChange={(checked) => setCheckItems(prev => ({
-                        ...prev,
-                        [option.value]: !!checked
-                      }))}
-                    />
-                    <span className="text-xs">{option.label}</span>
-                  </div>
-                ))}
+              <div className="flex items-center gap-2">
+                <Label className="text-[16px]">담당자 확인항목</Label>
+                {savedAt && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+                    확인 완료
+                  </span>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {adminCheckItemOptions.map((option) => {
+                  const key = option.value as keyof AdminCheckItems;
+                  const aiChecked = aiCheckItems[key];
+                  const recordChecked = savedCheckItems[key];
+                  return (
+                    <div
+                      key={option.value}
+                      className={`flex items-center gap-1.5 p-2 rounded-lg border cursor-pointer transition-colors ${
+                        aiChecked ? "bg-primary/10 border-primary" : "hover:bg-muted/50"
+                      }`}
+                      onClick={() => setAiCheckItems(prev => ({ ...prev, [key]: !prev[key] }))}
+                    >
+                      <Checkbox
+                        checked={aiChecked}
+                        onCheckedChange={(v) => setAiCheckItems(prev => ({ ...prev, [key]: !!v }))}
+                      />
+                      <span className="text-xs flex-1">{option.label}</span>
+                      {recordChecked !== null && (
+                        <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-semibold shrink-0 whitespace-nowrap ${
+                          recordChecked ? "bg-black text-white" : "bg-muted text-muted-foreground"
+                        }`}>
+                          {recordChecked ? "담당자 판정: 해당" : "담당자 판정: 미해당"}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -418,8 +538,8 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
         {/* 오른쪽: 담당자 검토 + AI 분석결과 */}
         <div className="space-y-5">
 
-        {/* AI 분석결과 검토 카드 */}
-        <Card className="border-0 shadow-none">
+        {/* AI 분析결과 검토 카드 */}
+        <Card className="border-0 shadow-none sticky top-4">
           <CardHeader>
             <CardTitle>AI 분석결과 검토</CardTitle>
             <CardDescription>
@@ -429,20 +549,14 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
           <CardContent>
             {(parcel.analysisHistory?.length || 0) > 0 ? (
               <Accordion
-                type="multiple"
-                defaultValue={parcel.analysisHistory.map(h => `history-${h.id}`)}
+                type="single"
+                collapsible
+                defaultValue={`history-${parcel.analysisHistory[parcel.analysisHistory.length - 1]?.id}`}
                 className="space-y-2"
               >
                 {parcel.analysisHistory.slice().reverse().map((history) => {
                   const aiResult = history.aiResult;
-                  const originalHistory = parcel.analysisHistory;
-                  const currentIndex = originalHistory.findIndex(h => h.id === history.id);
-                  const prevHistory = currentIndex > 0 ? originalHistory[currentIndex - 1] : null;
                   const isChangeDriven = history.aiResult?.analysisSource === "auto-change";
-                  const shapeIndexChanged = isChangeDriven && prevHistory != null &&
-                    prevHistory.aiResult?.remainingShapeIndex !== history.aiResult?.remainingShapeIndex;
-                  const accessRoadChanged = isChangeDriven && prevHistory != null &&
-                    prevHistory.aiResult?.accessRoadLost !== history.aiResult?.accessRoadLost;
                   return (
                     <AccordionItem 
                       key={history.id} 
@@ -527,7 +641,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                           const includedArea = li.includedArea ?? (li.originalArea - li.remainingArea);
                           const siOriginal = aiResult.originalShapeIndex ?? li.originalShapeIndex ?? 1.0;
                           const siRemaining = aiResult.remainingShapeIndex ?? li.remainingShapeIndex ?? 5.0;
-                          const siChange = aiResult.shapeIndexChange != null ? aiResult.shapeIndexChange : (siRemaining - siOriginal);
+
                           const regularShapes = ["정방형", "가로장방형", "세로장방형"];
                           const beforeIsRegular = regularShapes.some(s => (li.originalShape || "").includes(s));
                           const afterIsRegular = regularShapes.some(s => (li.remainingShape || "").includes(s));

@@ -226,6 +226,10 @@ export function BatchAnalysis({
   const [inclusionTypeFilter, setInclusionTypeFilter] = useState<"all" | "full" | "partial" | "pending">("partial");
   // 판독 유형 필터 (AI판독 / 수동판독 / 전체)
   const [analysisSourceFilter, setAnalysisSourceFilter] = useState<"all" | "ai" | "manual-select">("all");
+  // 담당자 확인 필터
+  const [confirmedFilter, setConfirmedFilter] = useState<"all" | "confirmed" | "unconfirmed">("all");
+  // 민원인 신청 필터
+  const [citizenApplicationFilter, setCitizenApplicationFilter] = useState<"all" | "applied" | "not-applied">("all");
 
   // 편입 유형 카드 클릭 핸들러 (필터 리셋 포함)
   const handleInclusionTypeClick = (value: "all" | "full" | "partial" | "pending") => {
@@ -608,6 +612,14 @@ export function BatchAnalysis({
         if (analysisSourceFilter === "manual-select" && src !== "manual-select") return false;
       }
 
+      // 담당자 확인 필터
+      if (confirmedFilter === "confirmed" && !parcel.confirmedAt) return false;
+      if (confirmedFilter === "unconfirmed" && !!parcel.confirmedAt) return false;
+
+      // 민원인 신청 필터
+      if (citizenApplicationFilter === "applied" && !parcel.citizenActivity?.applicationSubmitted) return false;
+      if (citizenApplicationFilter === "not-applied" && !!parcel.citizenActivity?.applicationSubmitted) return false;
+
       return true;
     });
 
@@ -625,7 +637,7 @@ export function BatchAnalysis({
     }
 
     return result;
-  }, [parcels, businessUnit, businessUnitFilter, searchQuery, aiJudgmentFilter, inclusionTypeFilter, analysisSourceFilter, periodFilter, selectedYear, customDateRange, sortColumn, sortDirection]);
+  }, [parcels, businessUnit, businessUnitFilter, searchQuery, aiJudgmentFilter, inclusionTypeFilter, analysisSourceFilter, confirmedFilter, citizenApplicationFilter, periodFilter, selectedYear, customDateRange, sortColumn, sortDirection]);
 
   // 페이지네이션 계산
   const totalPages = Math.ceil(filteredParcels.length / itemsPerPage);
@@ -989,7 +1001,31 @@ export function BatchAnalysis({
                 />
               </div>
             </div>
-
+            {/* 2행: 담당자 확인 + 민원인 신청 */}
+            <div className="flex items-center gap-[2.4rem]">
+              <RadioFilterGroup
+                label="담당자 확인"
+                name="confirmed"
+                value={confirmedFilter}
+                onChange={(v) => setConfirmedFilter(v as "all" | "confirmed" | "unconfirmed")}
+                options={[
+                  { value: "all", label: "전체" },
+                  { value: "confirmed", label: "확인" },
+                  { value: "unconfirmed", label: "미확인" }
+                ]}
+              />
+              <RadioFilterGroup
+                label="민원인 신청"
+                name="citizen-application"
+                value={citizenApplicationFilter}
+                onChange={(v) => setCitizenApplicationFilter(v as "all" | "applied" | "not-applied")}
+                options={[
+                  { value: "all", label: "전체" },
+                  { value: "applied", label: "신청" },
+                  { value: "not-applied", label: "미신청" }
+                ]}
+              />
+            </div>
           </div>
 
           <div className="overflow-x-auto border rounded-lg">
@@ -1045,6 +1081,8 @@ export function BatchAnalysis({
                   </TableHead>
                   <TableHead className="text-center">편입유형</TableHead>
                   <TableHead className="text-center">AI판독결과</TableHead>
+                  <TableHead className="text-center">담당자 확인</TableHead>
+                  <TableHead className="text-center">민원인 신청</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1114,11 +1152,23 @@ export function BatchAnalysis({
                           : <Badge className="bg-rose-50 text-rose-600 hover:bg-rose-100 border-0">보상가능성 낮음</Badge>;
                       })()}
                     </TableCell>
+                    <TableCell className="text-center">
+                      {parcel.confirmedAt
+                        ? <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-0">확인</Badge>
+                        : <Badge className="bg-slate-100 text-slate-500 hover:bg-slate-200 border-0">미확인</Badge>
+                      }
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {parcel.citizenActivity?.applicationSubmitted
+                        ? <Badge className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-0">신청</Badge>
+                        : <Badge className="bg-slate-100 text-slate-500 hover:bg-slate-200 border-0">미신청</Badge>
+                      }
+                    </TableCell>
                   </TableRow>
                 ))}
                 {filteredParcels.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
                       조건에 맞는 필지가 없습니다.
                     </TableCell>
                   </TableRow>

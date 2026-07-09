@@ -153,6 +153,7 @@ export function LeafletMap({
         zoom: zoom,
         zoomControl: false,
         attributionControl: false,
+        scrollWheelZoom: false,
       });
 
       // 타일 레이어 추가 (OpenStreetMap 기본, ESRI 위성)

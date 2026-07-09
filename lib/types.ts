@@ -157,9 +157,13 @@ export interface LandSpecificData {
   landSubType: "" | "residential-detached" | "residential-multi" | "residential-apartment" | "commercial" | "industrial"; // 택지 세부 유형
   actualUsage: LandCategory; // 공부상 지목
   reportedShape: LandShape; // 토지 모양
-  farmMachineDifficulty: boolean; // 농기계 회전 곤란
-  accessRoadLost: boolean; // 접면도로 상실
-  waterChannelLost: boolean; // 관개수로 상실
+  farmMachineDifficulty: boolean;              // 농기계 진입 곤란
+  accessRoadLost: boolean;                     // 접면도로 상실
+  waterChannelLost: boolean;                   // 관개수로 상실
+  farmMachineRotationDifficulty?: boolean;     // 농기계 회전 곤란
+  livestockBuildingUnusable?: boolean;         // 축사 부지 사용불가
+  entryDifficult?: boolean;                   // 진입곤란 (맹지)
+  cannotUseOriginalPurpose?: boolean;          // 종래 목적대로 사용 곤란
 }
 
 // 민원 신청
