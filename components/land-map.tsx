@@ -34,8 +34,11 @@ export function LandMap({
   
   // 레이어 옵션
   const [layers, setLayers] = useState({
-    landSupplyDemand: true, // 국토수급
-    roadArea: true, // 도로구역
+    originalParcel: true,     // 원필지
+    remainderParcel: true,    // 잔여지
+    incorporatedParcel: true, // 편입지
+    landSupplyDemand: true,   // 국토수급
+    roadArea: true,           // 도로구역
   });
   
   // 레이어 가시화 여부
@@ -418,29 +421,17 @@ export function LandMap({
     }
   };
 
-  const legendItems = [
-    { label: "원필지",   bg: "transparent",           border: "2px dashed #888888",  dashed: false },
-    { label: "잔여지",   bg: "rgba(59,130,246,0.35)",  border: "1.5px solid #3b82f6", dashed: false },
-    { label: "편입지",   bg: "rgba(239,68,68,0.35)",   border: "1.5px solid #ef4444", dashed: false },
-    { label: "도로구역", bg: "#a0a0a0",                border: "1.5px dashed #ff6b6b",dashed: true  },
-    { label: "국토수급", bg: "rgba(255,193,7,0.3)",    border: "1.5px solid #ffc107", dashed: false },
-    { label: "동일소유자",bg:"rgba(234,88,12,0.2)",    border: "1.5px dashed #ea580c",dashed: true  },
-  ];
-
   return (
     <div className="w-full space-y-2">
     <div className="relative w-full overflow-hidden rounded-lg border border-border bg-muted">
-      {/* 지도 컨트롤 - 우측 상단 (배경지도/도구) */}
+
+      {/* 지도 오버레이 - 우측 상단 (지도/항공사진, 거리측정, 각도측정) */}
       <div className="absolute right-3 top-3 z-[1000] flex flex-col gap-2">
         {/* 배경지도 타입 선택 */}
         <div className="flex gap-2 bg-white rounded-xl p-2 shadow-md">
           <button
             onClick={() => setBaseMap("normal")}
-            className={`flex flex-col items-center rounded-lg overflow-hidden transition-all ${
-              baseMap === "normal"
-                ? "ring-2 ring-blue-500"
-                : "ring-1 ring-gray-200 hover:ring-gray-300"
-            }`}
+            className={`flex flex-col items-center rounded-lg overflow-hidden transition-all ${baseMap === "normal" ? "ring-2 ring-blue-500" : "ring-1 ring-gray-200 hover:ring-gray-300"}`}
           >
             <div className="relative w-[56px] h-[40px] overflow-hidden bg-[#f0ede8]">
               <div className="absolute inset-0">
@@ -451,18 +442,11 @@ export function LandMap({
                 <div className="absolute top-[22px] left-[52%] w-[2px] h-[26px] bg-white transform -translate-x-1/2" />
               </div>
             </div>
-            <span className={`w-full text-center text-[14px] font-medium py-1.5 ${baseMap === "normal" ? "text-blue-600" : "text-gray-600"}`}>
-              지도
-            </span>
+            <span className={`w-full text-center text-[14px] font-medium py-1.5 ${baseMap === "normal" ? "text-blue-600" : "text-gray-600"}`}>지도</span>
           </button>
-
           <button
             onClick={() => setBaseMap("satellite")}
-            className={`flex flex-col items-center rounded-lg overflow-hidden transition-all ${
-              baseMap === "satellite"
-                ? "ring-2 ring-blue-500"
-                : "ring-1 ring-gray-200 hover:ring-gray-300"
-            }`}
+            className={`flex flex-col items-center rounded-lg overflow-hidden transition-all ${baseMap === "satellite" ? "ring-2 ring-blue-500" : "ring-1 ring-gray-200 hover:ring-gray-300"}`}
           >
             <div className="relative w-[56px] h-[40px] overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-[#1a3d1a] via-[#2d5a2d] to-[#1a4a2a]">
@@ -472,67 +456,19 @@ export function LandMap({
                 <div className="absolute top-[50%] left-0 right-0 h-[1px] bg-[#5a5a5a]/30" />
               </div>
             </div>
-            <span className={`w-full text-center text-[14px] font-medium py-1.5 ${baseMap === "satellite" ? "text-blue-600" : "text-gray-600"}`}>
-              항공사진
-            </span>
+            <span className={`w-full text-center text-[14px] font-medium py-1.5 ${baseMap === "satellite" ? "text-blue-600" : "text-gray-600"}`}>항공사진</span>
           </button>
         </div>
 
-        {/* 지도 도구 버튼들 - 가로 pill 스타일 */}
+        {/* 거리측정 / 각도측정 */}
         <div className="flex flex-col gap-1.5">
-          {/* 동일소유자 토지 */}
-          <button
-            onClick={() => setShowSameOwner((prev) => !prev)}
-            className={`flex items-center gap-2 px-3 py-2 rounded-xl bg-white shadow-sm border transition-all ${
-              showSameOwner
-                ? "border-teal-600 ring-1 ring-teal-600"
-                : "border-gray-200 hover:border-gray-300"
-            }`}
-          >
-            <LandPlot className={`h-[18px] w-[18px] shrink-0 ${showSameOwner ? "text-teal-600" : "text-gray-500"}`} strokeWidth={1.5} />
-            <span className={`text-[14px] font-medium whitespace-nowrap ${showSameOwner ? "text-teal-600" : "text-gray-600"}`}>동일소유자 토지</span>
-          </button>
-
-          {/* 국토수급 */}
-          <button
-            onClick={() => setLayers((prev) => ({ ...prev, landSupplyDemand: !prev.landSupplyDemand }))}
-            className={`flex items-center gap-2 px-3 py-2 rounded-xl bg-white shadow-sm border transition-all ${
-              layers.landSupplyDemand
-                ? "border-teal-600 ring-1 ring-teal-600"
-                : "border-gray-200 hover:border-gray-300"
-            }`}
-          >
-            <Layers className={`h-[18px] w-[18px] shrink-0 ${layers.landSupplyDemand ? "text-teal-600" : "text-gray-500"}`} strokeWidth={1.5} />
-            <span className={`text-[14px] font-medium ${layers.landSupplyDemand ? "text-teal-600" : "text-gray-600"}`}>국토수급</span>
-          </button>
-
-          {/* 도로구역 */}
-          <button
-            onClick={() => setLayers((prev) => ({ ...prev, roadArea: !prev.roadArea }))}
-            className={`flex items-center gap-2 px-3 py-2 rounded-xl bg-white shadow-sm border transition-all ${
-              layers.roadArea
-                ? "border-teal-600 ring-1 ring-teal-600"
-                : "border-gray-200 hover:border-gray-300"
-            }`}
-          >
-            <Route className={`h-[18px] w-[18px] shrink-0 ${layers.roadArea ? "text-teal-600" : "text-gray-500"}`} strokeWidth={1.5} />
-            <span className={`text-[14px] font-medium ${layers.roadArea ? "text-teal-600" : "text-gray-600"}`}>도로구역</span>
-          </button>
-
-          {/* 거리측정 */}
           <button
             onClick={toggleMeasureMode}
-            className={`flex items-center gap-2 px-3 py-2 rounded-xl bg-white shadow-sm border transition-all ${
-              measureMode
-                ? "border-teal-600 ring-1 ring-teal-600"
-                : "border-gray-200 hover:border-gray-300"
-            }`}
+            className={`flex items-center gap-2 px-3 py-2 rounded-xl bg-white shadow-sm border transition-all ${measureMode ? "border-teal-600 ring-1 ring-teal-600" : "border-gray-200 hover:border-gray-300"}`}
           >
             <Ruler className={`h-[18px] w-[18px] shrink-0 ${measureMode ? "text-teal-600" : "text-gray-500"}`} strokeWidth={1.5} />
             <span className={`text-[14px] font-medium ${measureMode ? "text-teal-600" : "text-gray-600"}`}>거리측정</span>
           </button>
-
-          {/* 각도측정 */}
           <button
             onClick={() => {}}
             className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white shadow-sm border border-gray-200 hover:border-gray-300 transition-all"
@@ -541,16 +477,6 @@ export function LandMap({
             <span className="text-[14px] font-medium text-gray-600">각도측정</span>
           </button>
         </div>
-
-        {/* 레이어 가시화 안내 */}
-        {(layers.landSupplyDemand || layers.roadArea) && zoomLevel < LAYER_MIN_ZOOM && (
-          <div className="flex items-center gap-1.5 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 shadow-sm">
-            <Info className="h-3.5 w-3.5 shrink-0 text-amber-500" />
-            <p className="text-[14px] leading-tight text-amber-600">
-              줌 {LAYER_MIN_ZOOM}+ 에서 표시
-            </p>
-          </div>
-        )}
       </div>
 
       {/* 줌 컨트롤 - 좌측 상단 */}
@@ -655,17 +581,63 @@ export function LandMap({
       
 
     </div>
-    {/* 범례 */}
-    <div className="flex flex-wrap gap-x-4 gap-y-1.5 px-1 py-1">
-      {legendItems.map((item) => (
-        <div key={item.label} className="flex items-center gap-1.5">
-          <span
-            className="inline-block w-3.5 h-3.5 rounded-[2px] shrink-0"
-            style={{ background: item.bg, border: item.border }}
-          />
-          <span className="text-[12px] text-muted-foreground">{item.label}</span>
+
+    {/* 하단: 범례(원필지·잔여지·편입지) + 토글(도로구역·국토수급·동일소유자) */}
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-1">
+      {/* 원필지 / 잔여지 / 편입지 토글 버튼 */}
+      <button
+        onClick={() => setLayers((prev) => ({ ...prev, originalParcel: !prev.originalParcel }))}
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[13px] font-medium transition-all ${layers.originalParcel ? "border-teal-600 text-teal-600 bg-teal-50" : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"}`}
+      >
+        <span className="inline-block w-3 h-3 rounded-[2px] shrink-0" style={{ background: "transparent", border: "2px dashed #888888" }} />
+        원필지
+      </button>
+      <button
+        onClick={() => setLayers((prev) => ({ ...prev, remainderParcel: !prev.remainderParcel }))}
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[13px] font-medium transition-all ${layers.remainderParcel ? "border-teal-600 text-teal-600 bg-teal-50" : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"}`}
+      >
+        <span className="inline-block w-3 h-3 rounded-[2px] shrink-0" style={{ background: "rgba(59,130,246,0.35)", border: "1.5px solid #3b82f6" }} />
+        잔여지
+      </button>
+      <button
+        onClick={() => setLayers((prev) => ({ ...prev, incorporatedParcel: !prev.incorporatedParcel }))}
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[13px] font-medium transition-all ${layers.incorporatedParcel ? "border-teal-600 text-teal-600 bg-teal-50" : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"}`}
+      >
+        <span className="inline-block w-3 h-3 rounded-[2px] shrink-0" style={{ background: "rgba(239,68,68,0.35)", border: "1.5px solid #ef4444" }} />
+        편입지
+      </button>
+
+      <div className="h-5 w-px bg-border" />
+
+      {/* 토글 레이어 버튼 */}
+      <button
+        onClick={() => setLayers((prev) => ({ ...prev, roadArea: !prev.roadArea }))}
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[13px] font-medium transition-all ${layers.roadArea ? "border-teal-600 text-teal-600 bg-teal-50" : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"}`}
+      >
+        <span className="inline-block w-3 h-3 rounded-[2px] shrink-0" style={{ background: "#a0a0a0", border: "1.5px dashed #ff6b6b" }} />
+        도로구역
+      </button>
+      <button
+        onClick={() => setLayers((prev) => ({ ...prev, landSupplyDemand: !prev.landSupplyDemand }))}
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[13px] font-medium transition-all ${layers.landSupplyDemand ? "border-teal-600 text-teal-600 bg-teal-50" : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"}`}
+      >
+        <span className="inline-block w-3 h-3 rounded-[2px] shrink-0" style={{ background: "rgba(255,193,7,0.3)", border: "1.5px solid #ffc107" }} />
+        국토수급
+      </button>
+      <button
+        onClick={() => setShowSameOwner((prev) => !prev)}
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[13px] font-medium transition-all ${showSameOwner ? "border-teal-600 text-teal-600 bg-teal-50" : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground"}`}
+      >
+        <span className="inline-block w-3 h-3 rounded-[2px] shrink-0" style={{ background: "rgba(234,88,12,0.2)", border: "1.5px dashed #ea580c" }} />
+        동일소유자
+      </button>
+
+      {(layers.landSupplyDemand || layers.roadArea) && zoomLevel < LAYER_MIN_ZOOM && (
+        <div className="flex items-center gap-1.5 rounded-lg bg-amber-50 border border-amber-200 px-2.5 py-1">
+          <Info className="h-3.5 w-3.5 shrink-0 text-amber-500" />
+          <p className="text-[13px] text-amber-600">줌 {LAYER_MIN_ZOOM}+ 에서 표시</p>
         </div>
-      ))}
+      )}
     </div>
     </div>
   );
