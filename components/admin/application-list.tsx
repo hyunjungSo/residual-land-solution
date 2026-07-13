@@ -57,6 +57,7 @@ const availableYears = Array.from({ length: 10 }, (_, i) => currentYear - i);
 export function ApplicationList({ applications, onSelect }: ApplicationListProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<AdminStatus | "all">("all");
+  const [channelFilter, setChannelFilter] = useState<"all" | "online" | "offline">("all");
   const [projectUnitFilter] = useState<"all" | "gangjin-gwangju">("all");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>("year");
@@ -209,16 +210,19 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
           app.landInfo.address.includes(searchQuery);
       const matchesStatus = statusFilter === "all" || toListStatus(app.adminStatus) === statusFilter;
       const matchesProjectUnit = projectUnitFilter === "all" || app.businessUnit === "강진광주";
+      const matchesChannel = channelFilter === "all"
+        || (channelFilter === "offline" && app.submissionChannel === "offline")
+        || (channelFilter === "online" && app.submissionChannel !== "offline");
       // AI 불일치 필터 (시뮬레이션: 접수번호가 특정 패턴일 때 불일치로 간주)
       const matchesAiMismatch = !aiMismatchFilter || (app.adminStatus === "심사완료" && app.applicationNumber.endsWith("2"));
-      return matchesSearch && matchesStatus && matchesProjectUnit && matchesAiMismatch;
+      return matchesSearch && matchesStatus && matchesProjectUnit && matchesChannel && matchesAiMismatch;
       })
       .sort((a, b) => {
         const dateA = new Date(a.appliedAt).getTime();
         const dateB = new Date(b.appliedAt).getTime();
         return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
       });
-    }, [periodFilteredApplications, searchQuery, statusFilter, projectUnitFilter, sortOrder, aiMismatchFilter]);
+    }, [periodFilteredApplications, searchQuery, statusFilter, projectUnitFilter, channelFilter, sortOrder, aiMismatchFilter]);
 
   // 페이지네이션 계산
   const totalPages = Math.ceil(filteredApplications.length / itemsPerPage);
@@ -230,7 +234,7 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
   // 필터 변경 시 페이지 리셋
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, statusFilter, projectUnitFilter, aiMismatchFilter, periodFilter, selectedYear, dateCriteriaType]);
+  }, [searchQuery, statusFilter, projectUnitFilter, channelFilter, aiMismatchFilter, periodFilter, selectedYear, dateCriteriaType]);
 
   // 상태별 통계 (기간 필터 적용)
   const stats = useMemo(() => {
@@ -646,6 +650,17 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
               placeholder="접수번호, 신청인명, 지번"
             />
             <RadioFilterGroup
+              label="신청 채널"
+              name="channel-filter"
+              value={channelFilter}
+              onChange={(v) => setChannelFilter(v as "all" | "online" | "offline")}
+              options={[
+                { value: "all", label: "전체" },
+                { value: "offline", label: "수기" },
+                { value: "online", label: "민원인" },
+              ]}
+            />
+            <RadioFilterGroup
               label="진행상황"
               name="status-filter"
               value={statusFilter}
@@ -691,6 +706,9 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
                     <TableCell className="w-[120px] text-center font-medium">
                       <div className="flex items-center justify-center gap-2">
                         {app.applicationNumber}
+                        {app.submissionChannel === "offline" && (
+                          <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[12px] font-semibold bg-amber-50 border border-amber-200 text-amber-700 shrink-0">수기</span>
+                        )}
                         {aiMismatchFilter && app.adminStatus === "심사완료" && (
                           app.applicationNumber.endsWith("2") ? (
                             <span className="rounded bg-rose-100 px-2 py-1 text-[14px] font-medium text-rose-700">반대 결정</span>
@@ -758,6 +776,9 @@ export function ApplicationList({ applications, onSelect }: ApplicationListProps
                     <span className="font-medium text-foreground">
                       {app.applicationNumber}
                     </span>
+                    {app.submissionChannel === "offline" && (
+                      <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[12px] font-semibold bg-amber-50 border border-amber-200 text-amber-700 shrink-0">수기</span>
+                    )}
                     {aiMismatchFilter && app.adminStatus === "심사완료" && (
                       app.applicationNumber.endsWith("2") ? (
                         <span className="rounded bg-rose-100 px-2 py-1 text-[14px] font-medium text-rose-700">반대 결정</span>

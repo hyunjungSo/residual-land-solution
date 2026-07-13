@@ -1108,7 +1108,12 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
             <div>
               <span className="text-[16px] text-muted-foreground">접수번호</span>
-              <p className="font-medium">2026-05-001</p>
+              <p className="font-medium flex items-center gap-1.5">
+                {application.applicationNumber}
+                {application.submissionChannel === "offline" && (
+                  <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[12px] font-semibold bg-amber-50 border border-amber-200 text-amber-700 shrink-0">수기</span>
+                )}
+              </p>
             </div>
             <div>
               <span className="text-[16px] text-muted-foreground">신청인</span>
@@ -1205,84 +1210,94 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
           {/* 2-1. 신청정보 */}
           <div id="land-info-section" className="space-y-5 scroll-mt-40">
             <h3 className="text-lg font-semibold">신청정보</h3>
-            {applicationLands[selectedLandIndex] && (
-              <div className="rounded-lg border overflow-hidden">
-                <table className="w-full text-[16px]">
-                  <tbody className="divide-y">
-                    <tr>
-                      <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground w-32">토지유형</td>
-                      <td className="px-4 py-3">{applicationLands[selectedLandIndex].landType || "-"}</td>
-                      <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground w-32">대상 지번</td>
-                      <td className="px-4 py-3">{applicationLands[selectedLandIndex].address}</td>
-                    </tr>
-                    <tr>
-                      <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground">잔여면적</td>
-                      <td className="px-4 py-3">{applicationLands[selectedLandIndex].remainingArea.toLocaleString()}㎡</td>
-                      <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground">토지 모양</td>
-                      <td className="px-4 py-3">사다리꼴</td>
-                    </tr>
-                    <tr>
-                      <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground">실제용도</td>
-                      <td className="px-4 py-3">전</td>
-                      <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground">공부상 지목</td>
-                      <td className="px-4 py-3">{landCategories.find(c => c.value === applicationLands[selectedLandIndex].landCategory)?.label || applicationLands[selectedLandIndex].landCategory}</td>
-                    </tr>
-                    <tr>
-                      <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground align-top">확인항목</td>
-                      <td className="px-4 py-3" colSpan={3}>
-                        <div className="flex flex-wrap gap-2">
-                          <Badge variant="secondary">농기계 진입 곤란</Badge>
-                          <Badge variant="secondary">접면도로 상실</Badge>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground">인접 토지 소유</td>
-                      <td className="px-4 py-3" colSpan={3}>
-                        {application.hasAdjacentLand ? "있음" : "없음"}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground align-top">신청 사유</td>
-                      <td className="px-4 py-3" colSpan={3}>
-                        <p className="text-[16px] leading-relaxed">도로 개설로 인해 토지가 분할되어 잔여지의 형상이 불규칙하고, 농기계 진입이 어려워 농업 활용이 곤란합니다. 또한 기존 접면도로가 상실되어 토지 이용에 심각한 제한이 발생하였습니다.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground align-top">첨부서류</td>
-                      <td className="px-4 py-3" colSpan={3}>
-                        <ul className="flex flex-row flex-wrap gap-2">
-                          <li
-                            onClick={() => handleAttachmentClick("토지대장_용인시_포곡읍_200-1.pdf")}
-                            className="flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 cursor-pointer hover:bg-gray-50 transition-colors"
-                            title="파일 보기"
-                          >
-                            <span className="text-xs text-foreground">토지대장_용인시_포곡읍_200-1.pdf</span>
-                            <Eye className="size-4 shrink-0 text-muted-foreground" />
-                          </li>
-                          <li
-                            onClick={() => handleAttachmentClick("지적도_용인시_포곡읍_200-1.pdf")}
-                            className="flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 cursor-pointer hover:bg-gray-50 transition-colors"
-                            title="파일 보기"
-                          >
-                            <span className="text-xs text-foreground">지적도_용인시_포곡읍_200-1.pdf</span>
-                            <Eye className="size-4 shrink-0 text-muted-foreground" />
-                          </li>
-                          <li
-                            onClick={() => handleAttachmentClick("현장사진_20260501.jpg")}
-                            className="flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 cursor-pointer hover:bg-gray-50 transition-colors"
-                            title="파일 보기"
-                          >
-                            <span className="text-xs text-foreground">현장사진_20260501.jpg</span>
-                            <Eye className="size-4 shrink-0 text-muted-foreground" />
-                          </li>
-                        </ul>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            )}
+            {(() => {
+              const land = applicationLands[selectedLandIndex];
+              if (!land) return null;
+              const landData = application.landDataList?.[selectedLandIndex];
+              const currentUsage = landData?.currentUsage ?? application.actualUsage;
+              const reportedShape = landData?.reportedShape ?? application.reportedShape;
+              const checkItems = [
+                { key: "accessRoadLost", label: "접면도로 상실", value: landData?.accessRoadLost },
+                { key: "waterChannelLost", label: "수로 상실", value: landData?.waterChannelLost },
+                { key: "farmMachineDifficulty", label: "농기계 진입 곤란", value: landData?.farmMachineDifficulty ?? application.farmMachineDifficulty },
+                { key: "farmMachineRotationDifficulty", label: "농기계 회전 곤란", value: landData?.farmMachineRotationDifficulty },
+                { key: "livestockBuildingUnusable", label: "축사부지 사용불가", value: landData?.livestockBuildingUnusable },
+                { key: "entryDifficult", label: "진입 곤란", value: landData?.entryDifficult },
+                { key: "cannotUseOriginalPurpose", label: "종래 목적대로 사용 곤란", value: landData?.cannotUseOriginalPurpose },
+              ].filter(item => item.value === true);
+              return (
+                <div className="rounded-lg border overflow-hidden">
+                  <table className="w-full text-[16px]">
+                    <tbody className="divide-y">
+                      <tr>
+                        <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground w-32">토지유형</td>
+                        <td className="px-4 py-3">{land.landType || "-"}</td>
+                        <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground w-32">대상 지번</td>
+                        <td className="px-4 py-3">{land.address}</td>
+                      </tr>
+                      <tr>
+                        <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground">잔여면적</td>
+                        <td className="px-4 py-3">{land.remainingArea.toLocaleString()}㎡</td>
+                        <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground">토지 모양</td>
+                        <td className="px-4 py-3">{reportedShape || "-"}</td>
+                      </tr>
+                      <tr>
+                        <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground">실제용도</td>
+                        <td className="px-4 py-3">{landCategories.find(c => c.value === currentUsage)?.label ?? currentUsage ?? "-"}</td>
+                        <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground">공부상 지목</td>
+                        <td className="px-4 py-3">{landCategories.find(c => c.value === land.landCategory)?.label || land.landCategory}</td>
+                      </tr>
+                      <tr>
+                        <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground align-top">확인항목</td>
+                        <td className="px-4 py-3" colSpan={3}>
+                          {checkItems.length > 0 ? (
+                            <div className="flex flex-wrap gap-2">
+                              {checkItems.map(item => (
+                                <Badge key={item.key} variant="secondary">{item.label}</Badge>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">해당없음</span>
+                          )}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground">인접 토지 소유</td>
+                        <td className="px-4 py-3" colSpan={3}>
+                          {application.hasAdjacentLand ? "있음" : "없음"}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground align-top">신청 사유</td>
+                        <td className="px-4 py-3" colSpan={3}>
+                          <p className="text-[16px] leading-relaxed">{application.reason || "-"}</p>
+                        </td>
+                      </tr>
+                      {application.attachments.length > 0 && (
+                        <tr>
+                          <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground align-top">첨부서류</td>
+                          <td className="px-4 py-3" colSpan={3}>
+                            <ul className="flex flex-row flex-wrap gap-2">
+                              {application.attachments.map((file) => (
+                                <li
+                                  key={file}
+                                  onClick={() => handleAttachmentClick(file)}
+                                  className="flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 cursor-pointer hover:bg-gray-50 transition-colors"
+                                  title="파일 보기"
+                                >
+                                  <span className="text-xs text-foreground">{file}</span>
+                                  <Eye className="size-4 shrink-0 text-muted-foreground" />
+                                </li>
+                              ))}
+                            </ul>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              );
+            })()}
           </div>
 
           {/* 민원인이 선택한 옵션 */}
@@ -1566,7 +1581,7 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
                               <div
                                 key={option.value}
                                 className={cn(
-                                  "flex items-start gap-1.5 p-2 rounded-lg border cursor-pointer transition-colors",
+                                  "flex items-center gap-1.5 p-2 rounded-lg border cursor-pointer transition-colors",
                                   citizenFlagged
                                     ? "bg-red-50 border-red-300"
                                     : checked
@@ -1578,27 +1593,25 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
                                 <Checkbox
                                   checked={checked}
                                   onCheckedChange={(c) => updateLandOption(currentLand.id, key, !!c)}
-                                  className="shrink-0 mt-0.5"
+                                  className="shrink-0"
                                 />
-                                <div className="flex flex-col gap-1 flex-1 min-w-0">
-                                  <span className="text-xs">{option.label}</span>
-                                  <div className="flex flex-wrap gap-1">
-                                    {citizenSelected && <CitizenBadge value={citizenVal} />}
-                                    {aiVal != null && (
-                                      <span className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium shrink-0 whitespace-nowrap ${
-                                        aiVal ? "bg-violet-50 border-violet-200 text-violet-700" : "bg-muted border-border text-muted-foreground"
-                                      }`}>
-                                        {aiVal ? "AI 판정: 해당" : "AI 판정: 미해당"}
-                                      </span>
-                                    )}
-                                    {confirmedCheckItems && (
-                                      <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] font-semibold shrink-0 whitespace-nowrap ${
-                                        recordChecked ? "bg-black text-white" : "bg-muted text-muted-foreground"
-                                      }`}>
-                                        {recordChecked ? "담당자 판정: 해당" : "담당자 판정: 미해당"}
-                                      </span>
-                                    )}
-                                  </div>
+                                <span className="text-xs flex-1">{option.label}</span>
+                                <div className="flex flex-wrap gap-1 justify-end">
+                                  {citizenSelected && <CitizenBadge value={citizenVal} />}
+                                  {aiVal != null && (
+                                    <span className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium shrink-0 whitespace-nowrap ${
+                                      aiVal ? "bg-violet-50 border-violet-200 text-violet-700" : "bg-muted border-border text-muted-foreground"
+                                    }`}>
+                                      {aiVal ? "AI: 해당" : "AI: 미해당"}
+                                    </span>
+                                  )}
+                                  {confirmedCheckItems && (
+                                    <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] font-semibold shrink-0 whitespace-nowrap ${
+                                      recordChecked ? "bg-black text-white" : "bg-muted text-muted-foreground"
+                                    }`}>
+                                      {recordChecked ? "담당자: 해당" : "담당자: 미해당"}
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                             );
