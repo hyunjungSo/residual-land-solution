@@ -80,7 +80,6 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
     ? { ...parcel.adminCheckItems }
     : { accessRoadLost: null, waterChannelLost: null, farmMachineDifficulty: null, farmMachineRotationDifficulty: null, livestockBuildingUnusable: null, adjacentSameOwnerLand: null };
   const [checkItems, setCheckItems] = useState<NullableCheckItems>(initCheckItems);
-  const [savedCheckItems, setSavedCheckItems] = useState<NullableCheckItems>(initCheckItems);
   const [aiCheckItems, setAiCheckItems] = useState<AdminCheckItems>(parcel.adminCheckItems);
 
   const [illandaItems, setIllandaItems] = useState({
@@ -109,6 +108,34 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
       livestockBuildingUnusable: false,
       adjacentSameOwnerLand: false,
     });
+  };
+
+  // 분석 이력 결과 확정
+  const handleConfirmHistory = (history: AnalysisHistory) => {
+    const confirmedUsage = history.changedOptions?.currentUsage ?? parcel.currentUsage;
+    const confirmedShape = history.changedOptions?.landShape ?? parcel.landShape;
+    const resolved: AdminCheckItems = {
+      accessRoadLost: history.changedOptions?.accessRoadLost ?? history.aiResult?.accessRoadLost ?? false,
+      waterChannelLost: history.changedOptions?.waterChannelLost ?? history.aiResult?.waterChannelLost ?? false,
+      farmMachineDifficulty: history.changedOptions?.farmMachineDifficulty ?? history.aiResult?.farmMachineDifficulty ?? false,
+      farmMachineRotationDifficulty: history.changedOptions?.farmMachineRotationDifficulty ?? false,
+      livestockBuildingUnusable: history.changedOptions?.livestockBuildingUnusable ?? false,
+      adjacentSameOwnerLand: history.changedOptions?.adjacentSameOwnerLand ?? false,
+    };
+    const conditions = history.aiResult?.unifiedParcelAnalysis?.conditions;
+    const confirmedIllandaConditions = conditions
+      ? { ownerIdentity: conditions.sameOwner, groundContinuity: conditions.continuous, purposeUnity: conditions.sameUsage }
+      : undefined;
+    onUpdate({
+      ...parcel,
+      currentUsage: confirmedUsage,
+      landShape: confirmedShape,
+      adminCheckItems: resolved,
+      ...(confirmedIllandaConditions ? { confirmedIllandaConditions } : {}),
+      confirmedAt: new Date().toISOString(),
+      confirmedBy: "담당자",
+    });
+    toast({ title: "담당자 확인 저장 완료", description: "해당 차수의 분석 조건과 담당자 검증 결과가 최종 저장되었습니다." });
   };
 
   // 분석 상태
@@ -299,104 +326,6 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
         </CardContent>
       </Card>
 
-      {/* 담당자 확인 */}
-      <Card className="border-0 shadow-none">
-        <CardHeader className="pb-3">
-          <CardTitle>담당자 확인</CardTitle>
-          <CardDescription>담당자별로 확인한 항목과 검토 내용을 기록합니다.</CardDescription>
-          <CardAction>
-            <div className="flex items-center gap-3">
-              {savedAt && (
-                <span className="text-sm text-muted-foreground">마지막 저장: {savedAt}</span>
-              )}
-              <Button
-                type="button"
-                onClick={() => {
-                  const now = new Date();
-                  const pad = (n: number) => String(n).padStart(2, "0");
-                  const ts = `${now.getFullYear()}.${pad(now.getMonth() + 1)}.${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
-                  const resolved: AdminCheckItems = {
-                    accessRoadLost: checkItems.accessRoadLost ?? false,
-                    waterChannelLost: checkItems.waterChannelLost ?? false,
-                    farmMachineDifficulty: checkItems.farmMachineDifficulty ?? false,
-                    farmMachineRotationDifficulty: checkItems.farmMachineRotationDifficulty ?? false,
-                    livestockBuildingUnusable: checkItems.livestockBuildingUnusable ?? false,
-                    adjacentSameOwnerLand: checkItems.adjacentSameOwnerLand ?? false,
-                  };
-                  setSavedAt(ts);
-                  setSavedCheckItems({ ...checkItems });
-                  setAiCheckItems(resolved);
-                  onUpdate({
-                    ...parcel,
-                    adminCheckItems: resolved,
-                    confirmedAt: new Date().toISOString(),
-                    confirmedBy: "담당자",
-                  });
-                  toast({ title: "저장 완료", description: "담당자 확인이 저장되었습니다." });
-                }}
-              >
-                저장
-              </Button>
-            </div>
-          </CardAction>
-        </CardHeader>
-        <CardContent className="space-y-5 pb-5">
-          {/* 확인 항목 + 메모 */}
-          <div className="grid grid-cols-[3fr_2fr] gap-5 items-stretch">
-            {/* 확인 항목 */}
-            <div className="flex flex-col gap-1">
-              <Label className="text-[15px] font-semibold">확인 항목</Label>
-              <div className="grid grid-cols-3 gap-3">
-                {adminCheckItemOptions.map((option) => {
-                  const key = option.value as keyof AdminCheckItems;
-                  const checked = checkItems[key];
-                  return (
-                    <div key={key} className="flex flex-col gap-2 p-3 rounded-lg border border-border">
-                      <p className="text-[15px] font-medium text-foreground leading-snug">{option.label}</p>
-                      <div className="flex gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => setCheckItems(prev => ({ ...prev, [key]: true }))}
-                          className={`flex-1 rounded-md h-[30px] text-[13px] font-medium transition-all ${
-                            checked === true
-                              ? "bg-black text-white"
-                              : "border border-black/30 text-foreground hover:bg-black/5"
-                          }`}
-                        >
-                          해당
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setCheckItems(prev => ({ ...prev, [key]: false }))}
-                          className={`flex-1 rounded-md h-[30px] text-[13px] font-medium transition-all ${
-                            checked === false
-                              ? "bg-black text-white"
-                              : "border border-black/30 text-foreground hover:bg-black/5"
-                          }`}
-                        >
-                          미해당
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* 메모 */}
-            <div className="flex flex-col gap-1">
-              <Label className="text-[15px] font-semibold">메모</Label>
-              <textarea
-                value={noteContent}
-                onChange={(e) => setNoteContent(e.target.value)}
-                placeholder="확인한 항목 및 내용을 기록하세요"
-                className="flex-1 w-full text-base px-4 py-3 bg-background rounded-xl border border-border outline-none focus:ring-2 focus:ring-ring/20 transition-colors placeholder:text-muted-foreground resize-none"
-              />
-            </div>
-          </div>
-
-        </CardContent>
-      </Card>
       </div>
 
       {/* AI 분석 영역 - 2컬럼 레이아웃 */}
@@ -458,9 +387,9 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
               </div>
             </div>
 
-            {/* 일단의 토지 판단 */}
+            {/* 일단의 토지 요건 확인 */}
             <div className="space-y-2">
-              <Label className="text-[16px]">일단의 토지 판단</Label>
+              <Label className="text-[16px]">일단의 토지 요건 확인</Label>
               <div className="grid grid-cols-3 gap-5">
                 {[
                   { value: "ownerIdentity", label: "소유자의 동일성" },
@@ -498,35 +427,42 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                   </span>
                 )}
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                {adminCheckItemOptions.map((option) => {
-                  const key = option.value as keyof AdminCheckItems;
-                  const aiChecked = aiCheckItems[key];
-                  const recordChecked = savedCheckItems[key];
-                  return (
-                    <div
-                      key={option.value}
-                      className={`flex items-center gap-1.5 p-2 rounded-lg border cursor-pointer transition-colors ${
-                        aiChecked ? "bg-primary/10 border-primary" : "hover:bg-muted/50"
-                      }`}
-                      onClick={() => setAiCheckItems(prev => ({ ...prev, [key]: !prev[key] }))}
-                    >
-                      <Checkbox
-                        checked={aiChecked}
-                        onCheckedChange={(v) => setAiCheckItems(prev => ({ ...prev, [key]: !!v }))}
-                      />
-                      <span className="text-xs flex-1">{option.label}</span>
-                      {recordChecked !== null && (
-                        <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-semibold shrink-0 whitespace-nowrap ${
-                          recordChecked ? "bg-black text-white" : "bg-muted text-muted-foreground"
-                        }`}>
-                          {recordChecked ? "담당자 판정: 해당" : "담당자 판정: 미해당"}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+              {(() => {
+                const CHECK_ITEM_CATEGORIES: Record<string, string[]> = {
+                  accessRoadLost: ["대", "전", "답", "임", "잡"],
+                  waterChannelLost: ["전", "답"],
+                  farmMachineDifficulty: ["전", "답"],
+                  farmMachineRotationDifficulty: ["전", "답"],
+                  livestockBuildingUnusable: ["잡"],
+                  adjacentSameOwnerLand: ["대", "전", "답", "임", "잡"],
+                };
+                const visibleOptions = adminCheckItemOptions.filter(
+                  (opt) => CHECK_ITEM_CATEGORIES[opt.value]?.includes(currentUsage)
+                );
+                return (
+                  <div className="grid grid-cols-2 gap-2">
+                    {visibleOptions.map((option) => {
+                      const key = option.value as keyof AdminCheckItems;
+                      const aiChecked = aiCheckItems[key];
+                      return (
+                        <div
+                          key={option.value}
+                          className={`flex items-center gap-1.5 p-2 rounded-lg border cursor-pointer transition-colors ${
+                            aiChecked ? "bg-primary/10 border-primary" : "hover:bg-muted/50"
+                          }`}
+                          onClick={() => setAiCheckItems(prev => ({ ...prev, [key]: !prev[key] }))}
+                        >
+                          <Checkbox
+                            checked={aiChecked}
+                            onCheckedChange={(v) => setAiCheckItems(prev => ({ ...prev, [key]: !!v }))}
+                          />
+                          <span className="text-xs flex-1">{option.label}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
 
             {/* 메모 */}
@@ -631,7 +567,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                             <span className="text-[15px] text-muted-foreground ml-auto">
                               {formatDateTime(history.analyzedAt)}
                             </span>
-                          </div>
+                            </div>
                           {/* 하단: 선택한 옵션 */}
                           {(() => {
                             const effectiveUsage = history.changedOptions?.currentUsage ?? parcel.currentUsage;
@@ -643,9 +579,9 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                             if (history.aiResult?.waterChannelLost) checkItems.push("농업용 수로 상실");
                             if (history.aiResult?.farmMachineDifficulty) checkItems.push("농기계 진입 곤란");
                             return (
-                              <div className="flex items-center gap-2 flex-wrap text-[15px]">
+                              <div className="flex items-center gap-2 text-[15px]">
                                 <span className="shrink-0 font-medium text-slate-400">선택한 옵션:</span>
-                                <div className="flex items-center gap-2 flex-wrap text-slate-600">
+                                <div className="flex items-center gap-2 flex-wrap text-slate-600 flex-1">
                                   {usageLabel && (
                                     <span>지목 <span className="font-semibold text-slate-800">{usageLabel}</span></span>
                                   )}
@@ -656,6 +592,13 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                     <><span key={`sep-${i}`} className="text-slate-300">|</span><span key={i} className="font-semibold text-slate-800">{opt}</span></>
                                   ))}
                                 </div>
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); handleConfirmHistory(history); }}
+                                  className="shrink-0 inline-flex items-center rounded px-2.5 py-1 text-[13px] font-medium bg-gray-900 text-white hover:bg-gray-700 transition-colors"
+                                >
+                                  담당자 확인 저장
+                                </button>
                               </div>
                             );
                           })()}

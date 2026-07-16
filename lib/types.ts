@@ -380,6 +380,11 @@ export interface ProcessedParcel extends PreRegisteredParcel {
   lastAnalyzedAt?: string;                    // 최종 분석일
   confirmedAt?: string;                       // 담당자 확인 완료일
   confirmedBy?: string;                       // 확인 담당자
+  confirmedIllandaConditions?: {             // 확정된 일단의 토지 요건
+    ownerIdentity: boolean;
+    groundContinuity: boolean;
+    purposeUnity: boolean;
+  };
   ownerIdentifier?: string;                   // 소유자 식별자 (주민번호 뒷자리 등)
   isVisible?: boolean;                        // 노출 여부 (true: 노출, false: 미노출)
   reportCompleted?: boolean;                  // 보고서 완료 여부

@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -425,6 +424,9 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
       appliedCriteria: string[];
       detailedExplanation: string;
       manualCheckItems?: string[];
+    };
+    unifiedParcelAnalysis?: {
+      conditions: { sameOwner: boolean; continuous: boolean; sameUsage: boolean };
     };
   }>>({});
   
@@ -1108,12 +1110,7 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
             <div>
               <span className="text-[16px] text-muted-foreground">접수번호</span>
-              <p className="font-medium flex items-center gap-1.5">
-                {application.applicationNumber}
-                {application.submissionChannel === "offline" && (
-                  <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[12px] font-semibold bg-amber-50 border border-amber-200 text-amber-700 shrink-0">수기</span>
-                )}
-              </p>
+              <p className="font-medium">2026-05-001</p>
             </div>
             <div>
               <span className="text-[16px] text-muted-foreground">신청인</span>
@@ -1210,94 +1207,84 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
           {/* 2-1. 신청정보 */}
           <div id="land-info-section" className="space-y-5 scroll-mt-40">
             <h3 className="text-lg font-semibold">신청정보</h3>
-            {(() => {
-              const land = applicationLands[selectedLandIndex];
-              if (!land) return null;
-              const landData = application.landDataList?.[selectedLandIndex];
-              const currentUsage = landData?.currentUsage ?? application.actualUsage;
-              const reportedShape = landData?.reportedShape ?? application.reportedShape;
-              const checkItems = [
-                { key: "accessRoadLost", label: "접면도로 상실", value: landData?.accessRoadLost },
-                { key: "waterChannelLost", label: "수로 상실", value: landData?.waterChannelLost },
-                { key: "farmMachineDifficulty", label: "농기계 진입 곤란", value: landData?.farmMachineDifficulty ?? application.farmMachineDifficulty },
-                { key: "farmMachineRotationDifficulty", label: "농기계 회전 곤란", value: landData?.farmMachineRotationDifficulty },
-                { key: "livestockBuildingUnusable", label: "축사부지 사용불가", value: landData?.livestockBuildingUnusable },
-                { key: "entryDifficult", label: "진입 곤란", value: landData?.entryDifficult },
-                { key: "cannotUseOriginalPurpose", label: "종래 목적대로 사용 곤란", value: landData?.cannotUseOriginalPurpose },
-              ].filter(item => item.value === true);
-              return (
-                <div className="rounded-lg border overflow-hidden">
-                  <table className="w-full text-[16px]">
-                    <tbody className="divide-y">
-                      <tr>
-                        <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground w-32">토지유형</td>
-                        <td className="px-4 py-3">{land.landType || "-"}</td>
-                        <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground w-32">대상 지번</td>
-                        <td className="px-4 py-3">{land.address}</td>
-                      </tr>
-                      <tr>
-                        <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground">잔여면적</td>
-                        <td className="px-4 py-3">{land.remainingArea.toLocaleString()}㎡</td>
-                        <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground">토지 모양</td>
-                        <td className="px-4 py-3">{reportedShape || "-"}</td>
-                      </tr>
-                      <tr>
-                        <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground">실제용도</td>
-                        <td className="px-4 py-3">{landCategories.find(c => c.value === currentUsage)?.label ?? currentUsage ?? "-"}</td>
-                        <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground">공부상 지목</td>
-                        <td className="px-4 py-3">{landCategories.find(c => c.value === land.landCategory)?.label || land.landCategory}</td>
-                      </tr>
-                      <tr>
-                        <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground align-top">확인항목</td>
-                        <td className="px-4 py-3" colSpan={3}>
-                          {checkItems.length > 0 ? (
-                            <div className="flex flex-wrap gap-2">
-                              {checkItems.map(item => (
-                                <Badge key={item.key} variant="secondary">{item.label}</Badge>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground">해당없음</span>
-                          )}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground">인접 토지 소유</td>
-                        <td className="px-4 py-3" colSpan={3}>
-                          {application.hasAdjacentLand ? "있음" : "없음"}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground align-top">신청 사유</td>
-                        <td className="px-4 py-3" colSpan={3}>
-                          <p className="text-[16px] leading-relaxed">{application.reason || "-"}</p>
-                        </td>
-                      </tr>
-                      {application.attachments.length > 0 && (
-                        <tr>
-                          <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground align-top">첨부서류</td>
-                          <td className="px-4 py-3" colSpan={3}>
-                            <ul className="flex flex-row flex-wrap gap-2">
-                              {application.attachments.map((file) => (
-                                <li
-                                  key={file}
-                                  onClick={() => handleAttachmentClick(file)}
-                                  className="flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 cursor-pointer hover:bg-gray-50 transition-colors"
-                                  title="파일 보기"
-                                >
-                                  <span className="text-xs text-foreground">{file}</span>
-                                  <Eye className="size-4 shrink-0 text-muted-foreground" />
-                                </li>
-                              ))}
-                            </ul>
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              );
-            })()}
+            {applicationLands[selectedLandIndex] && (
+              <div className="rounded-lg border overflow-hidden">
+                <table className="w-full text-[16px]">
+                  <tbody className="divide-y">
+                    <tr>
+                      <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground w-32">토지유형</td>
+                      <td className="px-4 py-3">{applicationLands[selectedLandIndex].landType || "-"}</td>
+                      <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground w-32">대상 지번</td>
+                      <td className="px-4 py-3">{applicationLands[selectedLandIndex].address}</td>
+                    </tr>
+                    <tr>
+                      <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground">잔여면적</td>
+                      <td className="px-4 py-3">{applicationLands[selectedLandIndex].remainingArea.toLocaleString()}㎡</td>
+                      <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground">토지 모양</td>
+                      <td className="px-4 py-3">사다리꼴</td>
+                    </tr>
+                    <tr>
+                      <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground">실제용도</td>
+                      <td className="px-4 py-3">전</td>
+                      <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground">공부상 지목</td>
+                      <td className="px-4 py-3">{landCategories.find(c => c.value === applicationLands[selectedLandIndex].landCategory)?.label || applicationLands[selectedLandIndex].landCategory}</td>
+                    </tr>
+                    <tr>
+                      <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground align-top">확인항목</td>
+                      <td className="px-4 py-3" colSpan={3}>
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant="secondary">농기계 진입 곤란</Badge>
+                          <Badge variant="secondary">접면도로 상실</Badge>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground">인접 토지 소유</td>
+                      <td className="px-4 py-3" colSpan={3}>
+                        {application.hasAdjacentLand ? "있음" : "없음"}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground align-top">신청 사유</td>
+                      <td className="px-4 py-3" colSpan={3}>
+                        <p className="text-[16px] leading-relaxed">도로 개설로 인해 토지가 분할되어 잔여지의 형상이 불규칙하고, 농기계 진입이 어려워 농업 활용이 곤란합니다. 또한 기존 접면도로가 상실되어 토지 이용에 심각한 제한이 발생하였습니다.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="bg-muted/50 px-4 py-3 font-medium text-muted-foreground align-top">첨부서류</td>
+                      <td className="px-4 py-3" colSpan={3}>
+                        <ul className="flex flex-row flex-wrap gap-2">
+                          <li
+                            onClick={() => handleAttachmentClick("토지대장_용인시_포곡읍_200-1.pdf")}
+                            className="flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 cursor-pointer hover:bg-gray-50 transition-colors"
+                            title="파일 보기"
+                          >
+                            <span className="text-xs text-foreground">토지대장_용인시_포곡읍_200-1.pdf</span>
+                            <Eye className="size-4 shrink-0 text-muted-foreground" />
+                          </li>
+                          <li
+                            onClick={() => handleAttachmentClick("지적도_용인시_포곡읍_200-1.pdf")}
+                            className="flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 cursor-pointer hover:bg-gray-50 transition-colors"
+                            title="파일 보기"
+                          >
+                            <span className="text-xs text-foreground">지적도_용인시_포곡읍_200-1.pdf</span>
+                            <Eye className="size-4 shrink-0 text-muted-foreground" />
+                          </li>
+                          <li
+                            onClick={() => handleAttachmentClick("현장사진_20260501.jpg")}
+                            className="flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-2 cursor-pointer hover:bg-gray-50 transition-colors"
+                            title="파일 보기"
+                          >
+                            <span className="text-xs text-foreground">현장사진_20260501.jpg</span>
+                            <Eye className="size-4 shrink-0 text-muted-foreground" />
+                          </li>
+                        </ul>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           {/* 민원인이 선택한 옵션 */}
@@ -1447,13 +1434,15 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
                 {/* 지적도 */}
                 <div className="space-y-2">
                   <Label className="font-medium">지적도</Label>
-                  {applicationLands[selectedLandIndex] && (
-                    <LandMap
-                      landInfo={applicationLands[selectedLandIndex]}
-                      showOverlay={false}
-                      interactive={false}
-                    />
-                  )}
+                  <div className="h-[460px] rounded-lg overflow-hidden border bg-muted">
+                    {applicationLands[selectedLandIndex] && (
+                      <LandMap
+                        landInfo={applicationLands[selectedLandIndex]}
+                        showOverlay={false}
+                        interactive={false}
+                      />
+                    )}
+                  </div>
                 </div>
                 {/* 선택 옵션 + 실행 버튼 */}
                 {(() => {
@@ -1462,87 +1451,165 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
                   const landData = application.landDataList?.[selectedLandIndex];
                   const landOpts = adminAIOptionsPerLand[currentLand.id];
                   const citizenUsage = landData?.currentUsage;
-
+                  const citizenShape = landData?.reportedShape;
                   const curUsage = adminCurrentUsagePerLand[currentLand.id] ?? citizenUsage ?? "";
-                  const curShape = adminLandShapePerLand[currentLand.id] ?? "";
                   const adminResult = adminLandAIResults[currentLand.id];
+                  const citizenAIResult = landAIResults[currentLand.id];
+                  const effectiveAIResult = adminResult ?? citizenAIResult;
                   const allParcels = externalParcels ?? dummyProcessedParcels;
                   const matchedParcel = allParcels.find(p => p.landInfo.id === currentLand.id);
-                  const confirmedCheckItems = matchedParcel?.adminCheckItems;
+                  const confirmedCheckItems = matchedParcel?.confirmedAt ? matchedParcel.adminCheckItems : undefined;
+                  const confirmedShape = matchedParcel?.confirmedAt ? matchedParcel.landShape : undefined;
+                  const curShape = adminLandShapePerLand[currentLand.id] ?? confirmedShape ?? "";
                   return (
                     <>
                       {/* 현재 활용지목 및 토지 형상 */}
-                      <div className="grid grid-cols-2 gap-5">
-                        <div className="space-y-2">
-                          <Label className="text-[16px]">현재 활용지목</Label>
-                          <Select
-                            value={curUsage}
-                            onValueChange={(v) => setAdminCurrentUsagePerLand(prev => ({ ...prev, [currentLand.id]: v }))}
-                          >
-                            <SelectTrigger className={`h-[40px] ${citizenUsage && currentLand.landCategory && citizenUsage !== currentLand.landCategory ? "border-red-400 ring-1 ring-red-400" : ""}`}><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              {landCategories.map((cat) => (
-                                <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <div className="flex flex-wrap gap-1">
-                            {citizenUsage && (
-                              <span className="inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium bg-blue-50 border-blue-200 text-blue-700 whitespace-nowrap">
-                                민원인 선택: {landCategories.find(c => c.value === citizenUsage)?.label ?? citizenUsage}
-                              </span>
-                            )}
-                            {currentLand.landCategory && (
-                              <span className="inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium bg-violet-50 border-violet-200 text-violet-700 whitespace-nowrap">
-                                AI 판정: {landCategories.find(c => c.value === currentLand.landCategory)?.label ?? currentLand.landCategory}
-                              </span>
-                            )}
+                      {(() => {
+                        const LAND_TYPE_TO_CAT: Record<string, string> = { "택지": "대", "대지": "대", "농지": "전", "산지": "임", "그밖의토지": "잡" };
+                        const aiCategory = effectiveAIResult?.landTypePath ? LAND_TYPE_TO_CAT[effectiveAIResult.landTypePath] : undefined;
+                        const aiCategoryLabel = aiCategory
+                          ? (landCategories.find(c => c.value === aiCategory)?.label ?? aiCategory)
+                          : adminResult?.landTypePath;
+                        const citizenUsageLabel = citizenUsage
+                          ? (landCategories.find(c => c.value === citizenUsage)?.label ?? citizenUsage)
+                          : undefined;
+                        return (
+                          <div className="grid grid-cols-2 gap-5">
+                            <div className="space-y-2">
+                              <Label className="text-[16px]">현재 활용지목</Label>
+                              <Select
+                                value={curUsage}
+                                onValueChange={(v) => setAdminCurrentUsagePerLand(prev => ({ ...prev, [currentLand.id]: v }))}
+                              >
+                                <SelectTrigger className="h-[40px]"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  {landCategories.map((cat) => (
+                                    <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <div className="flex flex-wrap gap-1">
+                                {citizenUsageLabel && (
+                                  <span className="inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium shrink-0 whitespace-nowrap bg-blue-50 border-blue-200 text-blue-700">
+                                    민원인 선택: {citizenUsageLabel}
+                                  </span>
+                                )}
+                                <span className="inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium shrink-0 whitespace-nowrap bg-violet-50 border-violet-300 text-violet-700">
+                                  AI 판정: {aiCategoryLabel}
+                                </span>
+                                {matchedParcel?.confirmedAt && matchedParcel.currentUsage && (() => {
+                                  const confirmedLabel = landCategories.find(c => c.value === matchedParcel.currentUsage)?.label ?? matchedParcel.currentUsage;
+                                  return (
+                                    <span className="inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium shrink-0 whitespace-nowrap bg-gray-900 border-gray-900 text-white">
+                                      담당자 판정: {confirmedLabel}
+                                    </span>
+                                  );
+                                })()}
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-[16px]">토지 형상</Label>
+                              <Select
+                                value={curShape}
+                                onValueChange={(v) => setAdminLandShapePerLand(prev => ({ ...prev, [currentLand.id]: v }))}
+                              >
+                                <SelectTrigger className="h-[40px]"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  <div className="px-2 py-1 text-xs text-muted-foreground">정형</div>
+                                  {landShapes.regular.map((shape) => (
+                                    <SelectItem key={shape.value} value={shape.value}>{shape.label}</SelectItem>
+                                  ))}
+                                  <div className="px-2 py-1 text-xs text-muted-foreground border-t mt-1 pt-1">부정형</div>
+                                  {landShapes.irregular.map((shape) => (
+                                    <SelectItem key={shape.value} value={shape.value}>{shape.label}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              {(() => {
+                                const allShapes = [...landShapes.regular, ...landShapes.irregular];
+                                const latestHistory = matchedParcel?.analysisHistory?.slice(-1)[0];
+                                const aiShape = latestHistory?.changedOptions?.landShape ?? matchedParcel?.landShape;
+                                const citizenShapeLabel = citizenShape ? (allShapes.find(s => s.value === citizenShape)?.label ?? citizenShape) : undefined;
+                                const aiShapeLabel = aiShape ? (allShapes.find(s => s.value === aiShape)?.label ?? aiShape) : undefined;
+                                const confirmedShapeLabel = (matchedParcel?.confirmedAt && matchedParcel.landShape)
+                                  ? (allShapes.find(s => s.value === matchedParcel.landShape)?.label ?? matchedParcel.landShape)
+                                  : undefined;
+                                if (!citizenShapeLabel && !aiShapeLabel && !confirmedShapeLabel) return null;
+                                return (
+                                  <div className="flex flex-wrap gap-1 mt-1">
+                                    {citizenShapeLabel && (
+                                      <span className="inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium shrink-0 whitespace-nowrap bg-blue-50 border-blue-200 text-blue-700">
+                                        민원인 선택: {citizenShapeLabel}
+                                      </span>
+                                    )}
+                                    {aiShapeLabel && (
+                                      <span className="inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium shrink-0 whitespace-nowrap bg-violet-50 border-violet-300 text-violet-700">
+                                        AI 판정: {aiShapeLabel}
+                                      </span>
+                                    )}
+                                    {confirmedShapeLabel && (
+                                      <span className="inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium shrink-0 whitespace-nowrap bg-gray-900 border-gray-900 text-white">
+                                        담당자 판정: {confirmedShapeLabel}
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              })()}
+                            </div>
                           </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-[16px]">토지 형상</Label>
-                          <Select
-                            value={curShape}
-                            onValueChange={(v) => setAdminLandShapePerLand(prev => ({ ...prev, [currentLand.id]: v }))}
-                          >
-                            <SelectTrigger className="h-[40px]"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              <div className="px-2 py-1 text-xs text-muted-foreground">정형</div>
-                              {landShapes.regular.map((shape) => (
-                                <SelectItem key={shape.value} value={shape.value}>{shape.label}</SelectItem>
-                              ))}
-                              <div className="px-2 py-1 text-xs text-muted-foreground border-t mt-1 pt-1">부정형</div>
-                              {landShapes.irregular.map((shape) => (
-                                <SelectItem key={shape.value} value={shape.value}>{shape.label}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      {/* 일단의 토지 판단 */}
+                        );
+                      })()}
+                      {/* 일단의 토지 요건 확인 */}
                       <div className="space-y-2">
-                        <Label className="text-[16px]">일단의 토지 판단</Label>
+                        <Label className="text-[16px]">일단의 토지 요건 확인</Label>
                         <div className="grid grid-cols-3 gap-5">
                           {[
-                            { value: "ownerIdentity", label: "소유자의 동일성" },
-                            { value: "groundContinuity", label: "지반의 연속성" },
-                            { value: "purposeUnity", label: "용도의 일체성" },
+                            { value: "ownerIdentity", label: "소유자의 동일성", aiKey: null },
+                            { value: "groundContinuity", label: "지반의 연속성", aiKey: "continuous" as const },
+                            { value: "purposeUnity", label: "용도의 일체성", aiKey: "sameUsage" as const },
                           ].map((option) => {
-                            const checked = landOpts?.[option.value as keyof typeof landOpts] ?? false;
+                            const unifiedConditions =
+                              adminResult?.unifiedParcelAnalysis?.conditions ??
+                              (application.aiResult?.unifiedParcelAnalysis as any)?.conditions;
+                            const aiUnitVal: boolean = option.aiKey
+                              ? (unifiedConditions?.[option.aiKey] ?? false)
+                              : false;
+                            const illandaKey = option.value as "ownerIdentity" | "groundContinuity" | "purposeUnity";
+                            const confirmedIllandaVal = matchedParcel?.confirmedIllandaConditions?.[illandaKey];
+                            // 체크박스 상태: 담당자 선택 > 확인저장 > AI
+                            const checked = landOpts?.[option.value as keyof typeof landOpts] ?? confirmedIllandaVal ?? aiUnitVal;
+                            // 배지 값: 확인저장 > AI (체크박스 선택과 무관하게 고정)
+                            const illandaBadgeVal = confirmedIllandaVal ?? aiUnitVal;
                             return (
                               <div
                                 key={option.value}
                                 className={cn(
-                                  "flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-colors",
+                                  "flex flex-col gap-2 p-2 rounded-lg border cursor-pointer transition-colors",
                                   checked ? "bg-primary/10 border-primary" : "hover:bg-muted/50"
                                 )}
                                 onClick={() => updateLandOption(currentLand.id, option.value, !checked)}
                               >
-                                <Checkbox
-                                  checked={checked}
-                                  onCheckedChange={(c) => updateLandOption(currentLand.id, option.value, !!c)}
-                                />
-                                <span className="text-xs">{option.label}</span>
+                                <div className="flex items-center gap-1.5">
+                                  <Checkbox
+                                    checked={checked}
+                                    onCheckedChange={(c) => updateLandOption(currentLand.id, option.value, !!c)}
+                                  />
+                                  <span className="text-xs">{option.label}</span>
+                                </div>
+                                <div className="flex flex-wrap gap-1 pl-5">
+                                  {option.aiKey && (
+                                    <span className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium shrink-0 whitespace-nowrap ${
+                                      aiUnitVal ? "bg-violet-600 border-violet-600 text-white" : "bg-muted border-border text-muted-foreground"
+                                    }`}>
+                                      {aiUnitVal ? "AI 판정: 충족" : "AI 판정: 미충족"}
+                                    </span>
+                                  )}
+                                  <span className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium shrink-0 whitespace-nowrap ${
+                                    illandaBadgeVal ? "bg-gray-900 border-gray-900 text-white" : "bg-muted border-border text-muted-foreground"
+                                  }`}>
+                                    {illandaBadgeVal ? "담당자 판정: 충족" : "담당자 판정: 미충족"}
+                                  </span>
+                                </div>
                               </div>
                             );
                           })}
@@ -1550,73 +1617,91 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
                       </div>
                       {/* 담당자 확인항목 */}
                       <div className="space-y-2">
-                        <div className="flex items-center gap-1.5">
-                          <Label className="text-[16px]">담당자 확인항목</Label>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help shrink-0" />
-                            </TooltipTrigger>
-                            <TooltipContent side="right" className="max-w-[260px] leading-relaxed">
-                              빨간 테두리 항목은 민원인과 AI 판정이 다른 항목입니다. 검토 시 한 번 더 확인해 주세요.
-                            </TooltipContent>
-                          </Tooltip>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          {adminCheckItemOptions.map((option) => {
-                            const key = option.value as "accessRoadLost" | "waterChannelLost" | "farmMachineDifficulty" | "farmMachineRotationDifficulty" | "livestockBuildingUnusable" | "adjacentSameOwnerLand";
-                            const checked = landOpts?.[key] ?? false;
-                            const citizenVal = key === "accessRoadLost" ? landData?.accessRoadLost
-                              : key === "waterChannelLost" ? landData?.waterChannelLost
-                              : key === "farmMachineDifficulty" ? landData?.farmMachineDifficulty
-                              : undefined;
-                            const baseAI = adminResult ?? application.aiResult;
-                            const aiVal = key === "accessRoadLost" ? baseAI?.accessRoadLost
-                              : key === "waterChannelLost" ? baseAI?.waterChannelLost
-                              : key === "farmMachineDifficulty" ? baseAI?.farmMachineDifficulty
-                              : undefined;
-                            const citizenSelected = citizenVal != null;
-                            const citizenFlagged = citizenVal != null && aiVal != null && citizenVal !== aiVal;
-                            const recordChecked = confirmedCheckItems?.[key] ?? false;
-                            return (
-                              <div
-                                key={option.value}
-                                className={cn(
-                                  "flex items-center gap-1.5 p-2 rounded-lg border cursor-pointer transition-colors",
-                                  citizenFlagged
-                                    ? "bg-red-50 border-red-300"
-                                    : checked
-                                      ? "bg-primary/10 border-primary"
-                                      : "hover:bg-muted/50"
-                                )}
-                                onClick={() => updateLandOption(currentLand.id, key, !checked)}
-                              >
-                                <Checkbox
-                                  checked={checked}
-                                  onCheckedChange={(c) => updateLandOption(currentLand.id, key, !!c)}
-                                  className="shrink-0"
-                                />
-                                <span className="text-xs flex-1">{option.label}</span>
-                                <div className="flex flex-wrap gap-1 justify-end">
-                                  {citizenSelected && <CitizenBadge value={citizenVal} />}
-                                  {aiVal != null && (
-                                    <span className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium shrink-0 whitespace-nowrap ${
-                                      aiVal ? "bg-violet-50 border-violet-200 text-violet-700" : "bg-muted border-border text-muted-foreground"
-                                    }`}>
-                                      {aiVal ? "AI: 해당" : "AI: 미해당"}
-                                    </span>
-                                  )}
-                                  {confirmedCheckItems && (
-                                    <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] font-semibold shrink-0 whitespace-nowrap ${
-                                      recordChecked ? "bg-black text-white" : "bg-muted text-muted-foreground"
-                                    }`}>
-                                      {recordChecked ? "담당자: 해당" : "담당자: 미해당"}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
+                        <Label className="text-[16px]">담당자 확인항목</Label>
+                        {(() => {
+                          const CHECK_ITEM_CATEGORIES: Record<string, string[]> = {
+                            accessRoadLost: ["대", "전", "답", "임", "잡"],
+                            waterChannelLost: ["전", "답"],
+                            farmMachineDifficulty: ["전", "답"],
+                            farmMachineRotationDifficulty: ["전", "답"],
+                            livestockBuildingUnusable: ["잡"],
+                            adjacentSameOwnerLand: ["대", "전", "답", "임", "잡"],
+                          };
+                          const LAND_TYPE_TO_CAT: Record<string, string> = { "택지": "대", "대지": "대", "농지": "전", "산지": "임", "그밖의토지": "잡" };
+                          const aiCat = adminResult?.landTypePath ? LAND_TYPE_TO_CAT[adminResult.landTypePath] : undefined;
+                          const parcelConfirmedUsage = matchedParcel?.confirmedAt ? matchedParcel.currentUsage : undefined;
+                          const relevantCategories = curUsage
+                            ? [curUsage]
+                            : Array.from(new Set([citizenUsage, aiCat, parcelConfirmedUsage].filter(Boolean) as string[]));
+                          return (
+                            <div className="grid grid-cols-2 gap-2">
+                              {adminCheckItemOptions.filter((option) => {
+                                const allowedCats = CHECK_ITEM_CATEGORIES[option.value] ?? [];
+                                return relevantCategories.some(cat => allowedCats.includes(cat));
+                              }).map((option) => {
+                                const key = option.value as "accessRoadLost" | "waterChannelLost" | "farmMachineDifficulty" | "farmMachineRotationDifficulty" | "livestockBuildingUnusable" | "adjacentSameOwnerLand";
+                                const allowedCats = CHECK_ITEM_CATEGORIES[key] ?? [];
+                                const showBadges = relevantCategories.some(cat => allowedCats.includes(cat));
+                                const citizenVal: boolean | undefined =
+                                  key === "accessRoadLost" ? landData?.accessRoadLost
+                                  : key === "waterChannelLost" ? landData?.waterChannelLost
+                                  : key === "farmMachineDifficulty" ? landData?.farmMachineDifficulty
+                                  : key === "farmMachineRotationDifficulty" ? landData?.farmMachineRotationDifficulty
+                                  : key === "livestockBuildingUnusable" ? landData?.livestockBuildingUnusable
+                                  : undefined;
+                                const aiVal: boolean = (
+                                  key === "accessRoadLost" ? adminResult?.accessRoadLost
+                                  : key === "waterChannelLost" ? adminResult?.waterChannelLost
+                                  : key === "farmMachineDifficulty" ? adminResult?.farmMachineDifficulty
+                                  : undefined
+                                ) ?? false;
+                                // 체크박스 상태: 담당자 > 민원인 > AI
+                                const checked = landOpts?.[key] ?? citizenVal ?? aiVal;
+                                // 배지 값: 확인저장 > 민원인 > AI (체크박스 선택과 무관하게 고정)
+                                const badgeVal = confirmedCheckItems?.[key] ?? citizenVal ?? aiVal;
+                                const citizenFlagged = showBadges && citizenVal != null && citizenVal !== aiVal;
+                                return (
+                                  <div
+                                    key={option.value}
+                                    className={cn(
+                                      "flex flex-col gap-2 p-2 rounded-lg border cursor-pointer transition-colors",
+                                      citizenFlagged
+                                        ? "bg-red-50 border-red-300"
+                                        : checked
+                                          ? "bg-primary/10 border-primary"
+                                          : "hover:bg-muted/50"
+                                    )}
+                                    onClick={() => updateLandOption(currentLand.id, key, !checked)}
+                                  >
+                                    <div className="flex items-center gap-1.5">
+                                      <Checkbox
+                                        checked={checked}
+                                        onCheckedChange={(c) => updateLandOption(currentLand.id, key, !!c)}
+                                        className="shrink-0"
+                                      />
+                                      <span className="text-xs">{option.label}</span>
+                                    </div>
+                                    {showBadges && (
+                                      <div className="flex flex-wrap gap-1 pl-5">
+                                        {citizenVal != null && <CitizenBadge value={citizenVal} />}
+                                        <span className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium shrink-0 whitespace-nowrap ${
+                                          aiVal ? "bg-violet-600 border-violet-600 text-white" : "bg-muted border-border text-muted-foreground"
+                                        }`}>
+                                          {aiVal ? "AI 판정: 해당" : "AI 판정: 미해당"}
+                                        </span>
+                                        <span className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium shrink-0 whitespace-nowrap ${
+                                          badgeVal ? "bg-gray-900 border-gray-900 text-white" : "bg-muted border-border text-muted-foreground"
+                                        }`}>
+                                          {badgeVal ? "담당자 판정: 해당" : "담당자 판정: 미해당"}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          );
+                        })()}
                       </div>
 
                       {/* AI 분석 실행 버튼 */}
