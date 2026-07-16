@@ -594,7 +594,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
       // 신청한 항목 장바구니에서 제거
       setCartItems(prev => prev.filter(item => !selectedCartItems.has(item.id)));
       setSelectedCartItems(new Set());
-      
+
       setStep("complete");
       return;
     }
@@ -663,7 +663,7 @@ export function NewApplicationFlow({ onComplete, onCancel }: NewApplicationFlowP
     setStep("complete");
   };
 
-  // 다른 잔여지 분석을 위해 초기화 (장바구니 유지)
+  // 다른 잔여지 분析을 위해 초기화 (장바구니 유지)
   const handleReset = () => {
     setStep("select");
     setSelectedParcel(null);

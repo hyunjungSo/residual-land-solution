@@ -202,6 +202,7 @@ export interface Application {
   landDataList?: LandSpecificData[]; // 토지별 민원인 입력 데이터 (복수 필지)
   landJudgmentsForReview?: LandJudgmentForReview[]; // 필지별 판정 결과 (심의서 연동용)
   businessUnit?: BusinessUnit; // 사업단
+  submissionChannel?: "online" | "offline"; // 신청 채널 (온라인/수기)
 }
 
 // 심의서 연동용 필지별 판정 결과

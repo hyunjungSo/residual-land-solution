@@ -507,6 +507,10 @@ function AdminPageContent() {
             onBack={() => closeTabAndGoToBase("parcel-management")}
             onUpdate={handleParcelUpdate}
             onNavigateToApplication={handleNavigateToApplication}
+            onApplicationRegistered={(app) => {
+              setApplications((prev) => [app, ...prev]);
+              openApplicationTab(app);
+            }}
           />
         )}
 

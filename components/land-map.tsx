@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import { Layers, Plus, Minus, Info, Ruler, X, Locate, Route, Triangle, LandPlot } from "lucide-react";
+import { Plus, Minus, Info, Ruler, X, Locate, Triangle } from "lucide-react";
 import type { LandInfo } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 
@@ -431,7 +431,7 @@ export function LandMap({
         <div className="flex gap-2 bg-white rounded-xl p-2 shadow-md">
           <button
             onClick={() => setBaseMap("normal")}
-            className={`flex flex-col items-center rounded-lg overflow-hidden transition-all ${baseMap === "normal" ? "ring-2 ring-blue-500" : "ring-1 ring-gray-200 hover:ring-gray-300"}`}
+            className={`flex flex-col items-center rounded-lg overflow-hidden transition-all ${baseMap === "normal" ? "ring-2 ring-teal-600" : "ring-1 ring-gray-200 hover:ring-gray-300"}`}
           >
             <div className="relative w-[56px] h-[40px] overflow-hidden bg-[#f0ede8]">
               <div className="absolute inset-0">
@@ -442,11 +442,11 @@ export function LandMap({
                 <div className="absolute top-[22px] left-[52%] w-[2px] h-[26px] bg-white transform -translate-x-1/2" />
               </div>
             </div>
-            <span className={`w-full text-center text-[14px] font-medium py-1.5 ${baseMap === "normal" ? "text-blue-600" : "text-gray-600"}`}>지도</span>
+            <span className={`w-full text-center text-[14px] font-medium py-1.5 ${baseMap === "normal" ? "text-teal-600 bg-teal-50" : "text-gray-600"}`}>지도</span>
           </button>
           <button
             onClick={() => setBaseMap("satellite")}
-            className={`flex flex-col items-center rounded-lg overflow-hidden transition-all ${baseMap === "satellite" ? "ring-2 ring-blue-500" : "ring-1 ring-gray-200 hover:ring-gray-300"}`}
+            className={`flex flex-col items-center rounded-lg overflow-hidden transition-all ${baseMap === "satellite" ? "ring-2 ring-teal-600" : "ring-1 ring-gray-200 hover:ring-gray-300"}`}
           >
             <div className="relative w-[56px] h-[40px] overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-[#1a3d1a] via-[#2d5a2d] to-[#1a4a2a]">
@@ -456,7 +456,7 @@ export function LandMap({
                 <div className="absolute top-[50%] left-0 right-0 h-[1px] bg-[#5a5a5a]/30" />
               </div>
             </div>
-            <span className={`w-full text-center text-[14px] font-medium py-1.5 ${baseMap === "satellite" ? "text-blue-600" : "text-gray-600"}`}>항공사진</span>
+            <span className={`w-full text-center text-[14px] font-medium py-1.5 ${baseMap === "satellite" ? "text-teal-600 bg-teal-50" : "text-gray-600"}`}>항공사진</span>
           </button>
         </div>
 
@@ -583,7 +583,7 @@ export function LandMap({
     </div>
 
     {/* 하단: 범례(원필지·잔여지·편입지) + 토글(도로구역·국토수급·동일소유자) */}
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-1">
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 px-1">
       {/* 원필지 / 잔여지 / 편입지 토글 버튼 */}
       <button
         onClick={() => setLayers((prev) => ({ ...prev, originalParcel: !prev.originalParcel }))}

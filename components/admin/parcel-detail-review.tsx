@@ -32,16 +32,18 @@ import {
   LayoutGrid,
   Triangle,
 } from "lucide-react";
-import type { 
-  ProcessedParcel, 
+import type {
+  ProcessedParcel,
   AnalysisHistory,
-  LandCategory, 
+  LandCategory,
   LandShape,
   AIJudgmentResult,
   AdminCheckItems,
   AIAnalysisResult,
-  LandType
+  LandType,
+  Application,
 } from "@/lib/types";
+import { ManualApplicationForm } from "@/components/admin/manual-application-form";
 import {
   landCategories,
   landShapes,
@@ -56,9 +58,10 @@ interface ParcelDetailReviewProps {
   onUpdate: (updatedParcel: ProcessedParcel) => void;
   onBack: () => void;
   onNavigateToApplication?: (applicationId: string) => void;
+  onApplicationRegistered?: (application: Application) => void;
 }
 
-export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToApplication }: ParcelDetailReviewProps) {
+export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToApplication, onApplicationRegistered }: ParcelDetailReviewProps) {
   // 신청상세 화면으로 이동
   const handleNavigateToApplication = () => {
     if (parcel.citizenActivity?.applicationId && onNavigateToApplication) {
@@ -66,7 +69,9 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
     }
   };
   
-  // 분석 옵션 상태
+  const [showAppForm, setShowAppForm] = useState(false);
+
+  // 분析 옵션 상태
   const { toast } = useToast();
   const [currentUsage, setCurrentUsage] = useState<LandCategory>(parcel.currentUsage);
   const [landShape, setLandShape] = useState<LandShape>(parcel.landShape);
@@ -215,8 +220,30 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
         <div className="flex items-center gap-3">
           <h1 className="text-3xl font-bold">필지상세</h1>
         </div>
-
+        <Button variant="outline" onClick={() => setShowAppForm(true)} className="gap-2">
+          <FileText className="h-4 w-4" />
+          수기 신청 접수
+        </Button>
       </div>
+
+      {/* 수기 신청 접수 다이얼로그 */}
+      <Dialog open={showAppForm} onOpenChange={setShowAppForm}>
+        <DialogContent className="max-w-4xl h-[90vh] p-0 overflow-hidden flex flex-col">
+          <DialogHeader className="px-6 pt-5 pb-3 border-b shrink-0">
+            <DialogTitle className="text-lg font-semibold">수기 신청 접수</DialogTitle>
+            <p className="text-sm text-muted-foreground">수기로 제출된 신청서를 시스템에 등록합니다.<br/>등록 완료 후 신청관리 목록에 자동으로 추가됩니다.</p>
+          </DialogHeader>
+          <ManualApplicationForm
+            prefillLandInfo={parcel.landInfo}
+            onComplete={(app) => {
+              onApplicationRegistered?.(app);
+              setShowAppForm(false);
+              toast({ title: "수기 신청 접수 완료", description: "민원 목록에 등록되었습니다." });
+            }}
+            onCancel={() => setShowAppForm(false)}
+          />
+        </DialogContent>
+      </Dialog>
 
 
 
