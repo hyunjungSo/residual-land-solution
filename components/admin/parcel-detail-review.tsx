@@ -116,7 +116,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
   const handleAddCardMemo = () => {
     const text = cardMemoInput.trim();
     if (!text) return;
-    setCardMemos(prev => [...prev, { createdAt: new Date().toISOString(), text }]);
+    setCardMemos(prev => [{ createdAt: new Date().toISOString(), text }, ...prev]);
     setCardMemoInput("");
   };
 
