@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardAction } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -88,11 +88,70 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
     purposeUnity: false,
   });
 
-  const [memo, setMemo] = useState("");
+  // 담당자 확인항목 저장 이력
+  type ConfirmEntry = {
+    savedAt: string;
+    currentUsage: LandCategory;
+    landShape: LandShape;
+    illandaConditions: { ownerIdentity: boolean; groundContinuity: boolean; purposeUnity: boolean };
+    checkItems: AdminCheckItems;
+  };
+  type MemoEntry = { createdAt: string; text: string };
+  const initConfirmEntries = (): ConfirmEntry[] => {
+    if (!parcel.confirmedAt) return [];
+    return [{
+      savedAt: parcel.confirmedAt,
+      currentUsage: parcel.currentUsage,
+      landShape: parcel.landShape,
+      illandaConditions: parcel.confirmedIllandaConditions ?? { ownerIdentity: false, groundContinuity: false, purposeUnity: false },
+      checkItems: parcel.adminCheckItems,
+    }];
+  };
+  const [confirmEntries, setConfirmEntries] = useState<ConfirmEntry[]>(initConfirmEntries);
+  const [memoInput, setMemoInput] = useState("");
+  const [cardMemoInput, setCardMemoInput] = useState("");
+  const [cardMemos, setCardMemos] = useState<MemoEntry[]>([]);
+  const [showAllCardMemos, setShowAllCardMemos] = useState(false);
 
-  // 담당자 확인
-  const [noteContent, setNoteContent] = useState("");
-  const [savedAt, setSavedAt] = useState("");
+  const handleAddCardMemo = () => {
+    const text = cardMemoInput.trim();
+    if (!text) return;
+    setCardMemos(prev => [...prev, { createdAt: new Date().toISOString(), text }]);
+    setCardMemoInput("");
+  };
+
+  const handleSaveConfirm = () => {
+    const now = new Date().toISOString();
+    const entry: ConfirmEntry = {
+      savedAt: now,
+      currentUsage,
+      landShape,
+      illandaConditions: { ...illandaItems },
+      checkItems: { ...aiCheckItems },
+    };
+    setConfirmEntries(prev => [entry, ...prev]);
+    const conditions = illandaItems;
+    // 메모가 있으면 최신 분석 히스토리에 메모 첨부
+    const updatedHistory = memoInput.trim()
+      ? parcel.analysisHistory?.map((h, i, arr) =>
+          i === arr.length - 1 ? { ...h, memo: [h.memo, memoInput.trim()].filter(Boolean).join("\n") } : h
+        ) ?? []
+      : parcel.analysisHistory ?? [];
+    setMemoInput("");
+    onUpdate({
+      ...parcel,
+      currentUsage,
+      landShape,
+      adminCheckItems: { ...aiCheckItems },
+      confirmedIllandaConditions: conditions,
+      confirmedAt: now,
+      confirmedBy: "담당자",
+      analysisHistory: updatedHistory,
+    });
+    toast({ title: "담당자 확인 항목 저장 완료", description: "확인 항목이 저장되었습니다." });
+  };
+
+  const savedAt = confirmEntries.length > 0 ? confirmEntries[0].savedAt : "";
 
   // 분석이력 클릭 시 좌측 옵션 불러오기
   const handleLoadHistoryOptions = (history: AnalysisHistory) => {
@@ -108,34 +167,6 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
       livestockBuildingUnusable: false,
       adjacentSameOwnerLand: false,
     });
-  };
-
-  // 분석 이력 결과 확정
-  const handleConfirmHistory = (history: AnalysisHistory) => {
-    const confirmedUsage = history.changedOptions?.currentUsage ?? parcel.currentUsage;
-    const confirmedShape = history.changedOptions?.landShape ?? parcel.landShape;
-    const resolved: AdminCheckItems = {
-      accessRoadLost: history.changedOptions?.accessRoadLost ?? history.aiResult?.accessRoadLost ?? false,
-      waterChannelLost: history.changedOptions?.waterChannelLost ?? history.aiResult?.waterChannelLost ?? false,
-      farmMachineDifficulty: history.changedOptions?.farmMachineDifficulty ?? history.aiResult?.farmMachineDifficulty ?? false,
-      farmMachineRotationDifficulty: history.changedOptions?.farmMachineRotationDifficulty ?? false,
-      livestockBuildingUnusable: history.changedOptions?.livestockBuildingUnusable ?? false,
-      adjacentSameOwnerLand: history.changedOptions?.adjacentSameOwnerLand ?? false,
-    };
-    const conditions = history.aiResult?.unifiedParcelAnalysis?.conditions;
-    const confirmedIllandaConditions = conditions
-      ? { ownerIdentity: conditions.sameOwner, groundContinuity: conditions.continuous, purposeUnity: conditions.sameUsage }
-      : undefined;
-    onUpdate({
-      ...parcel,
-      currentUsage: confirmedUsage,
-      landShape: confirmedShape,
-      adminCheckItems: resolved,
-      ...(confirmedIllandaConditions ? { confirmedIllandaConditions } : {}),
-      confirmedAt: new Date().toISOString(),
-      confirmedBy: "담당자",
-    });
-    toast({ title: "담당자 확인 저장 완료", description: "해당 차수의 분석 조건과 담당자 검증 결과가 최종 저장되었습니다." });
   };
 
   // 분석 상태
@@ -212,10 +243,11 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
         livestockBuildingUnusable: checkItems.livestockBuildingUnusable ?? false,
         adjacentSameOwnerLand: checkItems.adjacentSameOwnerLand ?? false,
       },
-      memo: memo || undefined,
       aiResult: newAiResult,
+      ...(memoInput.trim() ? { memo: memoInput.trim() } : {}),
     };
-    
+    setMemoInput("");
+
     const resolvedCheckItems: AdminCheckItems = {
       accessRoadLost: checkItems.accessRoadLost ?? false,
       waterChannelLost: checkItems.waterChannelLost ?? false,
@@ -237,7 +269,6 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
 
     onUpdate(updatedParcel);
     setIsAnalyzing(false);
-    setMemo("");
   };
 
   return (
@@ -326,6 +357,129 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
         </CardContent>
       </Card>
 
+      {/* 담당자 확인항목 저장 이력 */}
+      {confirmEntries.length > 0 && (
+        <Card className="border-0 shadow-none px-6">
+          <CardHeader className="px-0 pt-0 pb-2">
+            <div className="flex items-center gap-3">
+              <CardTitle className="text-[16px]">담당자 확인항목</CardTitle>
+              <span className="text-[12px] text-muted-foreground">{formatDateTime(confirmEntries[0].savedAt)} 저장</span>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0 space-y-3">
+            {(() => {
+              const latest = confirmEntries[0];
+              const allShapes = [...landShapes.regular, ...landShapes.irregular];
+              const usageLabel = landCategories.find(c => c.value === latest.currentUsage)?.label ?? latest.currentUsage;
+              const shapeLabel = allShapes.find(s => s.value === latest.landShape)?.label ?? latest.landShape;
+              const CHECK_ITEM_CATEGORIES: Record<string, string[]> = {
+                accessRoadLost: ["대", "전", "답", "임", "잡"],
+                waterChannelLost: ["전", "답"],
+                farmMachineDifficulty: ["전", "답"],
+                farmMachineRotationDifficulty: ["전", "답"],
+                livestockBuildingUnusable: ["잡"],
+                adjacentSameOwnerLand: ["대", "전", "답", "임", "잡"],
+              };
+              const visibleCheckItems = adminCheckItemOptions.filter(
+                opt => CHECK_ITEM_CATEGORIES[opt.value]?.includes(latest.currentUsage)
+              );
+              return (
+                <div className="flex flex-row flex-wrap items-center gap-x-2 gap-y-1.5">
+                  {/* 현재 활용지목 */}
+                  <span className="text-[12px] text-muted-foreground shrink-0">현재 활용지목</span>
+                  <span className="inline-flex items-center rounded-md border px-2 py-0.5 text-[12px] font-medium bg-gray-900 border-gray-900 text-white">{usageLabel}</span>
+                  <span className="text-muted-foreground/30 select-none px-0.5">|</span>
+                  {/* 토지 형상 */}
+                  <span className="text-[12px] text-muted-foreground shrink-0">토지 형상</span>
+                  <span className="inline-flex items-center rounded-md border px-2 py-0.5 text-[12px] font-medium bg-gray-900 border-gray-900 text-white">{shapeLabel}</span>
+                  {/* 일단의 토지 요건 — 충족 항목만 */}
+                  {(() => {
+                    const met = [
+                      { key: "ownerIdentity" as const, label: "소유자의 동일성" },
+                      { key: "groundContinuity" as const, label: "지반의 연속성" },
+                      { key: "purposeUnity" as const, label: "용도의 일체성" },
+                    ].filter(({ key }) => latest.illandaConditions[key]);
+                    if (met.length === 0) return null;
+                    return (
+                      <>
+                        <span className="text-muted-foreground/30 select-none px-0.5">|</span>
+                        <span className="text-[12px] text-muted-foreground shrink-0">일단의 토지 요건</span>
+                        {met.map(({ key, label }) => (
+                          <span key={key} className="inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium bg-gray-900 border-gray-900 text-white">
+                            {label}: 충족
+                          </span>
+                        ))}
+                      </>
+                    );
+                  })()}
+                  {/* 담당자 확인항목 — 해당 항목만 */}
+                  {(() => {
+                    const matched = visibleCheckItems.filter(opt => latest.checkItems[opt.value as keyof AdminCheckItems]);
+                    if (matched.length === 0) return null;
+                    return (
+                      <>
+                        <span className="text-muted-foreground/30 select-none px-0.5">|</span>
+                        <span className="text-[12px] text-muted-foreground shrink-0">확인항목</span>
+                        {matched.map(opt => (
+                          <span key={opt.value} className="inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium bg-gray-900 border-gray-900 text-white">
+                            {opt.label}: 해당
+                          </span>
+                        ))}
+                      </>
+                    );
+                  })()}
+                </div>
+              );
+            })()}
+            {/* 메모 — 좌: 입력, 우: 리스트 */}
+            <div className="border-t border-slate-100 pt-3 flex gap-4 items-start">
+              {/* 좌: 입력 */}
+              <div className="flex flex-col gap-2 flex-1">
+                <Textarea
+                  placeholder="메모 입력"
+                  value={cardMemoInput}
+                  onChange={(e) => setCardMemoInput(e.target.value)}
+                  rows={3}
+                  className="text-[13px] resize-none"
+                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleAddCardMemo(); } }}
+                />
+                <Button type="button" variant="outline" size="sm" onClick={handleAddCardMemo} className="w-full">
+                  저장
+                </Button>
+              </div>
+              {/* 우: 저장된 메모 리스트 */}
+              <div className="flex-1 min-w-0">
+                {cardMemos.length === 0 ? (
+                  <div className="rounded-lg border border-dashed border-gray-200 px-4 py-5 text-center text-[12px] text-muted-foreground">
+                    저장된 메모가 없습니다
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-gray-100 overflow-hidden">
+                    <div className="divide-y divide-gray-100">
+                      {(showAllCardMemos ? cardMemos : cardMemos.slice(0, 4)).map((m, i) => (
+                        <div key={i} className="px-3 py-2.5" style={{ backgroundColor: "rgb(251,251,251)" }}>
+                          <p className="text-[11px] text-muted-foreground mb-0.5">{formatDateTime(m.createdAt)}</p>
+                          <p className="text-[13px] text-gray-800 whitespace-pre-wrap leading-snug">{m.text}</p>
+                        </div>
+                      ))}
+                    </div>
+                    {cardMemos.length > 4 && (
+                      <button
+                        type="button"
+                        className="w-full text-[12px] text-muted-foreground hover:text-foreground hover:bg-gray-50 py-2 border-t border-gray-100 transition-colors"
+                        onClick={() => setShowAllCardMemos(v => !v)}
+                      >
+                        {showAllCardMemos ? "접기" : `더보기 (+${cardMemos.length - 4}건)`}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       </div>
 
       {/* AI 분석 영역 - 2컬럼 레이아웃 */}
@@ -366,6 +520,27 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                     ))}
                   </SelectContent>
                 </Select>
+                {(() => {
+                  const LAND_TYPE_TO_CAT: Record<string, string> = { "택지": "대", "대지": "대", "농지": "전", "산지": "임", "그밖의토지": "잡" };
+                  const aiCat = parcel.aiResult?.landTypePath ? LAND_TYPE_TO_CAT[parcel.aiResult.landTypePath] : undefined;
+                  const aiLabel = aiCat ? (landCategories.find(c => c.value === aiCat)?.label ?? aiCat) : parcel.aiResult?.landTypePath;
+                  const confirmedLabel = confirmEntries[0] ? (landCategories.find(c => c.value === confirmEntries[0].currentUsage)?.label ?? confirmEntries[0].currentUsage) : undefined;
+                  if (!aiLabel && !confirmedLabel) return null;
+                  return (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {aiLabel && (
+                        <span className="inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium shrink-0 whitespace-nowrap bg-violet-50 border-violet-300 text-violet-700">
+                          AI 판정: {aiLabel}
+                        </span>
+                      )}
+                      {confirmedLabel && (
+                        <span className="inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium shrink-0 whitespace-nowrap bg-gray-900 border-gray-900 text-white">
+                          담당자 판정: {confirmedLabel}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
               <div className="space-y-2">
                 <Label className="text-[16px]">토지 형상</Label>
@@ -384,6 +559,28 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                     ))}
                   </SelectContent>
                 </Select>
+                {(() => {
+                  const allShapes = [...landShapes.regular, ...landShapes.irregular];
+                  const latestHistory = parcel.analysisHistory?.slice(-1)[0];
+                  const aiShape = latestHistory?.changedOptions?.landShape ?? parcel.landInfo.remainingShape;
+                  const aiLabel = aiShape ? (allShapes.find(s => s.value === aiShape)?.label ?? aiShape) : undefined;
+                  const confirmedLabel = confirmEntries[0] ? (allShapes.find(s => s.value === confirmEntries[0].landShape)?.label ?? confirmEntries[0].landShape) : undefined;
+                  if (!aiLabel && !confirmedLabel) return null;
+                  return (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {aiLabel && (
+                        <span className="inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium shrink-0 whitespace-nowrap bg-violet-50 border-violet-300 text-violet-700">
+                          AI 판정: {aiLabel}
+                        </span>
+                      )}
+                      {confirmedLabel && (
+                        <span className="inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium shrink-0 whitespace-nowrap bg-gray-900 border-gray-900 text-white">
+                          담당자 판정: {confirmedLabel}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
 
@@ -392,41 +589,55 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
               <Label className="text-[16px]">일단의 토지 요건 확인</Label>
               <div className="grid grid-cols-3 gap-5">
                 {[
-                  { value: "ownerIdentity", label: "소유자의 동일성" },
-                  { value: "groundContinuity", label: "지반의 연속성" },
-                  { value: "purposeUnity", label: "용도의 일체성" },
+                  { value: "ownerIdentity", label: "소유자의 동일성", aiKey: null },
+                  { value: "groundContinuity", label: "지반의 연속성", aiKey: "continuous" as const },
+                  { value: "purposeUnity", label: "용도의 일체성", aiKey: "sameUsage" as const },
                 ].map((option) => {
                   const key = option.value as keyof typeof illandaItems;
                   const checked = illandaItems[key];
+                  const unifiedConditions = parcel.aiResult?.unifiedParcelAnalysis?.conditions;
+                  const aiUnitVal: boolean = option.aiKey ? (unifiedConditions?.[option.aiKey] ?? false) : false;
+                  const confirmedIllandaVal = confirmEntries[0]?.illandaConditions?.[key];
+                  const badgeVal = confirmEntries[0] !== undefined ? confirmedIllandaVal : undefined;
                   return (
                     <div
                       key={option.value}
-                      className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${
+                      className={cn(
+                        "flex flex-col gap-2 p-2 rounded-lg border cursor-pointer transition-colors",
                         checked ? "bg-primary/10 border-primary" : "hover:bg-muted/50"
-                      }`}
+                      )}
                       onClick={() => setIllandaItems(prev => ({ ...prev, [key]: !prev[key] }))}
                     >
-                      <Checkbox
-                        checked={checked}
-                        onCheckedChange={(v) => setIllandaItems(prev => ({ ...prev, [key]: !!v }))}
-                      />
-                      <span className="text-xs">{option.label}</span>
+                      <div className="flex items-center gap-1.5">
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(v) => setIllandaItems(prev => ({ ...prev, [key]: !!v }))}
+                        />
+                        <span className="text-xs">{option.label}</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1 pl-5">
+                        {option.aiKey && (
+                          <span className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium shrink-0 whitespace-nowrap ${
+                            aiUnitVal ? "bg-violet-600 border-violet-600 text-white" : "bg-muted border-border text-muted-foreground"
+                          }`}>
+                            {aiUnitVal ? "AI 판정: 충족" : "AI 판정: 미충족"}
+                          </span>
+                        )}
+                        <span className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium shrink-0 whitespace-nowrap ${
+                          badgeVal ? "bg-gray-900 border-gray-900 text-white" : "bg-muted border-border text-muted-foreground"
+                        }`}>
+                          {badgeVal ? "담당자 판정: 충족" : "담당자 판정: 미충족"}
+                        </span>
+                      </div>
                     </div>
                   );
                 })}
+                </div>
               </div>
-            </div>
 
             {/* 담당자 확인항목 */}
             <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Label className="text-[16px]">담당자 확인항목</Label>
-                {savedAt && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
-                    확인 완료
-                  </span>
-                )}
-              </div>
+              <Label className="text-[16px]">담당자 확인항목</Label>
               {(() => {
                 const CHECK_ITEM_CATEGORIES: Record<string, string[]> = {
                   accessRoadLost: ["대", "전", "답", "임", "잡"],
@@ -444,19 +655,40 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                     {visibleOptions.map((option) => {
                       const key = option.value as keyof AdminCheckItems;
                       const aiChecked = aiCheckItems[key];
+                      const aiVal: boolean | undefined =
+                        key === "accessRoadLost" ? parcel.aiResult?.accessRoadLost
+                        : key === "waterChannelLost" ? parcel.aiResult?.waterChannelLost
+                        : key === "farmMachineDifficulty" ? parcel.aiResult?.farmMachineDifficulty
+                        : undefined;
+                      const confirmedVal = confirmEntries[0] ? confirmEntries[0].checkItems[key] : undefined;
                       return (
                         <div
                           key={option.value}
-                          className={`flex items-center gap-1.5 p-2 rounded-lg border cursor-pointer transition-colors ${
+                          className={cn(
+                            "flex flex-col gap-2 p-2 rounded-lg border cursor-pointer transition-colors",
                             aiChecked ? "bg-primary/10 border-primary" : "hover:bg-muted/50"
-                          }`}
+                          )}
                           onClick={() => setAiCheckItems(prev => ({ ...prev, [key]: !prev[key] }))}
                         >
-                          <Checkbox
-                            checked={aiChecked}
-                            onCheckedChange={(v) => setAiCheckItems(prev => ({ ...prev, [key]: !!v }))}
-                          />
-                          <span className="text-xs flex-1">{option.label}</span>
+                          <div className="flex items-center gap-1.5">
+                            <Checkbox
+                              checked={aiChecked}
+                              onCheckedChange={(v) => setAiCheckItems(prev => ({ ...prev, [key]: !!v }))}
+                            />
+                            <span className="text-xs">{option.label}</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1 pl-5">
+                            {aiVal !== undefined && (
+                              <span className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium shrink-0 whitespace-nowrap ${aiVal ? "bg-violet-600 border-violet-600 text-white" : "bg-muted border-border text-muted-foreground"}`}>
+                                {aiVal ? "AI 판정: 해당" : "AI 판정: 미해당"}
+                              </span>
+                            )}
+                            {confirmedVal !== undefined && (
+                              <span className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium shrink-0 whitespace-nowrap ${confirmedVal ? "bg-gray-900 border-gray-900 text-white" : "bg-muted border-border text-muted-foreground"}`}>
+                                {confirmedVal ? "담당자 판정: 해당" : "담당자 판정: 미해당"}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       );
                     })}
@@ -470,30 +702,39 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
               <Label className="text-[16px]">메모</Label>
               <Textarea
                 placeholder="추가 메모 (선택)"
-                value={memo}
-                onChange={(e) => setMemo(e.target.value)}
+                value={memoInput}
+                onChange={(e) => setMemoInput(e.target.value)}
                 rows={3}
               />
             </div>
 
-            {/* AI 분석 실행 버튼 */}
-            <Button 
-              onClick={handleReanalyze}
-              disabled={isAnalyzing}
-              className="w-full"
-            >
-              {isAnalyzing ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  분석 중...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  AI 분석 실행
-                </>
-              )}
-            </Button>
+            {/* 버튼 행: 담당자 확인 항목 저장 (좌) + AI 분석 실행 (우) */}
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={handleSaveConfirm}
+                className="w-[160px] shrink-0 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white"
+              >
+                확인 항목 저장
+              </Button>
+              <Button
+                onClick={handleReanalyze}
+                disabled={isAnalyzing}
+                className="flex-1"
+              >
+                {isAnalyzing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    분석 중...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    AI 분석 실행
+                  </>
+                )}
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
@@ -581,7 +822,7 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                             return (
                               <div className="flex items-center gap-2 text-[15px]">
                                 <span className="shrink-0 font-medium text-slate-400">선택한 옵션:</span>
-                                <div className="flex items-center gap-2 flex-wrap text-slate-600 flex-1">
+                                <div className="flex items-center gap-2 flex-wrap text-slate-600">
                                   {usageLabel && (
                                     <span>지목 <span className="font-semibold text-slate-800">{usageLabel}</span></span>
                                   )}
@@ -592,13 +833,6 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                     <><span key={`sep-${i}`} className="text-slate-300">|</span><span key={i} className="font-semibold text-slate-800">{opt}</span></>
                                   ))}
                                 </div>
-                                <button
-                                  type="button"
-                                  onClick={(e) => { e.stopPropagation(); handleConfirmHistory(history); }}
-                                  className="shrink-0 inline-flex items-center rounded px-2.5 py-1 text-[13px] font-medium bg-gray-900 text-white hover:bg-gray-700 transition-colors"
-                                >
-                                  담당자 확인 저장
-                                </button>
                               </div>
                             );
                           })()}
@@ -656,11 +890,14 @@ export function ParcelDetailReview({ parcel, onUpdate, onBack, onNavigateToAppli
                                       <MetricItem label="토지 형상" value={[...landShapes.regular, ...landShapes.irregular].find(s => s.value === history.changedOptions?.landShape)?.label ?? history.changedOptions.landShape} />
                                     )}
                                   </div>
-                                  {history.memo && (
-                                    <div className="mt-3 pt-3 border-t border-gray-200">
-                                      <MetricItem label="메모" value={history.memo} />
-                                    </div>
-                                  )}
+                                </InfoBox>
+                              </div>
+                            )}
+                            {history.memo && (
+                              <div className="py-1">
+                                <SectionTitle icon={<FileText className="h-4 w-4" />} title="메모" />
+                                <InfoBox>
+                                  <p className="text-[15px] text-gray-700 whitespace-pre-wrap leading-relaxed">{history.memo}</p>
                                 </InfoBox>
                               </div>
                             )}

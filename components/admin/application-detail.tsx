@@ -1110,7 +1110,12 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
             <div>
               <span className="text-[16px] text-muted-foreground">접수번호</span>
-              <p className="font-medium">2026-05-001</p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <p className="font-medium">2026-05-001</p>
+                {application.submissionChannel === "offline" && (
+                  <span className="inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium bg-amber-50 border-amber-300 text-amber-700">수기</span>
+                )}
+              </div>
             </div>
             <div>
               <span className="text-[16px] text-muted-foreground">신청인</span>
@@ -1529,19 +1534,13 @@ export function ApplicationDetail({ application, onBack, onSave, onNavigateToLis
                                 const allShapes = [...landShapes.regular, ...landShapes.irregular];
                                 const latestHistory = matchedParcel?.analysisHistory?.slice(-1)[0];
                                 const aiShape = latestHistory?.changedOptions?.landShape ?? matchedParcel?.landShape;
-                                const citizenShapeLabel = citizenShape ? (allShapes.find(s => s.value === citizenShape)?.label ?? citizenShape) : undefined;
                                 const aiShapeLabel = aiShape ? (allShapes.find(s => s.value === aiShape)?.label ?? aiShape) : undefined;
                                 const confirmedShapeLabel = (matchedParcel?.confirmedAt && matchedParcel.landShape)
                                   ? (allShapes.find(s => s.value === matchedParcel.landShape)?.label ?? matchedParcel.landShape)
                                   : undefined;
-                                if (!citizenShapeLabel && !aiShapeLabel && !confirmedShapeLabel) return null;
+                                if (!aiShapeLabel && !confirmedShapeLabel) return null;
                                 return (
                                   <div className="flex flex-wrap gap-1 mt-1">
-                                    {citizenShapeLabel && (
-                                      <span className="inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium shrink-0 whitespace-nowrap bg-blue-50 border-blue-200 text-blue-700">
-                                        민원인 선택: {citizenShapeLabel}
-                                      </span>
-                                    )}
                                     {aiShapeLabel && (
                                       <span className="inline-flex items-center rounded-md border px-1.5 py-0.5 text-[11px] font-medium shrink-0 whitespace-nowrap bg-violet-50 border-violet-300 text-violet-700">
                                         AI 판정: {aiShapeLabel}
